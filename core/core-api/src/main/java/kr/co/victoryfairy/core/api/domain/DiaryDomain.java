@@ -1,11 +1,13 @@
 package kr.co.victoryfairy.core.api.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springdoc.core.annotations.ParameterObject;
 
 import java.util.List;
 
 public interface DiaryDomain {
 
+    @ParameterObject
     @Schema(name = "Diary.DiaryDto")
     record DiaryDto(
             // 필수 입력값
@@ -38,6 +40,7 @@ public interface DiaryDomain {
             List<String> moodList               // 기분 리스트
     ) {}
 
+    @ParameterObject
     record PartnerDto(
             @Schema(description = "함께한 사람 이름", example = "홍길동")
             String name,
@@ -46,6 +49,7 @@ public interface DiaryDomain {
             String teamName
     ) {}
 
+    @ParameterObject
     record SeatUseHistoryDto(
             @Schema(description = "좌석 식별자", example = "1")
             Long seatId,           // 좌석 식별자
