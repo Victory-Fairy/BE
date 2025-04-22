@@ -9,10 +9,11 @@ import kr.co.victoryfairy.support.exception.CustomException;
 import kr.co.victoryfairy.support.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,13 +28,21 @@ public class DiaryServiceImpl implements DiaryService {
     private final DiaryMoodRepository diaryMoodRepository;
     private final GameMatchEntityRepository gameMatchRepository;
     private final MemberEntityRepository memberEntityRepository;
+    private final TeamEntityRepository teamEntityRepository;
 
     // 일기 작성
+    @Transactional
     public DiaryDomain.DiaryDto writeDiary(DiaryDomain.DiaryDto diaryDto){
         // 로그인한 회원 조회
-        var id = RequestUtils.getId();
-        MemberEntity member = memberEntityRepository.findById(Objects.requireNonNull(id))
+        Long id = Optional.ofNullable(RequestUtils.getId())
+                .orElseThrow(() -> new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH));
+
+        MemberEntity member = memberEntityRepository.findById(id)
                 .orElseThrow(()-> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+
+        // 응원팀 조회
+        TeamEntity team = teamEntityRepository.findById(diaryDto.teamId())
+                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         // 일기를 작성할 경기 조회
         GameMatchEntity gameMatch = gameMatchRepository.findById(diaryDto.gameMatchId())
@@ -42,6 +51,7 @@ public class DiaryServiceImpl implements DiaryService {
         // 일기 필수 입력값 저장
         DiaryEntity diaryEntity = DiaryEntity.builder()
                 .member(member)
+                .team(team)
                 .teamName(diaryDto.teamName())
                 .viewType(diaryDto.viewType())
                 .gameMatch(gameMatch)

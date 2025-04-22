@@ -11,6 +11,9 @@ public interface DiaryDomain {
     @Schema(name = "Diary.DiaryDto")
     record DiaryDto(
             // 필수 입력값
+            @Schema(description = "응원팀 식별자", example = "1")
+            Long teamId,                      // 응원팀 식별자
+
             @Schema(description = "응원팀", example = "키움")
             String teamName,                    // 응원팀
 

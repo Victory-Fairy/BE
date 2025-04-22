@@ -19,11 +19,15 @@ public class DiaryEntity extends BaseEntity{
 
     @ManyToOne
     @JoinColumn(name = "member_id")
-    private MemberEntity member;                  // 회원 식별자
+    private MemberEntity member;            // 회원 식별자
 
     @ManyToOne
     @JoinColumn(name = "game_match_id")
     private GameMatchEntity gameMatch;      // 경기 식별자
+
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    private TeamEntity team;                // 응원팀 식별자
 
     @Column(name = "team_name")
     private String teamName;                // 응원팀
