@@ -97,7 +97,7 @@ public class MatchServiceImpl implements MatchService {
                                         matchAt.format(DateTimeFormatter.ofPattern("HH:mm")),
                                         stadiumEntity.getShortName(),
                                         entity.getStatus(),
-                                        entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED) ? entity.getStatus().getDesc() + " " + entity.getReason() : entity.getStatus().getDesc(),
+                                        entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED) ? entity.getReason() : entity.getStatus().getDesc(),
                                         awayTeamDto,
                                         homeTeamDto,
                                         isWrited
@@ -156,7 +156,7 @@ public class MatchServiceImpl implements MatchService {
                     time,
                     stadium,
                     status,
-                    status.equals(MatchEnum.MatchStatus.CANCELED) ? statusDetail + " " + reason : statusDetail,
+                    status.equals(MatchEnum.MatchStatus.CANCELED) ? reason : statusDetail,
                     awayTeamDto,
                     homeTeamDto,
                     isWrited
