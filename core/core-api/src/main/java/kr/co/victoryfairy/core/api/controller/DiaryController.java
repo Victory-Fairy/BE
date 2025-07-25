@@ -56,7 +56,6 @@ public class DiaryController {
         return CustomResponse.ok(response);
     }
 
-    @SecurityRequirement(name = "accessToken")
     @Operation(summary = "일자별 일기")
     @GetMapping("/daily-list")
     public CustomResponse<List<DiaryDomain.DailyListResponse>> findDailyList(@RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate date) {

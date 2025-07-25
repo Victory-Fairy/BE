@@ -456,8 +456,9 @@ public class DiaryServiceImpl implements DiaryService {
     @Override
     public List<DiaryDomain.DailyListResponse> findDailyList(LocalDate date) {
         var id = RequestUtils.getId();
+
         if (id == null) {
-            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+            return new ArrayList<>();
         }
 
         var diaryEntities = diaryCustomRepository.findDailyList(new DiaryModel.DailyListRequest(id, date));

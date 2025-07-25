@@ -21,7 +21,6 @@ public class MyPageController {
 
     private final MyPageService myPageService;
 
-    @SecurityRequirement(name = "accessToken")
     @Operation(summary = "유저 정보")
     @GetMapping("/member")
     public CustomResponse<MyPageDomain.MemberInfoForMyPageResponse> findMemberInfo() {
@@ -29,7 +28,6 @@ public class MyPageController {
         return CustomResponse.ok(response);
     }
 
-    @SecurityRequirement(name = "accessToken")
     @Operation(summary = "승요 레벨")
     @GetMapping("/victory-power")
     public CustomResponse<MyPageDomain.VictoryPowerResponse> findVictoryPower(@RequestParam(required = false) String season) {

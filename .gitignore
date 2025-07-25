@@ -6,6 +6,8 @@ build/
 !**/src/test/**/build/
 #**/src/test
 **/src/main/generated
+.deploy/
+.githooks/
 
 ### IntelliJ IDEA ###
 .idea
@@ -21,3 +23,6 @@ out/
 !*.github/
 !.github/workflows/
 !.github/workflows/*.yml
+
+###
+**/**/src/main/resources/cert/

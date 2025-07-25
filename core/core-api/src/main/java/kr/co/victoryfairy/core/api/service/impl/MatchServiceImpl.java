@@ -492,7 +492,10 @@ public class MatchServiceImpl implements MatchService {
     @Override
     public List<MatchDomain.InterestTeamMatchInfoResponse> findByTeam() {
         var id = RequestUtils.getId();
-        if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+
+        if (id == null) {
+            return new ArrayList<>();
+        }
 
         var memberEntity = memberRepository.findById(id)
                 .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));

@@ -25,8 +25,16 @@ public class AccessTokenPublicWebFilter extends PathPatternWebFilter {
         this.jwtProperties = jwtProperties;
         this.addIncludePathPatterns("/v2/api/match/list");
         this.addIncludePathPatterns("/v2/api/diary/list");
+        this.addIncludePathPatterns("/v2/api/diary/daily-list");
+        this.addIncludePathPatterns("/v2/api/member/match-today");
+        this.addIncludePathPatterns("/v2/api/my-page/member");
+        this.addIncludePathPatterns("/v2/api/my-page/victory-power");
         this.addIncludePathPatterns("/match/list");
         this.addIncludePathPatterns("/diary/list");
+        this.addIncludePathPatterns("/diary/daily-list");
+        this.addIncludePathPatterns("/member/match-today");
+        this.addIncludePathPatterns("/my-page/member");
+        this.addIncludePathPatterns("/my-page/victory-power");
     }
 
     @Override

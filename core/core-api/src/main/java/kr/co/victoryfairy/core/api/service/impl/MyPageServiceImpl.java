@@ -41,7 +41,16 @@ public class MyPageServiceImpl implements MyPageService {
     @Override
     public MyPageDomain.MemberInfoForMyPageResponse findMemberInfoForMyPage() {
         var id = RequestUtils.getId();
-        if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+
+        if (id == null) {
+            return new MyPageDomain.MemberInfoForMyPageResponse(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            );
+        }
 
         var member = memberCustomRepository.findById(id)
                 .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
@@ -61,7 +70,13 @@ public class MyPageServiceImpl implements MyPageService {
     @Override
     public MyPageDomain.VictoryPowerResponse findVictoryPower(String season) {
         var id = RequestUtils.getId();
-        if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+
+        if (id == null) {
+            return new MyPageDomain.VictoryPowerResponse(
+                    null,
+                    null
+            );
+        }
 
         var memberEntity = memberRepository.findById(id)
                 .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
