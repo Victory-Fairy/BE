@@ -143,7 +143,11 @@ public class DiaryServiceImpl implements DiaryService {
             DiaryDomain.SeatUseHistoryDto diaryDtoSeat = diaryDto.seat();
             if (diaryDtoSeat != null) {
                 // 좌석 조회
-                SeatEntity seatEntity = seatRepository.findById(diaryDtoSeat.id()).orElse(null);
+
+                SeatEntity seatEntity = null;
+                if (diaryDtoSeat.id() != null) {
+                    seatEntity = seatRepository.findById(diaryDtoSeat.id()).orElse(null);
+                }
 
                 // 좌석 이용 내역 저장
                 SeatUseHistoryEntity seatUseHistoryEntity = SeatUseHistoryEntity.builder()
@@ -315,12 +319,14 @@ public class DiaryServiceImpl implements DiaryService {
 
             // 좌석 리뷰 저장
             List<SeatReviewEntity> reviewList = new ArrayList<>();
-            for (String review : diaryDtoSeat.desc()) {
-                SeatReviewEntity seatReviewEntity = SeatReviewEntity.builder()
-                        .seatUseHistoryEntity(seatUseHistoryEntity)
-                        .seatReview(review)
-                        .build();
-                reviewList.add(seatReviewEntity);
+            if (diaryDtoSeat.desc() != null && !diaryDtoSeat.desc().isEmpty()) {
+                for (String review : diaryDtoSeat.desc()) {
+                    SeatReviewEntity seatReviewEntity = SeatReviewEntity.builder()
+                            .seatUseHistoryEntity(seatUseHistoryEntity)
+                            .seatReview(review)
+                            .build();
+                    reviewList.add(seatReviewEntity);
+                }
             }
             seatReviewRepository.saveAll(reviewList);
         }
