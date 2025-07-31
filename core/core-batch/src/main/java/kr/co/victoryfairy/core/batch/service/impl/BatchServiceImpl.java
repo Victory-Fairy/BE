@@ -182,7 +182,7 @@ public class BatchServiceImpl implements BatchService {
                     map.put("homeScore", homeScore != null ? homeScore : null);
                     map.put("status", matchStatus);
                     map.put("statusDetail", status.innerText());
-                    map.put("stadium", stadiumEntity.getFullName());
+                    map.put("stadium", stadiumEntity.getShortName());
                     map.put("stadiumId", stadiumEntity.getId());
                     map.put("reason", reason);
 
