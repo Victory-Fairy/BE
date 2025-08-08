@@ -17,7 +17,7 @@ import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
 import kr.co.victoryfairy.storage.db.core.repository.*;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.handler.RedisHandler;
+import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.support.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

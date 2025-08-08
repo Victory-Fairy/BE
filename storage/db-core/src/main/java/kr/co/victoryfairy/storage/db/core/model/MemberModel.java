@@ -21,4 +21,21 @@ public interface MemberModel {
         private String ext;
     }
 
+    record MemberListRequest(
+        MemberEnum.SnsType snsType,
+        String keyword,
+        Integer page,
+        Integer size
+    ) {}
+
+    @Getter
+    class MemberListResponse {
+        private Long id;
+        private String nickNm;
+        private MemberEnum.SnsType snsType;
+        private String email;
+        private Long teamId;
+        private String teamName;
+        private String sponsorNm;
+    }
 }

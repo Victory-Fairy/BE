@@ -1,10 +1,9 @@
 package kr.co.victoryfairy.core.event.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.dodn.springboot.core.enums.EventType;
 import kr.co.victoryfairy.core.event.model.EventDomain;
 import kr.co.victoryfairy.core.event.service.EventService;
-import kr.co.victoryfairy.support.handler.RedisHandler;
+import kr.co.victoryfairy.redis.handler.RedisHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

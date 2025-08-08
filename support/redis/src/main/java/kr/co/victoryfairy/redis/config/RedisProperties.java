@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.support.config;
+package kr.co.victoryfairy.redis.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

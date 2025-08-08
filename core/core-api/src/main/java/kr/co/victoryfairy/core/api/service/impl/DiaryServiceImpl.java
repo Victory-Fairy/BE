@@ -6,12 +6,13 @@ import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.core.api.domain.DiaryDomain;
 import kr.co.victoryfairy.core.api.domain.MatchDomain;
 import kr.co.victoryfairy.core.api.service.DiaryService;
+import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.storage.db.core.entity.*;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
 import kr.co.victoryfairy.storage.db.core.repository.*;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.handler.RedisHandler;
+
 import kr.co.victoryfairy.support.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

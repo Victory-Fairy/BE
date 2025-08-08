@@ -19,6 +19,13 @@ public interface DiaryModel {
             LocalDate date
     ) {}
 
+    record DiaryListRequest(
+            LocalDate date,
+            MatchEnum.MatchStatus status,
+            Integer page,
+            Integer size
+    ) {}
+
     @Getter
     class DiaryDto {
         Long id;
@@ -73,6 +80,20 @@ public interface DiaryModel {
             this.homeScore = homeScore;
             this.createdAt = createdAt;
         }
+    }
+
+    @Getter
+    class DiaryListResponse {
+        private Long id;
+        private Long teamId;
+        private String teamName;
+        private String content;
+
+        private Long memberId;
+        private String nickNm;
+
+        private LocalDateTime matchAt;
+        private MatchEnum.MatchStatus status;
     }
 
 }

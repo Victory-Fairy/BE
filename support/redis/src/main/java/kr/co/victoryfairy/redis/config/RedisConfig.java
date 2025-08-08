@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.support.config;
+package kr.co.victoryfairy.redis.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

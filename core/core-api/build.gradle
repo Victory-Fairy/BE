@@ -26,6 +26,7 @@ dependencies {
     implementation project(":core:core-enum")
     implementation project(":support:logging")
     implementation project(":support:common")
+    implementation project(":support:redis")
     implementation project(":storage:db-core")
 
     testImplementation project(":tests:api-docs")

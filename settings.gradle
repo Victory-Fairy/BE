@@ -24,6 +24,7 @@ include 'storage:db-core'
 include 'tests:api-docs'
 include 'support:logging'
 include 'support:common'
+include 'support:redis'
 include 'clients:client-example'
 
 
