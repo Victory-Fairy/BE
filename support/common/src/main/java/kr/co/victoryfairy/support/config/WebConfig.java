@@ -42,6 +42,18 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
+
+        registry.addMapping("/v2/admin/**")
+                .allowedOrigins(
+                        "http://localhost:8080",
+                        "http://localhost:3000",
+                        "https://victory-fairy.duckdns.org",
+                        "https://victoryfairy.shop",
+                        "https://seungyo.shop"
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 
     @Override
