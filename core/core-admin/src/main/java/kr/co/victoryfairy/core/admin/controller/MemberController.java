@@ -1,6 +1,7 @@
 package kr.co.victoryfairy.core.admin.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.admin.domain.MemberDomain;
 import kr.co.victoryfairy.core.admin.service.MemberService;
@@ -21,6 +22,7 @@ public class MemberController {
 
     private final MemberService memberService;
 
+    @SecurityRequirement(name = "accessToken")
     @Operation(summary = "회원 목록 불러오기")
     @GetMapping("/list")
     public CustomResponse<List<MemberDomain.MemberListResponse>> findList(@Validated MemberDomain.MemberListRequest request){

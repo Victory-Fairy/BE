@@ -1,6 +1,7 @@
 package kr.co.victoryfairy.core.admin.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.admin.domain.DiaryDomain;
 import kr.co.victoryfairy.core.admin.service.DiaryService;
@@ -21,6 +22,7 @@ public class DiaryController {
 
     private final DiaryService diaryService;
 
+    @SecurityRequirement(name = "accessToken")
     @Operation(summary = "일기 목록 불러오기")
     @GetMapping("/list")
     public CustomResponse<List<DiaryDomain.DiaryListResponse>> findAll(@Validated DiaryDomain.DiaryListRequest request) {

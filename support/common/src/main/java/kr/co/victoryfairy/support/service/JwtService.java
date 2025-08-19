@@ -1,13 +1,12 @@
-package kr.co.victoryfairy.core.api.service.oauth;
+package kr.co.victoryfairy.support.service;
 
-import kr.co.victoryfairy.core.api.domain.MemberDomain;
-import kr.co.victoryfairy.core.api.model.AccessTokenDto;
+import kr.co.victoryfairy.support.model.AccessTokenDto;
+import kr.co.victoryfairy.support.model.AuthModel;
 import kr.co.victoryfairy.support.model.oauth.MemberAccount;
 import kr.co.victoryfairy.support.properties.JwtProperties;
 import kr.co.victoryfairy.support.utils.AccessTokenUtils;
 import kr.co.victoryfairy.support.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,7 +23,7 @@ public class JwtService {
      * @param member
      * @return
      */
-    public AccessTokenDto makeAccessToken(MemberDomain.MemberDto member) {
+    public AccessTokenDto makeAccessToken(AuthModel.MemberDto member) {
         //사용자 IP
         String ip = RequestUtils.getRemoteIp();
 
@@ -36,6 +35,30 @@ public class JwtService {
 
         MemberAccount account = MemberAccount.builder()
                 .id(member.getId())
+                .expireMinutes(expireMinutes)
+                .ip(ip)
+                .build();
+
+        AccessTokenUtils.makeAuthToken(account, jwtProperties);
+
+        auth.setAccessToken(account.getAccessToken());
+        auth.setRefreshToken(account.getRefreshToken());
+
+        return auth;
+    }
+
+    public AccessTokenDto makeAccessToken(AuthModel.AdminDto admin) {
+        //사용자 IP
+        String ip = RequestUtils.getRemoteIp();
+
+        //유효시간:분
+        String expireMinutes = ACCESS_TOKEN_TIME_DEV;
+        // 로컬이나 개발환경에서는 세션유지 오래 되게 조건 추가
+
+        AccessTokenDto auth = new AccessTokenDto();
+
+        MemberAccount account = MemberAccount.builder()
+                .id(admin.getId())
                 .expireMinutes(expireMinutes)
                 .ip(ip)
                 .build();

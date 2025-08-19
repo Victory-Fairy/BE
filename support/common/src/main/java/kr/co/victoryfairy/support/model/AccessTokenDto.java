@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.core.api.model;
+package kr.co.victoryfairy.support.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;

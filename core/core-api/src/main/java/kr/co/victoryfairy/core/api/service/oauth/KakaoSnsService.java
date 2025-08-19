@@ -54,7 +54,8 @@ public class KakaoSnsService implements OauthService {
         param.put("grant_type", "authorization_code");
         param.put("client_id", kakaoClientId);
         param.put("client_secret", kakaoClientSecret);
-        param.put("redirect_uri", kakaoCallbackUrl);
+        //param.put("redirect_uri", kakaoCallbackUrl);
+        param.put("redirect_uri", "http://localhost:8080/auth/callbackKakao");
         param.put("code", request.code());
 
         ObjectMapper mapper = new ObjectMapper();

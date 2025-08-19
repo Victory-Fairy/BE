@@ -9,7 +9,8 @@ import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.core.api.domain.MemberDomain;
 import kr.co.victoryfairy.core.api.model.NickNameInfo;
 import kr.co.victoryfairy.core.api.service.MemberService;
-import kr.co.victoryfairy.core.api.service.oauth.JwtService;
+import kr.co.victoryfairy.support.model.AuthModel;
+import kr.co.victoryfairy.support.service.JwtService;
 import kr.co.victoryfairy.core.api.service.oauth.OauthFactory;
 import kr.co.victoryfairy.storage.db.core.entity.FileRefEntity;
 import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
@@ -69,7 +70,7 @@ public class MemberServiceImpl implements MemberService {
 
         // memberEntity 없을시 회원 가입 처리
 
-        MemberDomain.MemberDto memberDto = null;
+        AuthModel.MemberDto memberDto = null;
         if (memberInfoEntity == null) {
             MemberEntity memberEntity = MemberEntity.builder()
                     .status(MemberEnum.Status.NORMAL)
@@ -84,17 +85,6 @@ public class MemberServiceImpl implements MemberService {
                     .email(memberSns.email())
                     .build();
             memberInfoRepository.save(memberInfoEntity);    // 멤버 정보 등록
-
-            var memberInfoDto = MemberDomain.MemberInfoDto.builder()
-                    .snsType(request.snsType())
-                    .isNickNmAdded(false)
-                    .isTeamAdded(false)
-                    .build();
-
-            memberDto = MemberDomain.MemberDto.builder()
-                    .id(memberEntity.getId())
-                    .memberInfo(memberInfoDto)
-                    .build();
         }
 
         // 마지막 로그인 시간, ip 업데이트
@@ -103,12 +93,13 @@ public class MemberServiceImpl implements MemberService {
         memberRepository.save(memberEntity);
 
         var teamEntity = memberInfoEntity.getTeamEntity();
-        var memberInfoDto = MemberDomain.MemberInfoDto.builder()
+        var memberInfoDto = AuthModel.MemberInfoDto.builder()
                 .snsType(request.snsType())
                 .isNickNmAdded(StringUtils.hasText(memberInfoEntity.getNickNm()))
                 .isTeamAdded(teamEntity != null)
                 .build();
-        memberDto = MemberDomain.MemberDto.builder()
+
+        memberDto = AuthModel.MemberDto.builder()
                 .id(memberEntity.getId())
                 .memberInfo(memberInfoDto)
                 .build();
