@@ -64,7 +64,12 @@ public class CrawServiceImpl implements CrawService {
 
             List<GameMatchEntity> gameEntities = new ArrayList<>();
 
-            var beforeMatches = gameMatchRepository.findBySeason(sYear);
+            List<GameMatchEntity> beforeMatches;
+            if (StringUtils.hasText(sMonth)) {
+                beforeMatches = gameMatchCustomRepository.findByYearAndMonth(sYear, sMonth);
+            } else {
+                beforeMatches = gameMatchRepository.findBySeason(sYear);
+            }
 
             gameMatchRepository.deleteAll(beforeMatches);
 
