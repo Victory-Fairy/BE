@@ -96,16 +96,16 @@ public class MyPageServiceImpl implements MyPageService {
         var power = this.getPower(stadiumRecord, homeRecord);
 
         short level = 0;
-        if (power >= 0 && power < 20) {
-            level = 1; // Lv 1
-        } else if (power >= 20 && power < 40) {
-            level = 2; // Lv 2
-        } else if (power >= 40 && power < 60) {
-            level = 3; // Lv 3
-        } else if (power >= 60 && power < 80) {
-            level = 4; // Lv 4
-        } else if (power >= 80) {
-            level = 5; // 만렙
+        if (0 < power && power < 20) {
+            level = 1;
+        } else if (20 <= power && power < 40) {
+            level = 2;
+        } else if (40 <= power && power < 60) {
+            level = 3;
+        } else if (60 <= power && power < 80) {
+            level = 4;
+        } else if (80 <= power) {
+            level = 5;
         }
 
         return new MyPageDomain.VictoryPowerResponse(level, power);
