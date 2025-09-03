@@ -32,6 +32,9 @@ public class MemberEntity extends BaseEntity{
     @Comment("마지막 접속 아이피")
     private String lastConnectIp;
 
+    @Comment("fcm 토큰")
+    private String fcmToken;
+
     @Comment("사용여부")
     @Column(nullable = false, columnDefinition = "bit(1) DEFAULT b'1'")
     @Builder.Default
