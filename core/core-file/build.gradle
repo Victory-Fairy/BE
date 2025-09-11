@@ -19,10 +19,18 @@ bootJar {
         }
     }*/
     doLast {
+        // JAR -> .deploy 로 복사 (이건 유지)
         copy {
             from "${buildDir}/libs/core-${SERVICE}.jar"
-            into "${rootDir}"            // 루트에 복사 (혹은 원하는 위치)
-            rename { "core-${SERVICE}.jar" }
+            into "${rootDir}/.deploy"
+        }
+
+        // ❌ Jenkins에서 이미 Docker 빌드/푸시 하므로, 로컬에서만 실행되도록 가드
+        if (!project.hasProperty('ci')) {
+            exec {
+                workingDir "${rootDir}/.deploy"
+                commandLine "sh", "deploy.sh", "${SERVICE}"
+            }
         }
     }
 }
