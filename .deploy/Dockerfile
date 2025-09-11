@@ -7,4 +7,4 @@ COPY core-$SERVICE.jar app.jar
 
 EXPOSE $PORT
 
-ENTRYPOINT ["java", "-jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
