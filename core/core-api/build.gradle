@@ -5,7 +5,7 @@ ext {
 bootJar {
     enabled = true
 
-    doLast {
+    /*doLast {
         // JAR 파일을 .deploy 디렉토리로 복사
         copy {
             from "${buildDir}/libs/core-${SERVICE}.jar"
@@ -16,6 +16,13 @@ bootJar {
         exec {
             workingDir "${rootDir}/.deploy"
             commandLine "sh", "deploy.sh", "${SERVICE}"
+        }
+    }*/
+    doLast {
+        copy {
+            from "${buildDir}/libs/core-${SERVICE}.jar"
+            into "${rootDir}"            // 루트에 복사 (혹은 원하는 위치)
+            rename { "core-${SERVICE}.jar" }
         }
     }
 }
