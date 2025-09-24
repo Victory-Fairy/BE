@@ -36,7 +36,7 @@ public class DiaryWrittenConsumer {
         this.eventService = eventService;
     }
 
-    @Scheduled(fixedDelay = 1000)
+    //@Scheduled(fixedDelay = 1000)
     public void consume() {
         List<MapRecord<String, Object, Object>> messages = redisHandler.getEventMessages(key, group, consumer);
         log.info("========== event  Start ==========");

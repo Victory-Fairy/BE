@@ -85,4 +85,8 @@ public class GameMatchEntity extends BaseEntity {
     @Column(columnDefinition = "bit(1) DEFAULT b'0'")
     @Builder.Default
     private Boolean isMatchInfoCraw = false;
+
+    @Comment("경기 시작 알림 발송 여부")
+    @Column(columnDefinition = "bit(1) DEFAULT b'0'")
+    private Boolean isSendPush = false;
 }
