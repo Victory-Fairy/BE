@@ -19,7 +19,7 @@ public class FCMInitializer {
     public void initialize() throws IOException {
         Resource resource = ResourcePatternUtils
                 .getResourcePatternResolver(new DefaultResourceLoader())
-                .getResource("classpath:config/victory-fairy-69eb5-firebase-adminsdk-fbsvc-01c6b5ea5a.json");
+                .getResource("classpath:cert/victory-fairy-69eb5-firebase-adminsdk-fbsvc-01c6b5ea5a.json");
         InputStream inputStream = resource.getInputStream();
 
         FirebaseOptions options = FirebaseOptions.builder()
