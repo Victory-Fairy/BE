@@ -62,4 +62,10 @@ public interface MemberService {
      * @return
      */
     MemberDomain.RefreshTokenResponse refreshToken(String refreshToken);
+
+    /**
+     * fcm token 체크 후 수정
+     * @param fcmToken
+     */
+    void checkFcmToken(String fcmToken);
 }

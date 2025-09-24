@@ -312,6 +312,23 @@ public class MemberServiceImpl implements MemberService {
         return new MemberDomain.RefreshTokenResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
     }
 
+    @Override
+    public void checkFcmToken(String fcmToken) {
+        var id = RequestUtils.getId();
+
+        var memberEntity = memberRepository.findById(id)
+                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+
+        if (!StringUtils.hasText(memberEntity.getFcmToken()) || !memberEntity.getFcmToken().equals(fcmToken)) {
+            memberEntity.builder()
+                    .fcmToken(fcmToken)
+                    .build();
+
+            memberRepository.save(memberEntity);
+        }
+
+    }
+
     private String extractKeyFromJson(String json) {
         try {
             ObjectMapper mapper = new ObjectMapper();

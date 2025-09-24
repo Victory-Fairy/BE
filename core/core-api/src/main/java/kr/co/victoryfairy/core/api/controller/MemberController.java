@@ -115,4 +115,11 @@ public class MemberController {
         return CustomResponse.ok(response);
     }
 
+    @Operation(summary = "fcm token 체크")
+    @PatchMapping("/check-fcm")
+    public CustomResponse<MessageEnum> checkFcmToken(@RequestParam(required = true) String fcmToken) {
+        memberService.checkFcmToken(fcmToken);
+        return CustomResponse.ok(MessageEnum.Common.REQUEST);
+    }
+
 }
