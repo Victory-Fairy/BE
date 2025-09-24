@@ -98,4 +98,9 @@ public interface MemberDomain {
         Short cancel
     ) {}
 
+    @Schema(name = "Member.RefreshTokenResponse")
+    record RefreshTokenResponse(
+            String accessToken,
+            String refreshToken
+    ) {}
 }

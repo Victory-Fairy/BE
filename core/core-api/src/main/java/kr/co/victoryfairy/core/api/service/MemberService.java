@@ -56,4 +56,10 @@ public interface MemberService {
      */
     MemberDomain.MemberHomeWinRateResponse findHomeWinRate();
 
+    /**
+     * 토큰 재발행
+     * @param refreshToken
+     * @return
+     */
+    MemberDomain.RefreshTokenResponse refreshToken(String refreshToken);
 }

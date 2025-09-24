@@ -306,6 +306,12 @@ public class MemberServiceImpl implements MemberService {
         );
     }
 
+    @Override
+    public MemberDomain.RefreshTokenResponse refreshToken(String refreshToken) {
+        var accessTokenDto = jwtService.checkMemberRefreshToken(refreshToken);
+        return new MemberDomain.RefreshTokenResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
+    }
+
     private String extractKeyFromJson(String json) {
         try {
             ObjectMapper mapper = new ObjectMapper();
