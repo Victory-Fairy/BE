@@ -107,4 +107,12 @@ public class MemberController {
         return CustomResponse.ok(response);
     }
 
+
+    @Operation(summary = "토큰 재발행")
+    @PatchMapping("/refresh-token")
+    public CustomResponse<MemberDomain.RefreshTokenResponse> refreshToken(@RequestParam(required = true) String refreshToken) {
+        var response = memberService.refreshToken(refreshToken);
+        return CustomResponse.ok(response);
+    }
+
 }
