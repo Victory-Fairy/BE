@@ -24,10 +24,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static kr.co.victoryfairy.storage.db.core.entity.QDiaryEntity.diaryEntity;
+import static kr.co.victoryfairy.storage.db.core.entity.QDiaryFoodEntity.diaryFoodEntity;
 import static kr.co.victoryfairy.storage.db.core.entity.QGameMatchEntity.gameMatchEntity;
 import static kr.co.victoryfairy.storage.db.core.entity.QGameRecordEntity.gameRecordEntity;
 import static kr.co.victoryfairy.storage.db.core.entity.QMemberEntity.memberEntity;
 import static kr.co.victoryfairy.storage.db.core.entity.QMemberInfoEntity.memberInfoEntity;
+import static kr.co.victoryfairy.storage.db.core.entity.QPartnerEntity.partnerEntity;
+import static kr.co.victoryfairy.storage.db.core.entity.QSeatEntity.seatEntity;
+import static kr.co.victoryfairy.storage.db.core.entity.QSeatUseHistoryEntity.seatUseHistoryEntity;
 import static kr.co.victoryfairy.storage.db.core.entity.QStadiumEntity.stadiumEntity;
 import static kr.co.victoryfairy.storage.db.core.entity.QTeamEntity.teamEntity;
 
@@ -111,12 +115,19 @@ public class DiaryCustomRepositoryImpl extends QuerydslRepositorySupport impleme
                         , memberInfoEntity.nickNm
                         , gameMatchEntity.matchAt
                         , gameMatchEntity.status
+                        , diaryEntity.moodType
+                        , diaryEntity.viewType
+                        , diaryEntity.weatherType
                 ))
                 .from(diaryEntity)
                 .innerJoin(memberEntity).on(diaryEntity.member.id.eq(memberEntity.id))
                 .innerJoin(memberInfoEntity).on(memberEntity.id.eq(memberInfoEntity.memberEntity.id))
                 .leftJoin(teamEntity).on(diaryEntity.teamEntity.id.eq(teamEntity.id))
                 .leftJoin(gameMatchEntity).on(gameMatchEntity.id.eq(diaryEntity.gameMatchEntity.id))
+                //.leftJoin(diaryFoodEntity).on(diaryEntity.id.eq(diaryFoodEntity.diaryEntity.id))
+                //.leftJoin(partnerEntity).on(diaryEntity.id.eq(partnerEntity.diaryEntity.id))
+                //.leftJoin(seatUseHistoryEntity).on(diaryEntity.id.eq(seatUseHistoryEntity.diaryEntity.id))
+                //.leftJoin(seatEntity).on(seatUseHistoryEntity.seatEntity.id.eq(seatEntity.id))
                 .orderBy(diaryEntity.id.desc())
                 .where(this.eqMatchAt(request.date()), this.eqStatus(request.status()));
 
