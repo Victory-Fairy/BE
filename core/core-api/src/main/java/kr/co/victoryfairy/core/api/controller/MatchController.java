@@ -27,6 +27,12 @@ public class MatchController {
         return CustomResponse.ok(response);
     }
 
+    @Operation(summary = "오늘 경기 목록")
+    @GetMapping("/today")
+    public CustomResponse<MatchDomain.TodayMatchListResponse> findTodayMatch() {
+        return CustomResponse.ok(matchService.findTodayMatch());
+    }
+
     @Operation(summary = "경기 상세")
     @GetMapping("/{id}")
     public CustomResponse<MatchDomain.MatchInfoResponse> findById(@PathVariable String id) {

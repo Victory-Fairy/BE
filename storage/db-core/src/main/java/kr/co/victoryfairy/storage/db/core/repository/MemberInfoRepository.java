@@ -14,4 +14,6 @@ public interface MemberInfoRepository extends JpaRepository<MemberInfoEntity, Lo
     Optional<MemberInfoEntity> findByNickNm(String nickNm);
 
     Optional<MemberInfoEntity> findByMemberEntity(MemberEntity memberEntity);
+
+    Optional<MemberInfoEntity> findByMemberEntity_Id(Long memberId);
 }

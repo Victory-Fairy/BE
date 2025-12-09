@@ -157,17 +157,6 @@ public class DiaryServiceImpl implements DiaryService {
                         .seatName(diaryDtoSeat.name())
                         .build();
                 seatUseHistoryRepository.save(seatUseHistoryEntity);
-
-                // 좌석 리뷰 저장
-                List<SeatReviewEntity> reviewList = new ArrayList<>();
-                for (String review : diaryDtoSeat.desc()) {
-                    SeatReviewEntity seatReviewEntity = SeatReviewEntity.builder()
-                            .seatUseHistoryEntity(seatUseHistoryEntity)
-                            .seatReview(review)
-                            .build();
-                    reviewList.add(seatReviewEntity);
-                }
-                seatReviewRepository.saveAll(reviewList);
             }
 
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -317,19 +306,6 @@ public class DiaryServiceImpl implements DiaryService {
                     .seatName(diaryDtoSeat.name())
                     .build();
             seatUseHistoryRepository.save(seatUseHistoryEntity);
-
-            // 좌석 리뷰 저장
-            List<SeatReviewEntity> reviewList = new ArrayList<>();
-            if (diaryDtoSeat.desc() != null && !diaryDtoSeat.desc().isEmpty()) {
-                for (String review : diaryDtoSeat.desc()) {
-                    SeatReviewEntity seatReviewEntity = SeatReviewEntity.builder()
-                            .seatUseHistoryEntity(seatUseHistoryEntity)
-                            .seatReview(review)
-                            .build();
-                    reviewList.add(seatReviewEntity);
-                }
-            }
-            seatReviewRepository.saveAll(reviewList);
         }
 
         // 경기 결과 수정 반영
@@ -576,19 +552,9 @@ public class DiaryServiceImpl implements DiaryService {
         var seatUseHistoryEntity = seatUseHistoryRepository.findByDiaryEntityId(diaryId);
         if (seatUseHistoryEntity != null) {
             var seatEntity = seatUseHistoryEntity.getSeatEntity();
-            var seatReviewList = seatReviewRepository.findBySeatUseHistoryEntity(seatUseHistoryEntity).stream()
-                    .map(entity -> {
-                        if (entity == null) {
-                            return null;
-                        }
-                        return entity.getSeatReview();
-                    })
-                    .toList();
-
             seatUseHistoryDto = new DiaryDomain.SeatUseHistoryDto(
                     seatEntity != null ? seatEntity.getId() : null,
-                    seatUseHistoryEntity.getSeatName(),
-                    seatReviewList
+                    seatUseHistoryEntity.getSeatName()
             );
         }
 

@@ -144,7 +144,9 @@ public interface MatchDomain {
             Short homeRun,
             @Schema(description = "타점")
             Short point
-    ) {
+    ) {}
 
-    }
+    record TodayMatchListResponse(
+            List<MatchListDto> matchList
+    ) {}
 }
