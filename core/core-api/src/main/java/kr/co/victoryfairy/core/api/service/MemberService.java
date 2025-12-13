@@ -26,12 +26,6 @@ public interface MemberService {
     void updateTeam(MemberDomain.MemberTeamUpdateRequest request);
 
     /**
-     * 선점한 닉네임 조회
-     * @return
-     */
-    MemberDomain.MemberCheckNickNameResponse checkNick();
-
-    /**
      * 닉네임 중복 검사
      * @param nickNm
      * @return
@@ -68,4 +62,9 @@ public interface MemberService {
      * @param fcmToken
      */
     void checkFcmToken(String fcmToken);
+
+    /**
+     * 로그아웃 - Redis에서 Refresh Token 삭제
+     */
+    void logout();
 }

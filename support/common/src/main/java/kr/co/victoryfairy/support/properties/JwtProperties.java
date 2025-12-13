@@ -10,5 +10,17 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
+
     private String secretKey;
+
+    /**
+     * Access Token 만료 시간 (분)
+     */
+    private int accessTokenExpireMinutes;
+
+    /**
+     * Refresh Token 만료 시간 (일)
+     */
+    private int refreshTokenExpireDays;
+
 }

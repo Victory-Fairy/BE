@@ -1,14 +1,13 @@
 package kr.co.victoryfairy.core.api.service.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dodn.springboot.core.enums.DiaryEnum;
 import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.MemberEnum;
 import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.core.api.domain.MemberDomain;
-import kr.co.victoryfairy.core.api.model.NickNameInfo;
 import kr.co.victoryfairy.core.api.service.MemberService;
+import kr.co.victoryfairy.redis.lock.DistributedLock;
+import kr.co.victoryfairy.redis.lock.LockName;
 import kr.co.victoryfairy.support.model.AuthModel;
 import kr.co.victoryfairy.support.service.JwtService;
 import kr.co.victoryfairy.core.api.service.oauth.OauthFactory;
@@ -18,15 +17,15 @@ import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
 import kr.co.victoryfairy.storage.db.core.repository.*;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.support.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -44,7 +43,10 @@ public class MemberServiceImpl implements MemberService {
     private final GameRecordRepository gameRecordRepository;
 
     private final JwtService jwtService;
-    private final RedisHandler redisHandler;
+
+    @Lazy
+    @Autowired
+    private MemberServiceImpl self;
 
     @Override
     public MemberDomain.MemberOauthPathResponse getOauthPath(MemberEnum.SnsType snsType, String redirectUrl) {
@@ -56,21 +58,28 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    @Transactional
     public MemberDomain.MemberLoginResponse login(MemberDomain.MemberLoginRequest request) {
-        // TODO : 코드 정리 필요
         var service = oauthFactory.getService(request.snsType());
 
-        // sns 정보 가져오기
+        // SNS 정보 가져오기 (외부 API 호출)
         var memberSns = service.parseSnsInfo(request);
 
+        // 분산 락이 적용된 메서드 호출 (self를 통해 호출해야 AOP 적용됨)
+        return self.processLogin(request.snsType(), memberSns);
+    }
+
+    /**
+     * 실제 로그인/회원가입 처리 (분산 락 적용)
+     * - 동일 SNS 계정으로 동시 요청 시 중복 가입 방지
+     */
+    @Transactional
+    @DistributedLock(value = LockName.MEMBER_REGISTER, key = "#snsType.name() + '_' + #memberSns.snsId()")
+    public MemberDomain.MemberLoginResponse processLogin(MemberEnum.SnsType snsType, MemberDomain.MemberSns memberSns) {
         // sns 정보로 가입된 이력 확인
-        var memberInfoEntity = memberInfoRepository.findBySnsTypeAndSnsId(request.snsType(), memberSns.snsId())
+        var memberInfoEntity = memberInfoRepository.findBySnsTypeAndSnsId(snsType, memberSns.snsId())
                 .orElse(null);
 
         // memberEntity 없을시 회원 가입 처리
-
-        AuthModel.MemberDto memberDto = null;
         if (memberInfoEntity == null) {
             MemberEntity memberEntity = MemberEntity.builder()
                     .status(MemberEnum.Status.NORMAL)
@@ -81,7 +90,7 @@ public class MemberServiceImpl implements MemberService {
             memberInfoEntity = MemberInfoEntity.builder()
                     .memberEntity(memberEntity)
                     .snsId(memberSns.snsId())
-                    .snsType(request.snsType())
+                    .snsType(snsType)
                     .email(memberSns.email())
                     .build();
             memberInfoRepository.save(memberInfoEntity);    // 멤버 정보 등록
@@ -94,20 +103,19 @@ public class MemberServiceImpl implements MemberService {
 
         var teamEntity = memberInfoEntity.getTeamEntity();
         var memberInfoDto = AuthModel.MemberInfoDto.builder()
-                .snsType(request.snsType())
+                .snsType(snsType)
                 .isNickNmAdded(StringUtils.hasText(memberInfoEntity.getNickNm()))
                 .isTeamAdded(teamEntity != null)
                 .build();
 
-        memberDto = AuthModel.MemberDto.builder()
+        var memberDto = AuthModel.MemberDto.builder()
                 .id(memberEntity.getId())
                 .memberInfo(memberInfoDto)
                 .build();
 
         var accessTokenDto = jwtService.makeAccessToken(memberDto);
-        var memberInfo = new MemberDomain.MemberInfoResponse(request.snsType(), memberSns.snsId(), memberInfoDto.getIsNickNmAdded(), memberInfoDto.getIsTeamAdded());
-        var memberLoginResponse = new MemberDomain.MemberLoginResponse(memberInfo, accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
-        return memberLoginResponse;
+        var memberInfo = new MemberDomain.MemberInfoResponse(snsType, memberSns.snsId(), memberInfoDto.getIsNickNmAdded(), memberInfoDto.getIsTeamAdded());
+        return new MemberDomain.MemberLoginResponse(memberInfo, accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
     }
 
     @Override
@@ -132,63 +140,14 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public MemberDomain.MemberCheckNickNameResponse checkNick() {
-        var id = RequestUtils.getId();
-        if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
-
-        var myNick = redisHandler.getHashValue("memberNickNm", String.valueOf(id), NickNameInfo.class);
-
-        if (myNick == null) {
-            return new MemberDomain.MemberCheckNickNameResponse(null);
-        }
-
-        return new MemberDomain.MemberCheckNickNameResponse(myNick.getKey());
-    }
-
-    @Override
     public MemberDomain.MemberCheckNickDuplicateResponse checkNickNmDuplicate(String nickNm) {
         var id = RequestUtils.getId();
         if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
-        // Redis 에 저장된 nickNm 이 있는지 체크
-        var existingNick = redisHandler.getHashValue("checkNick", nickNm, NickNameInfo.class);
 
-        if (existingNick != null) {
-            var now = LocalDateTime.now();
-            // 선점된지 72시간 이내의 nickNm 인지 체크
-            if (Duration.between(existingNick.getCreatedAt(), now).toHours() < 72) {
-                return new MemberDomain.MemberCheckNickDuplicateResponse(MemberEnum.NickStatus.DUPLICATE, "중복된 닉네임입니다.");
-            }
-
-            // 72시간이 지난 경우 만료로 보고 삭제
-            redisHandler.deleteHashValue("checkNick", nickNm);
-            redisHandler.deleteHashValue("memberNickNm", String.valueOf(existingNick.getKey()));
-        }
-
-        // 이미 DB 에 저장된 닉네임인지 체크
+        // DB에 이미 저장된 닉네임인지 체크
         if (memberInfoRepository.findByNickNm(nickNm).isPresent()) {
             return new MemberDomain.MemberCheckNickDuplicateResponse(MemberEnum.NickStatus.DUPLICATE, "중복된 닉네임입니다.");
         }
-
-        // 이미 선점한 닉네임이 있을 경우 삭제 처리
-        var myNickJson = redisHandler.getHashValue("memberNickNm", String.valueOf(id));
-        if (StringUtils.hasText(myNickJson)) {
-            var myNick = extractKeyFromJson(myNickJson);
-            redisHandler.deleteHashValue("memberNickNm", String.valueOf(id));
-            redisHandler.deleteHashValue("checkNick", myNick);
-        }
-
-        var info = NickNameInfo.builder()
-                .key(String.valueOf(id))
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        var myNickInfo = NickNameInfo.builder()
-                .key(nickNm)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        redisHandler.setHashValue("checkNick", nickNm, info);
-        redisHandler.setHashValue("memberNickNm", String.valueOf(id), myNickInfo);
 
         return new MemberDomain.MemberCheckNickDuplicateResponse(MemberEnum.NickStatus.AVAILABLE, "사용 가능한 닉네임입니다.");
     }
@@ -222,16 +181,14 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public void updateMemberNickNm(MemberDomain.MemberNickNmUpdateRequest request) {
         var id = RequestUtils.getId();
         if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
 
-        var existingNick = redisHandler.getHashValue("checkNick", request.nickNm(), NickNameInfo.class);
-        if (existingNick == null) {
-            throw new CustomException(MessageEnum.CheckNick.NON_CHECK);
-        }
-        if (!Long.valueOf(existingNick.getKey()).equals(id)) {
-            throw new CustomException(MessageEnum.CheckNick.POSSESSION);
+        // DB에 이미 저장된 닉네임인지 체크
+        if (memberInfoRepository.findByNickNm(request.nickNm()).isPresent()) {
+            throw new CustomException(MessageEnum.CheckNick.DUPLICATE);
         }
 
         var memberEntity = memberRepository.findById(id)
@@ -245,10 +202,6 @@ public class MemberServiceImpl implements MemberService {
                 .build();
 
         memberInfoRepository.save(memberInfoEntity);
-
-        // Redis 에 저장된 데이터 삭제 처리
-        redisHandler.deleteHashValue("checkNick", request.nickNm());
-        redisHandler.deleteHashValue("memberNickNm", String.valueOf(id));
     }
 
     @Override
@@ -329,13 +282,11 @@ public class MemberServiceImpl implements MemberService {
 
     }
 
-    private String extractKeyFromJson(String json) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode node = mapper.readTree(json);
-            return node.get("key").asText();
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid json format", e);
-        }
+    @Override
+    public void logout() {
+        var id = RequestUtils.getId();
+        if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+
+        jwtService.logout(id);
     }
 }
