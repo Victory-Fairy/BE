@@ -1,81 +1,130 @@
 package kr.co.victoryfairy.support.service;
 
+import kr.co.victoryfairy.support.constant.MessageEnum;
+import kr.co.victoryfairy.support.exception.CustomException;
 import kr.co.victoryfairy.support.model.AccessTokenDto;
 import kr.co.victoryfairy.support.model.AuthModel;
 import kr.co.victoryfairy.support.model.oauth.MemberAccount;
 import kr.co.victoryfairy.support.properties.JwtProperties;
+import kr.co.victoryfairy.support.repository.RefreshTokenRepository;
 import kr.co.victoryfairy.support.utils.AccessTokenUtils;
 import kr.co.victoryfairy.support.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JwtService {
 
     private final JwtProperties jwtProperties;
-
-    private final String ACCESS_TOKEN_TIME = "60";
-    private final String ACCESS_TOKEN_TIME_DEV = Integer.toString(60 * 24 * 365);
+    private final RefreshTokenRepository refreshTokenRepository;
 
     /**
-     * jwt 토큰 생성(개발 단계에서는 토큰 시간을 길게 세팅)
-     * @param member
-     * @return
+     * JWT 토큰 생성 (Member용)
+     * - Access Token: jwtProperties.accessTokenExpireMinutes 사용
+     * - Refresh Token: jwtProperties.refreshTokenExpireDays 사용 + Redis 저장
      */
     public AccessTokenDto makeAccessToken(AuthModel.MemberDto member) {
-        //사용자 IP
         String ip = RequestUtils.getRemoteIp();
-
-        //유효시간:분
-        String expireMinutes = ACCESS_TOKEN_TIME_DEV;
-        // 로컬이나 개발환경에서는 세션유지 오래 되게 조건 추가
-
-        AccessTokenDto auth = new AccessTokenDto();
+        int accessTokenExpireMinutes = jwtProperties.getAccessTokenExpireMinutes();
+        int refreshTokenExpireDays = jwtProperties.getRefreshTokenExpireDays();
 
         MemberAccount account = MemberAccount.builder()
                 .id(member.getId())
-                .expireMinutes(expireMinutes)
+                .expireMinutes(String.valueOf(accessTokenExpireMinutes))
                 .ip(ip)
                 .build();
 
-        AccessTokenUtils.makeAuthToken(account, jwtProperties);
+        // Access Token, Refresh Token 생성
+        AccessTokenUtils.makeAuthToken(account, jwtProperties, refreshTokenExpireDays);
 
-        auth.setAccessToken(account.getAccessToken());
-        auth.setRefreshToken(account.getRefreshToken());
+        // Refresh Token을 Redis에 저장
+        refreshTokenRepository.save(member.getId(), account.getRefreshToken(), refreshTokenExpireDays);
+        log.info("토큰 발급 완료 - memberId: {}, accessTokenExpire: {}분, refreshTokenExpire: {}일",
+                member.getId(), accessTokenExpireMinutes, refreshTokenExpireDays);
 
-        return auth;
+        return AccessTokenDto.builder()
+                .accessToken(account.getAccessToken())
+                .refreshToken(account.getRefreshToken())
+                .build();
     }
 
+    /**
+     * JWT 토큰 생성 (Admin용)
+     */
     public AccessTokenDto makeAccessToken(AuthModel.AdminDto admin) {
-        //사용자 IP
         String ip = RequestUtils.getRemoteIp();
-
-        //유효시간:분
-        String expireMinutes = ACCESS_TOKEN_TIME_DEV;
-        // 로컬이나 개발환경에서는 세션유지 오래 되게 조건 추가
-
-        AccessTokenDto auth = new AccessTokenDto();
+        int accessTokenExpireMinutes = jwtProperties.getAccessTokenExpireMinutes();
+        int refreshTokenExpireDays = jwtProperties.getRefreshTokenExpireDays();
 
         MemberAccount account = MemberAccount.builder()
                 .id(admin.getId())
-                .expireMinutes(expireMinutes)
+                .expireMinutes(String.valueOf(accessTokenExpireMinutes))
                 .ip(ip)
                 .build();
 
-        AccessTokenUtils.makeAuthToken(account, jwtProperties);
+        // Access Token, Refresh Token 생성
+        AccessTokenUtils.makeAuthToken(account, jwtProperties, refreshTokenExpireDays);
 
-        auth.setAccessToken(account.getAccessToken());
-        auth.setRefreshToken(account.getRefreshToken());
+        // Refresh Token을 Redis에 저장
+        refreshTokenRepository.save(admin.getId(), account.getRefreshToken(), refreshTokenExpireDays);
+        log.info("관리자 토큰 발급 완료 - adminId: {}", admin.getId());
 
-        return auth;
+        return AccessTokenDto.builder()
+                .accessToken(account.getAccessToken())
+                .refreshToken(account.getRefreshToken())
+                .build();
     }
 
+    /**
+     * Refresh Token 검증 및 토큰 재발급 (Rotation 적용)
+     * - Redis에 저장된 Refresh Token과 비교 검증
+     * - 검증 성공 시 새로운 Access Token + Refresh Token 발급
+     * - 기존 Refresh Token은 무효화 (Rotation)
+     */
     public AccessTokenDto checkMemberRefreshToken(String refreshToken) {
-        MemberAccount memberAccount = AccessTokenUtils.checkRefreshToken(refreshToken, jwtProperties);
+        // JWT 자체 검증 (서명, 만료 등)
+        MemberAccount memberAccount = AccessTokenUtils.parseRefreshToken(refreshToken, jwtProperties);
+
+        // Redis에 저장된 Refresh Token과 비교
+        boolean isValid = refreshTokenRepository.validate(memberAccount.getId(), refreshToken);
+        if (!isValid) {
+            log.warn("Refresh Token 불일치 또는 만료 - memberId: {}", memberAccount.getId());
+            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+        }
+
+        // 새 토큰 발급 (Rotation)
+        int accessTokenExpireMinutes = jwtProperties.getAccessTokenExpireMinutes();
+        int refreshTokenExpireDays = jwtProperties.getRefreshTokenExpireDays();
+
+        memberAccount.setExpireMinutes(String.valueOf(accessTokenExpireMinutes));
+        AccessTokenUtils.makeAuthToken(memberAccount, jwtProperties, refreshTokenExpireDays);
+
+        // 새 Refresh Token을 Redis에 저장 (기존 토큰 대체)
+        refreshTokenRepository.rotate(memberAccount.getId(), memberAccount.getRefreshToken(), refreshTokenExpireDays);
+        log.info("토큰 갱신 완료 (Rotation) - memberId: {}", memberAccount.getId());
+
         return AccessTokenDto.builder()
                 .accessToken(memberAccount.getAccessToken())
                 .refreshToken(memberAccount.getRefreshToken())
                 .build();
+    }
+
+    /**
+     * 로그아웃 - Redis에서 Refresh Token 삭제
+     */
+    public void logout(Long memberId) {
+        refreshTokenRepository.delete(memberId);
+        log.info("로그아웃 처리 완료 - memberId: {}", memberId);
+    }
+
+    /**
+     * 강제 로그아웃 (관리자용)
+     */
+    public void forceLogout(Long memberId) {
+        refreshTokenRepository.delete(memberId);
+        log.info("강제 로그아웃 처리 완료 - memberId: {}", memberId);
     }
 }

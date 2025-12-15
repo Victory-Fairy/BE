@@ -47,9 +47,11 @@ public class MemberController {
         return CustomResponse.ok(response);
     }
 
+    @SecurityRequirement(name = "accessToken")
     @Operation(summary = "로그아웃")
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public CustomResponse<MessageEnum> logout() {
+        memberService.logout();
         return CustomResponse.ok(MessageEnum.Auth.LOGOUT);
     }
 
@@ -59,14 +61,6 @@ public class MemberController {
     public CustomResponse<MessageEnum> updateTeam(@RequestBody  @Validated MemberDomain.MemberTeamUpdateRequest request) {
         memberService.updateTeam(request);
         return CustomResponse.ok(MessageEnum.Common.UPDATE);
-    }
-
-    @SecurityRequirement(name = "accessToken")
-    @Operation(summary = "선점한 닉네임 있는지 체크")
-    @GetMapping("/check-nick")
-    public CustomResponse<MemberDomain.MemberCheckNickNameResponse> checkNick() {
-        var response = memberService.checkNick();
-        return CustomResponse.ok(response);
     }
 
     @SecurityRequirement(name = "accessToken")
@@ -113,6 +107,13 @@ public class MemberController {
     public CustomResponse<MemberDomain.RefreshTokenResponse> refreshToken(@RequestParam(required = true) String refreshToken) {
         var response = memberService.refreshToken(refreshToken);
         return CustomResponse.ok(response);
+    }
+
+    @Operation(summary = "fcm token 체크")
+    @PatchMapping("/check-fcm")
+    public CustomResponse<MessageEnum> checkFcmToken(@RequestParam(required = true) String fcmToken) {
+        memberService.checkFcmToken(fcmToken);
+        return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
 
 }

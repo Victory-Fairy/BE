@@ -94,10 +94,7 @@ public interface DiaryDomain {
             Long id,           // 좌석 식별자
 
             @Schema(description = "좌석 이름")
-            String name,     // 좌석 번호
-
-            @Schema(description = "좌석 리뷰", example = "[\"탁 트인 시야\", \"넓은 공간\"]")
-            List<String> desc // 좌석 리뷰
+            String name
     ) {
     }
 
@@ -113,6 +110,7 @@ public interface DiaryDomain {
             Long teamId,
             LocalDate date,
             ImageDto image,
+            List<ImageDto> images,
             MatchEnum.ResultType result
     ) {}
 
@@ -135,6 +133,8 @@ public interface DiaryDomain {
             String content,
             @Schema(description = "경기 결과")
             MatchEnum.ResultType result,
+            @Schema(description = "경기 상태")
+            MatchEnum.MatchStatus status,
             @Schema(description = "이미지")
             ImageDto image,
             @Schema(description = "등록 일자")

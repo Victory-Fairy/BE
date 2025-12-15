@@ -61,12 +61,6 @@ public interface MemberDomain {
             Long teamId
     ) {}
 
-    @Schema(name = "Member.MemberLoginRequest")
-    record MemberCheckNickNameResponse(
-            @Schema(description = "닉네임")
-            String nickNm
-    ) {}
-
     record MemberCheckNickDuplicateResponse(
             MemberEnum.NickStatus status,
             String message

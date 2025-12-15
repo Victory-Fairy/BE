@@ -1,4 +1,8 @@
-HELP.md
+### Markdown (README.md, LICENCE.md 제외)
+*.md
+!README.md
+!LICENCE.md
+
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar

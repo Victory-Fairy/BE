@@ -82,8 +82,6 @@ public interface  MessageEnum {
     enum CheckNick implements EnumDescriptor {
         AVAILABLE("사용 가능한 닉네임입니다.", "Available nickname."),
         DUPLICATE("중복된 닉네임입니다.", "Duplicated nickname."),
-        NON_CHECK("중복 검사가 안된 닉네임입니다", "Non check nickname."),
-        POSSESSION("다른 사람이 선점한 닉네임입니다.", "Possession nickname."),
         ;
         private String descKr;
         private String descEn;

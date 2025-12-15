@@ -3,6 +3,7 @@ package kr.co.victoryfairy.core.batch.service.impl;
 import com.microsoft.playwright.*;
 import io.dodn.springboot.core.enums.EventType;
 import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.core.batch.model.PushEventDto;
 import kr.co.victoryfairy.core.batch.model.WriteEventDto;
 import kr.co.victoryfairy.core.batch.service.BatchService;
 import kr.co.victoryfairy.storage.db.core.entity.*;
@@ -191,9 +192,15 @@ public class BatchServiceImpl implements BatchService {
                         String finalId = id;
                         switch (matchStatus) {
                             case PROGRESS -> {
+                                if (!matchEntity.getIsSendPush()) {
+                                    var pushEventDto = new PushEventDto(finalId, matchEntity.getAwayTeamEntity().getId(), matchEntity.getHomeTeamEntity().getId(), MatchEnum.MatchStatus.PROGRESS);
+                                    redisHandler.pushEvent("push_fcm", pushEventDto);
+                                }
+
                                 matchEntity = matchEntity.toBuilder()
                                         .reason(reason)
                                         .status(matchStatus)
+                                        .isSendPush(true)
                                         .build();
                                 gameMatchRepository.save(matchEntity);
                             }
@@ -203,31 +210,37 @@ public class BatchServiceImpl implements BatchService {
                                         .homeScore(homeScore)
                                         .status(matchStatus)
                                         .build();
-                                gameMatchRepository.save(matchEntity);
+                                //gameMatchRepository.save(matchEntity);
 
-                                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                                /*TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                                     @Override
                                     public void afterCommit() {
                                         var writeEventDto = new WriteEventDto(finalId, null, null, EventType.BATCH);
                                         redisHandler.pushEvent("write_diary", writeEventDto);
                                     }
-                                });
+                                });*/
 
                             }
                             case CANCELED -> {
+                                if (!matchEntity.getIsSendPush()) {
+                                    var pushEventDto = new PushEventDto(finalId, matchEntity.getAwayTeamEntity().getId(), matchEntity.getHomeTeamEntity().getId(), MatchEnum.MatchStatus.CANCELED);
+                                    redisHandler.pushEvent("push_fcm", pushEventDto);
+                                }
+
                                 matchEntity = matchEntity.toBuilder()
                                         .reason(reason)
                                         .status(matchStatus)
+                                        .isSendPush(true)
                                         .build();
                                 gameMatchRepository.save(matchEntity);
 
-                                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                                /*TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                                     @Override
                                     public void afterCommit() {
                                         var writeEventDto = new WriteEventDto(finalId, null, null, EventType.BATCH);
                                         redisHandler.pushEvent("write_diary", writeEventDto);
                                     }
-                                });
+                                });*/
                             }
                         }
                     }
@@ -243,12 +256,12 @@ public class BatchServiceImpl implements BatchService {
 
         var now = LocalDate.now();
         var todayMatches = gameMatchEntityCustomRepository.findByMatchAt(now);
-        boolean noProgressMatch = todayMatches.stream()
+        /*boolean noProgressMatch = todayMatches.stream()
                 .noneMatch(match -> match.getStatus() == MatchEnum.MatchStatus.PROGRESS);
 
         if (noProgressMatch) {
             redisHandler.deleteHash(formattedDate + "_match_list");
-        }
+        }*/
     }
 
     @Override

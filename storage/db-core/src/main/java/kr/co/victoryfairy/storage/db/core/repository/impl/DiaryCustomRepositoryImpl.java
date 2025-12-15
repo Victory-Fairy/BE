@@ -75,6 +75,7 @@ public class DiaryCustomRepositoryImpl extends QuerydslRepositorySupport impleme
                         , diaryEntity.id
                         , diaryEntity.teamEntity.id.as("teamId")
                         , diaryEntity.content
+                        , gameMatchEntity.id.as("gameMatchId")
                         , gameMatchEntity.matchAt
                         , awayEntity.id.as("awayTeamId")
                         , awayEntity.name.as("awayTeamName")

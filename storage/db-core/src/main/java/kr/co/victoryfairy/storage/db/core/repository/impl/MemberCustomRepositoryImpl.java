@@ -15,6 +15,7 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static kr.co.victoryfairy.storage.db.core.entity.QFileEntity.fileEntity;
@@ -85,6 +86,25 @@ public class MemberCustomRepositoryImpl extends QuerydslRepositorySupport implem
                         ,eqSnsType(request.snsType())
                 );
         return PageUtils.getPageResult(query, pageRequest);
+    }
+
+    @Override
+    public List<MemberModel.MemberInfo> findFcmTokenByTeamId(Long awayId, Long homeId) {
+        return jpaQueryFactory
+                .select(Projections.fields(MemberModel.MemberInfo.class
+                        , memberEntity.id
+                        , memberEntity.fcmToken
+                        , memberInfoEntity.nickNm
+                        , memberInfoEntity.snsType
+                        , teamEntity.id.as("teamId")
+                        , teamEntity.name.as("teamName")
+                        , teamEntity.sponsorNm
+                ))
+                .from(memberEntity)
+                .innerJoin(memberInfoEntity).on(memberInfoEntity.memberEntity.id.eq(memberEntity.id))
+                .leftJoin(teamEntity).on(memberInfoEntity.teamEntity.id.eq(teamEntity.id))
+                .where(memberInfoEntity.teamEntity.id.in(awayId, homeId))
+                .fetch();
     }
 
     private BooleanExpression likeKeyword(String keyword) {

@@ -11,6 +11,8 @@ public interface MemberModel {
         private String nickNm;
         private MemberEnum.SnsType snsType;
 
+        private String fcmToken;
+
         private Long teamId;
         private String teamName;
         private String sponsorNm;
