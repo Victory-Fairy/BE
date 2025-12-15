@@ -2,6 +2,7 @@ package kr.co.victoryfairy.core.api.service.impl;
 
 import io.dodn.springboot.core.enums.DiaryEnum;
 import io.dodn.springboot.core.enums.MatchEnum;
+import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.core.api.domain.MyPageDomain;
 import kr.co.victoryfairy.core.api.service.MyPageService;
 import kr.co.victoryfairy.storage.db.core.entity.GameRecordEntity;
@@ -350,8 +351,8 @@ public class MyPageServiceImpl implements MyPageService {
                 .map(entity -> entity.getId())
                 .toList();
 
-        var diaryFoodEntities = diaryFoodRepository.findAllByDiaryEntityIdIn(diaryIds);
-        var partnerEntities = partnerRepository.findAllByDiaryEntityIdIn(diaryIds);
+        var diaryFoodEntities = diaryFoodRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds);
+        var partnerEntities = partnerRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds);
         var seatUserEntities = seatUseHistoryRepository.findAllByDiaryEntityIdIn(diaryIds);
         var seatReviewEntities = seatReviewRepository.findAllBySeatUseHistoryEntityIdIn(seatUserEntities.stream().map(entity -> entity.getId()).toList());
 

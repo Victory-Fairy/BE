@@ -1,5 +1,6 @@
 package kr.co.victoryfairy.storage.db.core.entity;
 
+import io.dodn.springboot.core.enums.RefType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,9 +19,13 @@ public class PartnerEntity extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;                    // 함께한 사람 식별자
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "diary_id")
-    private DiaryEntity diaryEntity;                // 일기 식별자
+    @Comment("참조 ID")
+    @Column(name = "ref_id")
+    private Long refId;
+
+    @Comment("참조 구분")
+    @Enumerated(EnumType.STRING)
+    private RefType refType;
 
     private String name;                // 함께한 사람 이름
 

@@ -31,6 +31,7 @@ public interface DiaryModel {
         Long id;
         Long teamId;
         String content;
+        String gameMatchId;
 
         LocalDateTime matchAt;
         MatchEnum.ResultType resultType;
@@ -38,7 +39,7 @@ public interface DiaryModel {
         String shortName;
         String fullName;
 
-        MatchEnum.MatchStatus matchStatus;
+        MatchEnum.MatchStatus status;
 
         Long awayTeamId;
         String awayTeamName;
@@ -71,7 +72,7 @@ public interface DiaryModel {
             this.resultType = resultType;
             this.shortName = shortName;
             this.fullName = fullName;
-            this.matchStatus = matchStatus;
+            this.status = matchStatus;
             this.awayTeamId = awayTeamId;
             this.awayTeamName = awayTeamName;
             this.awayScore = awayScore;

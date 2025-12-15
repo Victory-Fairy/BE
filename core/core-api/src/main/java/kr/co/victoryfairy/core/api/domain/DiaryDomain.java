@@ -110,6 +110,7 @@ public interface DiaryDomain {
             Long teamId,
             LocalDate date,
             ImageDto image,
+            List<ImageDto> images,
             MatchEnum.ResultType result
     ) {}
 
@@ -132,6 +133,8 @@ public interface DiaryDomain {
             String content,
             @Schema(description = "경기 결과")
             MatchEnum.ResultType result,
+            @Schema(description = "경기 상태")
+            MatchEnum.MatchStatus status,
             @Schema(description = "이미지")
             ImageDto image,
             @Schema(description = "등록 일자")
