@@ -7,6 +7,7 @@ import org.springdoc.core.annotations.ParameterObject;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface DiaryDomain {
 
@@ -34,6 +35,10 @@ public interface DiaryDomain {
             String nickNm,
 
             LocalDateTime matchAt,
-            MatchEnum.MatchStatus status
+            MatchEnum.MatchStatus status,
+
+            List<String> foods,
+            List<String> partners,
+            List<String> seatUseHistories
     ) {}
 }

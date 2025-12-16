@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface DiaryModel {
 
@@ -95,6 +96,22 @@ public interface DiaryModel {
 
         private LocalDateTime matchAt;
         private MatchEnum.MatchStatus status;
+
+        private List<String> foods;
+        private List<String> partners;
+        private List<String> seatUseHistories;
+
+        public void setFoods(List<String> foods) {
+            this.foods = foods;
+        }
+
+        public void setPartners(List<String> partners) {
+            this.partners = partners;
+        }
+
+        public void setSeatUseHistories(List<String> seatUseHistories) {
+            this.seatUseHistories = seatUseHistories;
+        }
     }
 
 }
