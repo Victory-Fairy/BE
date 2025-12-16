@@ -1,7 +1,10 @@
 package kr.co.victoryfairy.core.admin.service.impl;
 
+import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.core.admin.domain.DiaryDomain;
 import kr.co.victoryfairy.core.admin.service.DiaryService;
+import kr.co.victoryfairy.storage.db.core.entity.DiaryFoodEntity;
+import kr.co.victoryfairy.storage.db.core.entity.PartnerEntity;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryFoodRepository;
@@ -10,11 +13,12 @@ import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
 import kr.co.victoryfairy.support.config.MapStructConfig;
 import kr.co.victoryfairy.support.model.PageResult;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.*;
 
 import static java.util.stream.Collectors.*;
 
@@ -35,33 +39,27 @@ public class DiaryServiceImpl implements DiaryService {
                 .map(DiaryModel.DiaryListResponse::getId)
                 .toList();
 
-        var diaryFoods = diaryFoodRepository.findAllByDiaryEntityIdIn(diaryIds)
+        var diaryFoods = diaryFoodRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds)
                 .stream()
+                .collect(groupingBy(
+                        DiaryFoodEntity::getRefId,
+                        mapping(DiaryFoodEntity::getFoodName, toList())
+                ));
+
+        var partners = partnerRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds)
+                .stream()
+                .collect(groupingBy(
+                        PartnerEntity::getRefId,
+                        mapping(PartnerEntity::getName, toList())
+                ));
+
+        var seatUseHistories = seatUseHistoryRepository.findAllByDiaryEntityIdIn(diaryIds)
+                .stream()
+                .filter(entity -> entity.getSeatEntity() != null)
                 .collect(groupingBy(
                         entity -> entity.getDiaryEntity().getId(),
                         mapping(
-                                entity -> entity.getFoodName(),
-                                toList()
-                        )
-                ));
-
-        var partners = partnerRepository.findAllByDiaryEntityIdIn(diaryIds)
-                .stream()
-                .collect(groupingBy(
-                        entity -> entity.getDiaryEntity().getId(),
-                        mapping(
-                                entity -> entity.getName(),
-                                toList()
-                        )
-                ));
-
-        var seatUseHistories  = seatUseHistoryRepository.findAllByDiaryEntityIdIn(diaryIds)
-                .stream()
-                .filter((entity) -> entity.getSeatEntity() != null)
-                .collect(groupingBy(
-                        entity -> entity.getDiaryEntity().getId(),          // key: diaryId
-                        mapping(
-                                entity -> entity.getSeatEntity().getName() + " " + entity.getSeatName(),  // value: String
+                                entity -> entity.getSeatEntity().getName() + " " + entity.getSeatName(),
                                 toList()
                         )
                 ));

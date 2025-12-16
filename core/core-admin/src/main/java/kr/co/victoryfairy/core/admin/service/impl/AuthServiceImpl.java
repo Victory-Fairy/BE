@@ -56,4 +56,10 @@ public class AuthServiceImpl implements AuthService {
         adminRepository.save(admin);
         return new AuthDomain.LoginResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
     }
+
+    @Override
+    public AuthDomain.RefreshTokenResponse refreshToken(String refreshToken) {
+        var accessTokenDto = jwtService.checkMemberRefreshToken(refreshToken);
+        return new AuthDomain.RefreshTokenResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
+    }
 }

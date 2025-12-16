@@ -18,4 +18,10 @@ public interface AuthDomain {
             String refreshToken
     ) {}
 
+    @Schema(name = "Auth.RefreshTokenResponse")
+    record RefreshTokenResponse(
+            String accessToken,
+            String refreshToken
+    ) {}
+
 }

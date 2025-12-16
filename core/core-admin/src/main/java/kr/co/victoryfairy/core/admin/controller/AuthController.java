@@ -7,10 +7,9 @@ import kr.co.victoryfairy.core.admin.service.AuthService;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.model.CustomResponse;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+
 
 @Tag(name = "Auth", description = "인증")
 @RestController
@@ -27,6 +26,13 @@ public class AuthController {
     @PostMapping("/login")
     public CustomResponse<AuthDomain.LoginResponse> login(@Validated @RequestBody AuthDomain.LoginRequest request) {
         var response = authService.login(request);
+        return CustomResponse.ok(response);
+    }
+
+    @Operation(summary = "토큰 재발행")
+    @PatchMapping("/refresh-token")
+    public CustomResponse<AuthDomain.RefreshTokenResponse> refreshToken(@RequestParam(required = true) String refreshToken) {
+        var response = authService.refreshToken(refreshToken);
         return CustomResponse.ok(response);
     }
 
