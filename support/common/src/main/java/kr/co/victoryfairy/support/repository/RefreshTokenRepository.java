@@ -26,6 +26,7 @@ public class RefreshTokenRepository {
 	private final RedisTemplate<String, Object> redisTemplate;
 
 	private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
+	private static final String ADMIN_REFRESH_TOKEN_PREFIX = "admin_refresh_token:";
 
 	/**
 	 * Refresh Token 저장
@@ -102,6 +103,63 @@ public class RefreshTokenRepository {
 
 	private String generateKey(Long memberId) {
 		return REFRESH_TOKEN_PREFIX + memberId;
+	}
+
+	private String generateAdminKey(Long adminId) {
+		return ADMIN_REFRESH_TOKEN_PREFIX + adminId;
+	}
+
+	// ==================== Admin용 메서드 ====================
+
+	/**
+	 * Admin Refresh Token 저장
+	 */
+	public void saveAdmin(Long adminId, String refreshToken, int expireDays) {
+		String key = generateAdminKey(adminId);
+		redisTemplate.opsForValue().set(key, refreshToken, expireDays, TimeUnit.DAYS);
+		log.debug("Admin Refresh Token 저장 - adminId: {}, expireDays: {}", adminId, expireDays);
+	}
+
+	/**
+	 * Admin Refresh Token 조회
+	 */
+	public String findByAdminId(Long adminId) {
+		String key = generateAdminKey(adminId);
+		Object token = redisTemplate.opsForValue().get(key);
+		return token != null ? token.toString() : null;
+	}
+
+	/**
+	 * Admin Refresh Token 유효성 검증
+	 */
+	public boolean validateAdmin(Long adminId, String refreshToken) {
+		String storedToken = findByAdminId(adminId);
+		if (storedToken == null) {
+			log.debug("Admin Refresh Token 없음 - adminId: {}", adminId);
+			return false;
+		}
+		boolean isValid = storedToken.equals(refreshToken);
+		if (!isValid) {
+			log.warn("Admin Refresh Token 불일치 - adminId: {}", adminId);
+		}
+		return isValid;
+	}
+
+	/**
+	 * Admin Refresh Token 삭제 (로그아웃)
+	 */
+	public void deleteAdmin(Long adminId) {
+		String key = generateAdminKey(adminId);
+		Boolean deleted = redisTemplate.delete(key);
+		log.debug("Admin Refresh Token 삭제 - adminId: {}, deleted: {}", adminId, deleted);
+	}
+
+	/**
+	 * Admin Refresh Token 갱신 (Rotation)
+	 */
+	public void rotateAdmin(Long adminId, String newRefreshToken, int expireDays) {
+		saveAdmin(adminId, newRefreshToken, expireDays);
+		log.debug("Admin Refresh Token 갱신 - adminId: {}", adminId);
 	}
 
 }

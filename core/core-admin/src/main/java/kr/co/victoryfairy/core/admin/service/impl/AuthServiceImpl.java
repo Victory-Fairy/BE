@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthDomain.RefreshTokenResponse refreshToken(String refreshToken) {
-        var accessTokenDto = jwtService.checkMemberRefreshToken(refreshToken);
+        var accessTokenDto = jwtService.checkAdminRefreshToken(refreshToken);
         return new AuthDomain.RefreshTokenResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
     }
 }

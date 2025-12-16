@@ -68,8 +68,8 @@ public class JwtService {
         // Access Token, Refresh Token 생성
         AccessTokenUtils.makeAuthToken(account, jwtProperties, refreshTokenExpireDays);
 
-        // Refresh Token을 Redis에 저장
-        refreshTokenRepository.save(admin.getId(), account.getRefreshToken(), refreshTokenExpireDays);
+        // Refresh Token을 Redis에 저장 (Admin용 prefix 사용)
+        refreshTokenRepository.saveAdmin(admin.getId(), account.getRefreshToken(), refreshTokenExpireDays);
         log.info("관리자 토큰 발급 완료 - adminId: {}", admin.getId());
 
         return AccessTokenDto.builder()
@@ -109,6 +109,37 @@ public class JwtService {
         return AccessTokenDto.builder()
                 .accessToken(memberAccount.getAccessToken())
                 .refreshToken(memberAccount.getRefreshToken())
+                .build();
+    }
+
+    /**
+     * Admin Refresh Token 검증 및 토큰 재발급 (Rotation 적용)
+     */
+    public AccessTokenDto checkAdminRefreshToken(String refreshToken) {
+        // JWT 자체 검증 (서명, 만료 등)
+        MemberAccount adminAccount = AccessTokenUtils.parseRefreshToken(refreshToken, jwtProperties);
+
+        // Redis에 저장된 Admin Refresh Token과 비교
+        boolean isValid = refreshTokenRepository.validateAdmin(adminAccount.getId(), refreshToken);
+        if (!isValid) {
+            log.warn("Admin Refresh Token 불일치 또는 만료 - adminId: {}", adminAccount.getId());
+            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+        }
+
+        // 새 토큰 발급 (Rotation)
+        int accessTokenExpireMinutes = jwtProperties.getAccessTokenExpireMinutes();
+        int refreshTokenExpireDays = jwtProperties.getRefreshTokenExpireDays();
+
+        adminAccount.setExpireMinutes(String.valueOf(accessTokenExpireMinutes));
+        AccessTokenUtils.makeAuthToken(adminAccount, jwtProperties, refreshTokenExpireDays);
+
+        // 새 Refresh Token을 Redis에 저장 (기존 토큰 대체)
+        refreshTokenRepository.rotateAdmin(adminAccount.getId(), adminAccount.getRefreshToken(), refreshTokenExpireDays);
+        log.info("Admin 토큰 갱신 완료 (Rotation) - adminId: {}", adminAccount.getId());
+
+        return AccessTokenDto.builder()
+                .accessToken(adminAccount.getAccessToken())
+                .refreshToken(adminAccount.getRefreshToken())
                 .build();
     }
 
