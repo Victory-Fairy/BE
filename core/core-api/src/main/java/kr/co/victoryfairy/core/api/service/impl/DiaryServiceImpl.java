@@ -643,7 +643,8 @@ public class DiaryServiceImpl implements DiaryService {
             var seatEntity = seatUseHistoryEntity.getSeatEntity();
             seatUseHistoryDto = new DiaryDomain.SeatUseHistoryDto(
                     seatEntity != null ? seatEntity.getId() : null,
-                    seatUseHistoryEntity.getSeatName()
+                    seatUseHistoryEntity.getSeatName(),
+                    List.of()
             );
         }
 
