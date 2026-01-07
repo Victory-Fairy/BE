@@ -442,10 +442,20 @@ public class DiaryServiceImpl implements DiaryService {
                         }
                     }
 
-                    return new DiaryDomain.DailyListResponse(entity.getId(), entity.getShortName(),
-                                                            entity.getMatchAt().toLocalDate(), entity.getMatchAt().format(DateTimeFormatter.ofPattern("HH:mm")),
-                                                            entity.getTeamId(), awayTeamDto, homeTeamDto, entity.getContent(),
-                                                            myResult, status, imageDto, entity.getCreatedAt()
+                    return new DiaryDomain.DailyListResponse(
+                                                            entity.getId(),
+                                                            entity.getShortName(),
+                                                            entity.getMatchAt().toLocalDate(),
+                                                            entity.getMatchAt().format(DateTimeFormatter.ofPattern("HH:mm")),
+                                                            entity.getTeamId(),
+                                                            awayTeamDto,
+                                                            homeTeamDto,
+                                                            entity.getContent(),
+                                                            myResult,
+                                                            status,
+                                                            status.getDesc(),
+                                                            imageDto,
+                                                            entity.getCreatedAt()
                     );
                 })
                 .toList();

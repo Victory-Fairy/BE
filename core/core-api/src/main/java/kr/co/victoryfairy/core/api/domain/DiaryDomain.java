@@ -141,6 +141,8 @@ public interface DiaryDomain {
             MatchEnum.ResultType result,
             @Schema(description = "경기 상태")
             MatchEnum.MatchStatus status,
+            @Schema(description = "경기 상세")
+            String statusDetail,
             @Schema(description = "이미지")
             ImageDto image,
             @Schema(description = "등록 일자")
