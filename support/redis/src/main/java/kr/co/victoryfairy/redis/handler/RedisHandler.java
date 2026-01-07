@@ -27,13 +27,6 @@ public class RedisHandler {
 
     private Logger log = LoggerFactory.getLogger(RedisHandler.class);
 
-    public void setString(String key, String value) {
-        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-        valueOperations.set(key, value);
-        System.out.println(valueOperations.get(key));
-        redisTemplate.convertAndSend("", "dfdf");
-    }
-
     public void setMap(String key, Map<String, String> map) {
         HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
         hashOperations.putAll(key, map);
@@ -87,7 +80,7 @@ public class RedisHandler {
         try {
             return objectMapper.readValue(json.toString(), clazz);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("Redis JSON 역직렬화 실패 - hashKey: {}, key: {}", hashKey, key, e);
             throw new CustomException(MessageEnum.Common.REQUEST_FAIL);
         }
     }
@@ -100,7 +93,7 @@ public class RedisHandler {
             String json = objectMapper.writeValueAsString(value);
             redisTemplate.opsForHash().put(hashKey, key, json);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("Redis JSON 직렬화 실패 - hashKey: {}, key: {}", hashKey, key, e);
             throw new CustomException(MessageEnum.Common.REQUEST_FAIL);
         }
     }
@@ -120,7 +113,7 @@ public class RedisHandler {
             Map<String, String> map = objectMapper.convertValue(obj, new TypeReference<>() {});
             redisTemplate.opsForStream().add(channel, map);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Redis Stream 이벤트 발행 실패 - channel: {}", channel, e);
         }
     }
 

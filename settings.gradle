@@ -12,6 +12,8 @@ plugins {
 
 rootProject.name = 'BE'
 
+include 'domain-common'
+
 include 'core:core-enum'
 include 'core:core-api'
 include 'core:core-craw'

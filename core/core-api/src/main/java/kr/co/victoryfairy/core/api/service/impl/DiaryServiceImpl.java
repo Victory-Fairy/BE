@@ -7,6 +7,12 @@ import kr.co.victoryfairy.core.api.domain.DiaryDomain;
 import kr.co.victoryfairy.core.api.domain.MatchDomain;
 import kr.co.victoryfairy.core.api.service.DiaryService;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
+import kr.co.victoryfairy.redis.lock.DistributedLock;
+import kr.co.victoryfairy.redis.lock.LockName;
+import kr.co.victoryfairy.common.model.CommonDto;
+import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
+import kr.co.victoryfairy.common.service.FileRefDomainService;
+import kr.co.victoryfairy.common.service.PartnerDomainService;
 import kr.co.victoryfairy.storage.db.core.entity.*;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
 import kr.co.victoryfairy.storage.db.core.repository.*;
@@ -21,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
@@ -35,40 +40,27 @@ public class DiaryServiceImpl implements DiaryService {
 
     private final DiaryRepository diaryRepository;
     private final DiaryCustomRepository diaryCustomRepository;
-    private final DiaryFoodRepository diaryFoodRepository;
     private final SeatRepository seatRepository;
     private final SeatUseHistoryRepository seatUseHistoryRepository;
     private final SeatReviewRepository seatReviewRepository;
-    private final PartnerRepository partnerRepository;
     private final GameMatchRepository gameMatchRepository;
     private final GameRecordRepository gameRecordRepository;
     private final MemberRepository memberRepository;
     private final TeamRepository teamRepository;
-
-    private final FileRepository fileRepository;
-    private final FileRefRepository fileRefRepository;
     private final FreeDiaryRepository freeDiaryRepository;
+
+    private final FileRefDomainService fileRefDomainService;
+    private final DiaryFoodDomainService diaryFoodDomainService;
+    private final PartnerDomainService partnerDomainService;
+
     private final RedisHandler redisHandler;
 
     @Override
     @Transactional
-    public DiaryDomain.WriteResponse writeDiary(DiaryDomain.WriteRequest diaryDto){
-        // 로그인한 회원 조회
-        var id = RequestUtils.getId();
-
-        String lockKey = "lock:diary:" + id + ":" + diaryDto.gameMatchId();
-        boolean locked = redisHandler.tryLock(lockKey, Duration.ofSeconds(5));
-
-        if (!locked) {
-            throw new CustomException(HttpStatus.CONFLICT, MessageEnum.Data.TRY_AGAIN_MOMENT);
-        }
-
-        Long diaryId = null;
-
-        try {
-
-            MemberEntity member = memberRepository.findById(Objects.requireNonNull(id))
-                    .orElseThrow(()-> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+    @DistributedLock(value = LockName.DIARY_WRITE, key = "#memberId + '_' + #diaryDto.gameMatchId()")
+    public DiaryDomain.WriteResponse writeDiary(Long memberId, DiaryDomain.WriteRequest diaryDto){
+        MemberEntity member = memberRepository.findById(Objects.requireNonNull(memberId))
+                .orElseThrow(()-> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
             // 일기를 작성할 경기 조회
             GameMatchEntity gameMatchEntity = gameMatchRepository.findById(diaryDto.gameMatchId())
@@ -93,55 +85,10 @@ public class DiaryServiceImpl implements DiaryService {
                     .build();
             diaryRepository.save(diaryEntity);
 
-            if (!diaryDto.fileId().isEmpty()) {
-                var fileEntities = fileRepository.findAllById(diaryDto.fileId());
-                var fileRefEntities = fileEntities.stream()
-                        .map(file -> FileRefEntity.builder()
-                                .fileEntity(file)
-                                .refId(diaryEntity.getId())
-                                .refType(RefType.DIARY)
-                                .build()
-                        )
-                        .toList();
-                fileRefRepository.saveAll(fileRefEntities);
-            }
-
-            // 선택 입력값인 음식 리스트가 비어있지 않는 경우
-            if (!diaryDto.foodNameList().isEmpty()) {
-                List<DiaryFoodEntity> foodList = new ArrayList<>();
-                for (String food : diaryDto.foodNameList()) {
-                    DiaryFoodEntity diaryFoodEntity = DiaryFoodEntity.builder()
-                            .refId(diaryEntity.getId())
-                            .refType(RefType.DIARY)
-                            .foodName(food)
-                            .build();
-                    foodList.add(diaryFoodEntity);
-
-                }
-                diaryFoodRepository.saveAll(foodList);
-            }
-
-            // 선택 입력값인 함께한 사람 리스트가 비어있지 않는 경우
-            if (!diaryDto.partnerList().isEmpty()) {
-                List<PartnerEntity> partnerEntityList = new ArrayList<>();
-                for (DiaryDomain.PartnerDto partnerDto : diaryDto.partnerList()) {
-                    var partnerTeamEntity = teamRepository.findById(partnerDto.teamId())
-                            .orElse(null);
-
-                    var teamNm = partnerTeamEntity != null ? partnerTeamEntity.getName() : null;
-
-                    PartnerEntity partnerEntity = PartnerEntity.builder()
-                            .refId(diaryEntity.getId())
-                            .refType(RefType.DIARY)
-                            .name(partnerDto.name())
-                            .teamName(teamNm)
-                            .teamEntity(partnerTeamEntity)
-                            .build();
-                    partnerEntityList.add(partnerEntity);
-                }
-                partnerRepository.saveAll(partnerEntityList);
-            }
-
+            // 도메인 서비스를 통한 연관 데이터 저장
+            fileRefDomainService.saveFileRefs(RefType.DIARY, diaryEntity.getId(), diaryDto.fileId());
+            diaryFoodDomainService.saveFoods(RefType.DIARY, diaryEntity.getId(), diaryDto.foodNameList());
+            partnerDomainService.savePartners(RefType.DIARY, diaryEntity.getId(), toPartnerSaveRequests(diaryDto.partnerList()));
 
             //
             DiaryDomain.SeatUseHistoryDto diaryDtoSeat = diaryDto.seat();
@@ -162,24 +109,19 @@ public class DiaryServiceImpl implements DiaryService {
                 seatUseHistoryRepository.save(seatUseHistoryEntity);
             }
 
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    if (gameMatchEntity.getStatus().equals(MatchEnum.MatchStatus.END) || gameMatchEntity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)) {
-                        var writeEventDto = new DiaryDomain.WriteEventDto(
-                                diaryDto.gameMatchId(), id, diaryEntity.getId(), EventType.DIARY
-                        );
-                        redisHandler.pushEvent("write_diary", writeEventDto);
-                    }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                if (gameMatchEntity.getStatus().equals(MatchEnum.MatchStatus.END) || gameMatchEntity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)) {
+                    var writeEventDto = new DiaryDomain.WriteEventDto(
+                            diaryDto.gameMatchId(), memberId, diaryEntity.getId(), EventType.DIARY
+                    );
+                    redisHandler.pushEvent("write_diary", writeEventDto);
                 }
-            });
+            }
+        });
 
-            diaryId = diaryEntity.getId();
-        } finally {
-            redisHandler.releaseLock(lockKey);
-        }
-
-        return new DiaryDomain.WriteResponse(diaryId);
+        return new DiaryDomain.WriteResponse(diaryEntity.getId());
     }
 
     @Override
@@ -212,77 +154,10 @@ public class DiaryServiceImpl implements DiaryService {
         );
         diaryRepository.save(diaryEntity);
 
-        var bfFileRefEntity = fileRefRepository.findAllByRefTypeAndRefIdAndIsUseTrue(RefType.DIARY, diaryId);
-        if (!bfFileRefEntity.isEmpty()) {
-            fileRefRepository.deleteAll(bfFileRefEntity);
-        }
-
-        if (!request.fileId().isEmpty()) {
-            // 기존 이미지 삭제 처리
-
-            var fileEntities = fileRepository.findAllById(request.fileId());
-            var fileRefEntities = fileEntities.stream()
-                    .map(file -> FileRefEntity.builder()
-                            .fileEntity(file)
-                            .refId(diaryEntity.getId())
-                            .refType(RefType.DIARY)
-                            .build()
-                    )
-                    .toList();
-            fileRefRepository.saveAll(fileRefEntities);
-        }
-
-        // 선택 입력값인 음식 리스트가 비어있지 않는 경우
-        if (!request.foodNameList().isEmpty()) {
-            // 기존 데이터 삭제 처리
-            var bfFoodEntities = diaryFoodRepository.findByRefTypeAndRefId(RefType.DIARY, diaryId);
-            if (!bfFoodEntities.isEmpty()) {
-                diaryFoodRepository.deleteAll(bfFoodEntities);
-            }
-
-            List<DiaryFoodEntity> foodList = new ArrayList<>();
-            for (String food : request.foodNameList()) {
-                DiaryFoodEntity diaryFoodEntity = DiaryFoodEntity.builder()
-                        .refId(diaryEntity.getId())
-                        .refType(RefType.DIARY)
-                        .foodName(food)
-                        .build();
-                foodList.add(diaryFoodEntity);
-
-            }
-            diaryFoodRepository.saveAll(foodList);
-        }
-
-        // 선택 입력값인 함께한 사람 리스트가 비어있지 않는 경우
-        if (!request.partnerList().isEmpty()) {
-            // 기존 데이터 삭제 처리
-            var bfPartnerEntities = partnerRepository.findByRefTypeAndRefId(RefType.DIARY, diaryId);
-            if (!bfPartnerEntities.isEmpty()) {
-                partnerRepository.deleteAll(bfPartnerEntities);
-            }
-
-
-            List<PartnerEntity> partnerEntityList = new ArrayList<>();
-            for (DiaryDomain.PartnerDto partnerDto : request.partnerList()) {
-                TeamEntity partnerTeamEntity = null;
-
-                if (partnerDto.teamId() != null) {
-                    partnerTeamEntity = teamRepository.findById(partnerDto.teamId()).orElse(null);
-                }
-
-                var teamNm = partnerTeamEntity != null ? partnerTeamEntity.getName() : null;
-
-                PartnerEntity partnerEntity = PartnerEntity.builder()
-                        .refId(diaryEntity.getId())
-                        .refType(RefType.DIARY)
-                        .name(partnerDto.name())
-                        .teamName(teamNm)
-                        .teamEntity(partnerTeamEntity)
-                        .build();
-                partnerEntityList.add(partnerEntity);
-            }
-            partnerRepository.saveAll(partnerEntityList);
-        }
+        // 도메인 서비스를 통한 연관 데이터 교체 (기존 삭제 후 새로 저장)
+        fileRefDomainService.replaceFileRefs(RefType.DIARY, diaryId, request.fileId());
+        diaryFoodDomainService.replaceFoods(RefType.DIARY, diaryId, request.foodNameList());
+        partnerDomainService.replacePartners(RefType.DIARY, diaryId, toPartnerSaveRequests(request.partnerList()));
 
         //
         DiaryDomain.SeatUseHistoryDto diaryDtoSeat = request.seat();
@@ -345,20 +220,10 @@ public class DiaryServiceImpl implements DiaryService {
             gameRecordRepository.delete(gameRecordEntity);
         }
 
-        var bfFileRefEntity = fileRefRepository.findAllByRefTypeAndRefIdAndIsUseTrue(RefType.DIARY, diaryId);
-        if (!bfFileRefEntity.isEmpty()) {
-            fileRefRepository.deleteAll(bfFileRefEntity);
-        }
-
-        var bfFoodEntities = diaryFoodRepository.findByRefTypeAndRefId(RefType.DIARY, diaryId);
-        if (!bfFoodEntities.isEmpty()) {
-            diaryFoodRepository.deleteAll(bfFoodEntities);
-        }
-
-        var bfPartnerEntities = partnerRepository.findByRefTypeAndRefId(RefType.DIARY, diaryId);
-        if (!bfPartnerEntities.isEmpty()) {
-            partnerRepository.deleteAll(bfPartnerEntities);
-        }
+        // 도메인 서비스를 통한 연관 데이터 삭제
+        fileRefDomainService.deleteFileRefs(RefType.DIARY, diaryId);
+        diaryFoodDomainService.deleteFoods(RefType.DIARY, diaryId);
+        partnerDomainService.deletePartners(RefType.DIARY, diaryId);
 
         var bfSeatUseHistoryEntity = seatUseHistoryRepository.findByDiaryEntityId(diaryId);
         if (bfSeatUseHistoryEntity != null) {
@@ -408,24 +273,12 @@ public class DiaryServiceImpl implements DiaryService {
         // 일반 일기 파일 맵
         var diaryIds = diaryList.stream()
                 .map(DiaryModel.DiaryDto::getId).toList();
-        var diaryFileMap = diaryIds.isEmpty() ? new HashMap<Long, FileRefEntity>() :
-                fileRefRepository.findByRefTypeAndRefIdInAndIsUseTrue(RefType.DIARY, diaryIds).stream()
-                .collect(Collectors.toMap(
-                        FileRefEntity::getRefId,
-                        entity -> entity,
-                        (existing, replacement) -> existing
-                ));
+        var diaryFileMap = fileRefDomainService.findImageMapByRefIds(RefType.DIARY, diaryIds);
 
         // 자유 일기 파일 맵
         var freeDiaryIds = freeDiaryList.stream()
                 .map(FreeDiaryEntity::getId).toList();
-        var freeDiaryFileMap = freeDiaryIds.isEmpty() ? new HashMap<Long, FileRefEntity>() :
-                fileRefRepository.findByRefTypeAndRefIdInAndIsUseTrue(RefType.FREE_DIARY, freeDiaryIds).stream()
-                .collect(Collectors.toMap(
-                        FileRefEntity::getRefId,
-                        entity -> entity,
-                        (existing, replacement) -> existing
-                ));
+        var freeDiaryFileMap = fileRefDomainService.findImageMapByRefIds(RefType.FREE_DIARY, freeDiaryIds);
 
         // 날짜별로 일기 그룹핑
         var diaryMap = diaryList.stream()
@@ -453,10 +306,7 @@ public class DiaryServiceImpl implements DiaryService {
                         diaries.stream()
                                 .map(diary -> diaryFileMap.get(diary.getId()))
                                 .filter(Objects::nonNull)
-                                .map(ref -> {
-                                    var fileEntity = ref.getFileEntity();
-                                    return new DiaryDomain.ImageDto(fileEntity.getId(), fileEntity.getPath(), fileEntity.getSaveName(), fileEntity.getExt());
-                                })
+                                .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
                                 .forEach(allImages::add);
                     }
 
@@ -465,10 +315,7 @@ public class DiaryServiceImpl implements DiaryService {
                         freeDiaries.stream()
                                 .map(fd -> freeDiaryFileMap.get(fd.getId()))
                                 .filter(Objects::nonNull)
-                                .map(ref -> {
-                                    var fileEntity = ref.getFileEntity();
-                                    return new DiaryDomain.ImageDto(fileEntity.getId(), fileEntity.getPath(), fileEntity.getSaveName(), fileEntity.getExt());
-                                })
+                                .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
                                 .forEach(allImages::add);
                     }
 
@@ -490,10 +337,9 @@ public class DiaryServiceImpl implements DiaryService {
                         latestTeamId = latestDiary.getTeamId();
                         latestResultType = latestDiary.getResultType();
 
-                        var fileRefEntity = diaryFileMap.get(latestDiary.getId());
-                        if (fileRefEntity != null) {
-                            var fileEntity = fileRefEntity.getFileEntity();
-                            latestImage = new DiaryDomain.ImageDto(fileEntity.getId(), fileEntity.getPath(), fileEntity.getSaveName(), fileEntity.getExt());
+                        var imageDto = diaryFileMap.get(latestDiary.getId());
+                        if (imageDto != null) {
+                            latestImage = new DiaryDomain.ImageDto(imageDto.id(), imageDto.path(), imageDto.saveName(), imageDto.ext());
                         }
                     } else if (hasFreeDiary) {
                         var latestFreeDiary = freeDiaries.stream()
@@ -506,10 +352,9 @@ public class DiaryServiceImpl implements DiaryService {
                         latestId = latestFreeDiary.getId();
                         // 자유 일기는 teamId, resultType 없음
 
-                        var fileRefEntity = freeDiaryFileMap.get(latestFreeDiary.getId());
-                        if (fileRefEntity != null) {
-                            var fileEntity = fileRefEntity.getFileEntity();
-                            latestImage = new DiaryDomain.ImageDto(fileEntity.getId(), fileEntity.getPath(), fileEntity.getSaveName(), fileEntity.getExt());
+                        var imageDto = freeDiaryFileMap.get(latestFreeDiary.getId());
+                        if (imageDto != null) {
+                            latestImage = new DiaryDomain.ImageDto(imageDto.id(), imageDto.path(), imageDto.saveName(), imageDto.ext());
                         }
                     }
 
@@ -539,12 +384,7 @@ public class DiaryServiceImpl implements DiaryService {
         var diaryIds = diaryEntities.stream()
                 .map(DiaryModel.DiaryDto :: getId).toList();
 
-        var fileMap = fileRefRepository.findByRefTypeAndRefIdInAndIsUseTrue(RefType.DIARY, diaryIds).stream()
-                .collect(Collectors.toMap(
-                        entity -> entity.getRefId(),
-                        entity -> entity,
-                        (existing, replacement) -> existing
-                ));
+        var fileMap = fileRefDomainService.findImageMapByRefIds(RefType.DIARY, diaryIds);
 
         return diaryEntities.stream()
                 .sorted((e1, e2) -> {
@@ -554,12 +394,11 @@ public class DiaryServiceImpl implements DiaryService {
                     return t2.compareTo(t1); // 최신순 (내림차순)
                 })
                 .map(entity -> {
-                    var fileRefEntity = fileMap.get(entity.getId());
+                    var image = fileMap.get(entity.getId());
                     DiaryDomain.ImageDto imageDto = null;
 
-                    if (fileRefEntity != null) {
-                        var fileEntity = fileRefEntity.getFileEntity();
-                        imageDto = new DiaryDomain.ImageDto(fileEntity.getId(), fileEntity.getPath(), fileEntity.getSaveName(), fileEntity.getExt());
+                    if (image != null) {
+                        imageDto = new DiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext());
                     }
 
                     var myTeam = entity.getTeamId();
@@ -622,18 +461,10 @@ public class DiaryServiceImpl implements DiaryService {
         var diaryEntity = diaryRepository.findByMemberIdAndId(id, diaryId)
                 .orElseThrow(()-> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
-        var foodList = diaryFoodRepository.findByRefTypeAndRefId(RefType.DIARY, diaryId).stream()
-                .map(DiaryFoodEntity::getFoodName)
-                .toList();
+        var foodList = diaryFoodDomainService.findFoodNamesByRefId(RefType.DIARY, diaryId);
 
-        var fileDto = fileRefRepository.findAllByRefTypeAndRefIdAndIsUseTrue(RefType.DIARY, diaryId).stream()
-                .map(entity -> {
-                    if (entity == null) {
-                        return null;
-                    }
-                    var fileEntity = entity.getFileEntity();
-                    return new DiaryDomain.ImageDto(fileEntity.getId(), fileEntity.getPath(), fileEntity.getSaveName(), fileEntity.getExt());
-                })
+        var fileDto = fileRefDomainService.findImagesByRefId(RefType.DIARY, diaryId).stream()
+                .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
                 .toList();
 
         DiaryDomain.SeatUseHistoryDto seatUseHistoryDto = null;
@@ -648,8 +479,8 @@ public class DiaryServiceImpl implements DiaryService {
             );
         }
 
-        var partnerList = partnerRepository.findByRefTypeAndRefId(RefType.DIARY, diaryId).stream()
-                .map(entity -> new DiaryDomain.PartnerDto(entity.getName(), entity.getTeamEntity() != null ? entity.getTeamEntity().getId() : null))
+        var partnerList = partnerDomainService.findPartnersByRefId(RefType.DIARY, diaryId).stream()
+                .map(dto -> new DiaryDomain.PartnerDto(dto.name(), dto.teamId()))
                 .toList();
 
         var matchEntity = diaryEntity.getGameMatchEntity();
@@ -684,6 +515,18 @@ public class DiaryServiceImpl implements DiaryService {
                 diaryEntity.getCreatedAt(),
                 diaryEntity.getUpdatedAt()
         );
+    }
+
+    /**
+     * DiaryDomain.PartnerDto 리스트를 CommonDto.PartnerSaveRequest 리스트로 변환
+     */
+    private List<CommonDto.PartnerSaveRequest> toPartnerSaveRequests(List<DiaryDomain.PartnerDto> partnerDtoList) {
+        if (partnerDtoList == null || partnerDtoList.isEmpty()) {
+            return List.of();
+        }
+        return partnerDtoList.stream()
+                .map(dto -> new CommonDto.PartnerSaveRequest(dto.name(), dto.teamId()))
+                .toList();
     }
 
 }

@@ -38,6 +38,7 @@ bootJar {
 jar.enabled = false
 
 dependencies {
+    implementation project(":domain-common")
     implementation project(":core:core-enum")
     implementation project(":support:logging")
     implementation project(":support:common")

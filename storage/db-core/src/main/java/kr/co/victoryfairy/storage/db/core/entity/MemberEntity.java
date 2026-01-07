@@ -58,4 +58,8 @@ public class MemberEntity extends BaseEntity{
         this.lastConnectIp = lastConnectIp;
         this.lastConnectAt = lastConnectAt;
     }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 }

@@ -9,4 +9,5 @@ public interface CrawService {
     void crawMatchDetailById(String id);
 
     void crawMatchListByMonth(String sYear, String sMonth);
+
 }

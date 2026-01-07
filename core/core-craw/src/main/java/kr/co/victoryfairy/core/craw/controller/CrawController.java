@@ -16,13 +16,15 @@ public class CrawController {
     }
 
     @GetMapping("/match-list")
-    public CustomResponse<MessageEnum> getMatchList(@RequestParam(name = "sYear") String sYear, @RequestParam(name = "sMonth", required = false) String sMonth) {
+    public CustomResponse<MessageEnum> getMatchList(@RequestParam(name = "sYear") String sYear,
+            @RequestParam(name = "sMonth", required = false) String sMonth) {
         crawService.crawMatchList(sYear, sMonth);
         return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
 
     @GetMapping("/match-month-list")
-    public CustomResponse<MessageEnum> getMatchMonthList(@RequestParam(name = "sYear") String sYear, @RequestParam(name = "sMonth") String sMonth) {
+    public CustomResponse<MessageEnum> getMatchMonthList(@RequestParam(name = "sYear") String sYear,
+            @RequestParam(name = "sMonth") String sMonth) {
         crawService.crawMatchListByMonth(sYear, sMonth);
         return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
@@ -38,4 +40,5 @@ public class CrawController {
         crawService.crawMatchDetailById(id);
         return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
+
 }

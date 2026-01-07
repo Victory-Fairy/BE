@@ -273,10 +273,7 @@ public class MemberServiceImpl implements MemberService {
                 .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         if (!StringUtils.hasText(memberEntity.getFcmToken()) || !memberEntity.getFcmToken().equals(fcmToken)) {
-            memberEntity.builder()
-                    .fcmToken(fcmToken)
-                    .build();
-
+            memberEntity.updateFcmToken(fcmToken);
             memberRepository.save(memberEntity);
         }
 

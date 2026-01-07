@@ -2,6 +2,7 @@ bootJar.enabled = true
 jar.enabled = false
 
 dependencies {
+    implementation project(":domain-common")
     implementation project(":core:core-enum")
     implementation project(":support:logging")
     implementation project(":support:common")
@@ -13,5 +14,5 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
     // craw
-    implementation 'com.microsoft.playwright:playwright:1.40.0'
+    implementation 'com.microsoft.playwright:playwright:1.48.0'
 }

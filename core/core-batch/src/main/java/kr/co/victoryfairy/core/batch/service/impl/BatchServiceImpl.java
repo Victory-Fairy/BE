@@ -250,7 +250,7 @@ public class BatchServiceImpl implements BatchService {
             page.close(); // 안전하게 닫기
             browser.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("점수 불러오는 중 에러 발생: {}", id, e);
             slackUtils.message(id + " 점수 불러오는 중 에러 발생");
         }
 
@@ -326,8 +326,8 @@ public class BatchServiceImpl implements BatchService {
                 redisHandler.pushHash("home_pitcher", entity.getId(), homePitcherMap);
 
             } catch (Exception e) {
+                logger.error("상세 불러오는 중 에러 발생: {}", entity.getId(), e);
                 slackUtils.message(entity.getId() + " 상세 불러오는 중 에러 발생");
-                e.printStackTrace();
             }
 
             if (entity.getStatus().equals(MatchEnum.MatchStatus.END) || entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)) {
@@ -689,8 +689,8 @@ public class BatchServiceImpl implements BatchService {
                 }
 
             } catch (Exception e) {
+                logger.error("대회 확인 중 에러 발생: {}", date, e);
                 slackUtils.message(date + " 대회 확인 중 에러 발생");
-                e.printStackTrace();
             }
         }
     }
@@ -720,10 +720,10 @@ public class BatchServiceImpl implements BatchService {
                             for (File file : filesToDelete) {
                                 boolean deleted = file.delete();
                                 if (deleted) {
-                                    System.out.println("Deleted file: " + file.getAbsolutePath());
+                                    logger.info("Deleted file: {}", file.getAbsolutePath());
                                     deletedFiles.add(fileEntity);
                                 } else {
-                                    System.err.println("Failed to delete file: " + file.getAbsolutePath());
+                                    logger.error("Failed to delete file: {}", file.getAbsolutePath());
                                 }
                             }
                         }
@@ -733,7 +733,7 @@ public class BatchServiceImpl implements BatchService {
                 fileRepository.deleteAll(deletedFiles);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to clean up files", e);
         }
     }
 

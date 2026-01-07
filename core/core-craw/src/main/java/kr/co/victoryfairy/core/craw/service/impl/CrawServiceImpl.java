@@ -24,17 +24,22 @@ import java.util.stream.Collectors;
 
 @Service
 public class CrawServiceImpl implements CrawService {
+
     private final TeamRepository teamRepository;
+
     private final StadiumRepository stadiumRepository;
+
     private final GameMatchRepository gameMatchRepository;
+
     private final HitterRecordRepository hitterRecordRepository;
+
     private final PitcherRecordRepository pitcherRecordRepository;
 
     private final GameMatchCustomRepository gameMatchCustomRepository;
 
     public CrawServiceImpl(TeamRepository teamRepository, StadiumRepository stadiumRepository,
-                           GameMatchRepository gameMatchRepository, HitterRecordRepository hitterRecordRepository,
-                           PitcherRecordRepository pitcherRecordRepository, GameMatchCustomRepository gameMatchCustomRepository) {
+            GameMatchRepository gameMatchRepository, HitterRecordRepository hitterRecordRepository,
+            PitcherRecordRepository pitcherRecordRepository, GameMatchCustomRepository gameMatchCustomRepository) {
         this.teamRepository = teamRepository;
         this.stadiumRepository = stadiumRepository;
         this.gameMatchRepository = gameMatchRepository;
@@ -56,18 +61,21 @@ public class CrawServiceImpl implements CrawService {
 
             int startMonth = StringUtils.hasText(sMonth) ? Integer.parseInt(sMonth) : 3;
 
-            var teamEntities = teamRepository.findAll().stream()
-                    .collect(Collectors.toMap(TeamEntity::getKboNm, entity -> entity));
+            var teamEntities = teamRepository.findAll()
+                .stream()
+                .collect(Collectors.toMap(TeamEntity::getKboNm, entity -> entity));
 
-            var stadiumEntities = stadiumRepository.findAll().stream()
-                    .collect(Collectors.toMap(StadiumEntity::getRegion, entity -> entity));
+            var stadiumEntities = stadiumRepository.findAll()
+                .stream()
+                .collect(Collectors.toMap(StadiumEntity::getRegion, entity -> entity));
 
             List<GameMatchEntity> gameEntities = new ArrayList<>();
 
             List<GameMatchEntity> beforeMatches;
             if (StringUtils.hasText(sMonth)) {
                 beforeMatches = gameMatchCustomRepository.findByYearAndMonth(sYear, sMonth);
-            } else {
+            }
+            else {
                 beforeMatches = gameMatchRepository.findBySeason(sYear);
             }
 
@@ -79,7 +87,8 @@ public class CrawServiceImpl implements CrawService {
 
                 for (MatchEnum.MatchType matchType : MatchEnum.MatchType.values()) {
 
-                    if (MatchEnum.MatchType.TIEBREAKER.equals(matchType)) continue;
+                    if (MatchEnum.MatchType.TIEBREAKER.equals(matchType))
+                        continue;
 
                     page.selectOption("#ddlSeries", matchType.getValue());
 
@@ -89,7 +98,8 @@ public class CrawServiceImpl implements CrawService {
 
                     List<ElementHandle> rows = page.querySelectorAll("#tblScheduleList tbody tr");
 
-                    if (rows.isEmpty()) break;
+                    if (rows.isEmpty())
+                        break;
 
                     String lastValidDate = "";
                     for (ElementHandle row : rows) {
@@ -105,7 +115,8 @@ public class CrawServiceImpl implements CrawService {
                         if (dateCell != null && !dateCell.innerText().isBlank()) {
                             date = dateCell.innerText();
                             lastValidDate = date; // 날짜 업데이트
-                        } else {
+                        }
+                        else {
                             date = lastValidDate; // 이전 날짜 사용
                         }
 
@@ -119,7 +130,8 @@ public class CrawServiceImpl implements CrawService {
                         LocalDateTime matchDateTime = parseDateTime(sYear, date, time);
 
                         ElementHandle playElement = row.querySelector("td.play");
-                        if (playElement == null) continue;
+                        if (playElement == null)
+                            continue;
 
                         List<ElementHandle> teamSpans = playElement.querySelectorAll("span");
 
@@ -134,7 +146,7 @@ public class CrawServiceImpl implements CrawService {
                         List<ElementHandle> tds = row.querySelectorAll("td");
 
                         int stadiumIndex = (tds.size() == 9) ? 7 : 6;
-                        //int stadiumIndex = 8;
+                        // int stadiumIndex = 8;
                         int reasonIndex = stadiumIndex + 1;
 
                         if (teamSpans.size() > 3) {
@@ -142,18 +154,20 @@ public class CrawServiceImpl implements CrawService {
                             awayScore = Short.parseShort(safeInnerText(teamSpans, 1));
                             homeScore = Short.parseShort(safeInnerText(teamSpans, 3));
                             home = safeInnerText(teamSpans, 4);
-                        } else {
+                        }
+                        else {
                             away = safeInnerText(teamSpans, 0);
                             home = safeInnerText(teamSpans, 2);
                         }
 
                         stadiumShortName = safeInnerText(tds, stadiumIndex);
-                        //stadiumFullName = parseStadium(stadiumShortName);
+                        // stadiumFullName = parseStadium(stadiumShortName);
 
                         if (stadiumShortName.equals("대전")) {
                             if (sYear.equals(LocalDateTime.now().getYear())) {
                                 stadiumShortName = "대전(신)";
-                            }else {
+                            }
+                            else {
                                 stadiumShortName = "대전(구)";
                             }
                         }
@@ -175,13 +189,18 @@ public class CrawServiceImpl implements CrawService {
                         var homeEntity = teamEntities.get(kboHome.name());
 
                         if (relayTd == null) {
-                            //matchStatus = matchDateTime.isAfter(LocalDateTime.now()) ? MatchEnum.MatchStatus.READY : MatchEnum.MatchStatus.CANCELED;
-                            matchStatus = reason.equals("-") ? MatchEnum.MatchStatus.READY : MatchEnum.MatchStatus.CANCELED;
+                            // matchStatus = matchDateTime.isAfter(LocalDateTime.now()) ?
+                            // MatchEnum.MatchStatus.READY :
+                            // MatchEnum.MatchStatus.CANCELED;
+                            matchStatus = reason.equals("-") ? MatchEnum.MatchStatus.READY
+                                    : MatchEnum.MatchStatus.CANCELED;
                             String formattedDate = matchDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                             matchId = formattedDate + kboAway + kboHome + 0;
-                        } else {
+                        }
+                        else {
                             String replayRowText = relayTd.innerText().trim();
-                            matchStatus = replayRowText.equals("리뷰") ? MatchEnum.MatchStatus.END : MatchEnum.MatchStatus.READY;
+                            matchStatus = replayRowText.equals("리뷰") ? MatchEnum.MatchStatus.END
+                                    : MatchEnum.MatchStatus.READY;
 
                             ElementHandle reviewLink = row.querySelector("td.relay a#btnReview");
                             ElementHandle previewLink = row.querySelector("td.relay a#btnPreView");
@@ -190,7 +209,8 @@ public class CrawServiceImpl implements CrawService {
 
                             if (reviewLink != null) {
                                 href = reviewLink.getAttribute("href");
-                            } else if (previewLink != null) {
+                            }
+                            else if (previewLink != null) {
                                 href = previewLink.getAttribute("href");
                             }
 
@@ -214,23 +234,9 @@ public class CrawServiceImpl implements CrawService {
                             continue;
                         }
 
-                        GameMatchEntity gameMatch = new GameMatchEntity(
-                                matchId
-                                ,matchType
-                                ,seriesType
-                                ,sYear
-                                ,matchDateTime
-                                ,awayEntity
-                                ,away
-                                ,awayScore
-                                ,homeEntity
-                                ,home
-                                ,homeScore
-                                ,stadiumEntity
-                                ,matchStatus
-                                ,reason
-                                ,false
-                                );
+                        GameMatchEntity gameMatch = new GameMatchEntity(matchId, matchType, seriesType, sYear,
+                                matchDateTime, awayEntity, away, awayScore, homeEntity, home, homeScore, stadiumEntity,
+                                matchStatus, reason, false, false);
 
                         gameEntities.add(gameMatch);
 
@@ -246,7 +252,8 @@ public class CrawServiceImpl implements CrawService {
             }
 
             gameMatchRepository.saveAll(gameEntities);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -254,10 +261,11 @@ public class CrawServiceImpl implements CrawService {
     @Override
     @Transactional
     public void crawMatchDetail(String sYear) {
-        var matches = gameMatchRepository.findBySeason(sYear).stream()
-                .sorted(Comparator.comparing(GameMatchEntity :: getMatchAt))
-                .filter(match -> MatchEnum.MatchStatus.END.equals(match.getStatus()))
-                .toList();
+        var matches = gameMatchRepository.findBySeason(sYear)
+            .stream()
+            .sorted(Comparator.comparing(GameMatchEntity::getMatchAt))
+            .filter(match -> MatchEnum.MatchStatus.END.equals(match.getStatus()))
+            .toList();
 
         List<HitterRecordEntity> hitterEntities = new ArrayList<>();
         List<PitcherRecordEntity> pitcherEntities = new ArrayList<>();
@@ -267,7 +275,8 @@ public class CrawServiceImpl implements CrawService {
             Browser browser = playwright.chromium().launch();
             Page page = browser.newPage();
             matches.forEach(match -> {
-                page.navigate("https://m.koreabaseball.com/Kbo/Live/Record.aspx?p_le_id=1&p_sr_id=" + match.getSeries().getValue() + "&p_g_id=" + match.getId());
+                page.navigate("https://m.koreabaseball.com/Kbo/Live/Record.aspx?p_le_id=1&p_sr_id="
+                        + match.getSeries().getValue() + "&p_g_id=" + match.getId());
 
                 page.waitForSelector("#HitterRank table tbody tr"); // 타자
                 page.waitForSelector("#PitcherRank table tbody tr"); // 투수
@@ -290,15 +299,17 @@ public class CrawServiceImpl implements CrawService {
                 pitcherEntities.addAll(awayPitcher);
                 pitcherEntities.addAll(homePitcher);
 
-                match = match.toBuilder()
-                            .isMatchInfoCraw(true)
-                            .build();
-                gameMatchRepository.save(match);
+                var updatedMatch = new GameMatchEntity(match.getId(), match.getType(), match.getSeries(),
+                        match.getSeason(), match.getMatchAt(), match.getAwayTeamEntity(), match.getAwayNm(),
+                        match.getAwayScore(), match.getHomeTeamEntity(), match.getHomeNm(), match.getHomeScore(),
+                        match.getStadiumEntity(), match.getStatus(), match.getReason(), true, match.getIsSendPush());
+                gameMatchRepository.save(updatedMatch);
             });
 
             browser.close();
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -309,7 +320,7 @@ public class CrawServiceImpl implements CrawService {
     @Override
     public void crawMatchDetailById(String id) {
         var match = gameMatchRepository.findById(id)
-                .orElseThrow(()-> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         List<HitterRecordEntity> hitterEntities = new ArrayList<>();
         List<PitcherRecordEntity> pitcherEntities = new ArrayList<>();
@@ -318,7 +329,8 @@ public class CrawServiceImpl implements CrawService {
 
             Browser browser = playwright.chromium().launch();
             Page page = browser.newPage();
-            page.navigate("https://m.koreabaseball.com/Kbo/Live/Record.aspx?p_le_id=1&p_sr_id=" + match.getSeries().getValue() + "&p_g_id=" + match.getId());
+            page.navigate("https://m.koreabaseball.com/Kbo/Live/Record.aspx?p_le_id=1&p_sr_id="
+                    + match.getSeries().getValue() + "&p_g_id=" + match.getId());
 
             page.waitForSelector("#HitterRank table tbody tr"); // 타자
             page.waitForSelector("#PitcherRank table tbody tr"); // 투수
@@ -341,14 +353,16 @@ public class CrawServiceImpl implements CrawService {
             pitcherEntities.addAll(awayPitcher);
             pitcherEntities.addAll(homePitcher);
 
-            match = match.toBuilder()
-                    .isMatchInfoCraw(true)
-                    .build();
-            gameMatchRepository.save(match);
+            var updatedMatch = new GameMatchEntity(match.getId(), match.getType(), match.getSeries(), match.getSeason(),
+                    match.getMatchAt(), match.getAwayTeamEntity(), match.getAwayNm(), match.getAwayScore(),
+                    match.getHomeTeamEntity(), match.getHomeNm(), match.getHomeScore(), match.getStadiumEntity(),
+                    match.getStatus(), match.getReason(), true, match.getIsSendPush());
+            gameMatchRepository.save(updatedMatch);
 
             browser.close();
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -366,11 +380,13 @@ public class CrawServiceImpl implements CrawService {
             // 연도 설정
             page.selectOption("#ddlYear", sYear);
 
-            var teamEntities = teamRepository.findAll().stream()
-                    .collect(Collectors.toMap(TeamEntity::getKboNm, entity -> entity));
+            var teamEntities = teamRepository.findAll()
+                .stream()
+                .collect(Collectors.toMap(TeamEntity::getKboNm, entity -> entity));
 
-            var stadiumEntities = stadiumRepository.findAll().stream()
-                    .collect(Collectors.toMap(StadiumEntity::getRegion, entity -> entity));
+            var stadiumEntities = stadiumRepository.findAll()
+                .stream()
+                .collect(Collectors.toMap(StadiumEntity::getRegion, entity -> entity));
 
             List<GameMatchEntity> gameEntities = new ArrayList<>();
 
@@ -383,7 +399,8 @@ public class CrawServiceImpl implements CrawService {
 
             for (MatchEnum.MatchType matchType : MatchEnum.MatchType.values()) {
 
-                if (MatchEnum.MatchType.TIEBREAKER.equals(matchType)) continue;
+                if (MatchEnum.MatchType.TIEBREAKER.equals(matchType))
+                    continue;
 
                 page.selectOption("#ddlSeries", matchType.getValue());
 
@@ -393,7 +410,8 @@ public class CrawServiceImpl implements CrawService {
 
                 List<ElementHandle> rows = page.querySelectorAll("#tblScheduleList tbody tr");
 
-                if (rows.isEmpty()) break;
+                if (rows.isEmpty())
+                    break;
 
                 String lastValidDate = "";
                 for (ElementHandle row : rows) {
@@ -409,7 +427,8 @@ public class CrawServiceImpl implements CrawService {
                     if (dateCell != null && !dateCell.innerText().isBlank()) {
                         date = dateCell.innerText();
                         lastValidDate = date; // 날짜 업데이트
-                    } else {
+                    }
+                    else {
                         date = lastValidDate; // 이전 날짜 사용
                     }
 
@@ -423,7 +442,8 @@ public class CrawServiceImpl implements CrawService {
                     LocalDateTime matchDateTime = parseDateTime(sYear, date, time);
 
                     ElementHandle playElement = row.querySelector("td.play");
-                    if (playElement == null) continue;
+                    if (playElement == null)
+                        continue;
 
                     List<ElementHandle> teamSpans = playElement.querySelectorAll("span");
 
@@ -438,7 +458,7 @@ public class CrawServiceImpl implements CrawService {
                     List<ElementHandle> tds = row.querySelectorAll("td");
 
                     int stadiumIndex = (tds.size() == 9) ? 7 : 6;
-                    //int stadiumIndex = 8;
+                    // int stadiumIndex = 8;
                     int reasonIndex = stadiumIndex + 1;
 
                     if (teamSpans.size() > 3) {
@@ -446,18 +466,20 @@ public class CrawServiceImpl implements CrawService {
                         awayScore = Short.parseShort(safeInnerText(teamSpans, 1));
                         homeScore = Short.parseShort(safeInnerText(teamSpans, 3));
                         home = safeInnerText(teamSpans, 4);
-                    } else {
+                    }
+                    else {
                         away = safeInnerText(teamSpans, 0);
                         home = safeInnerText(teamSpans, 2);
                     }
 
                     stadiumShortName = safeInnerText(tds, stadiumIndex);
-                    //stadiumFullName = parseStadium(stadiumShortName);
+                    // stadiumFullName = parseStadium(stadiumShortName);
 
                     if (stadiumShortName.equals("대전")) {
                         if (sYear.equals(LocalDateTime.now().getYear())) {
                             stadiumShortName = "대전(신)";
-                        }else {
+                        }
+                        else {
                             stadiumShortName = "대전(구)";
                         }
                     }
@@ -479,13 +501,16 @@ public class CrawServiceImpl implements CrawService {
                     var homeEntity = teamEntities.get(kboHome.name());
 
                     if (relayTd == null) {
-                        //matchStatus = matchDateTime.isAfter(LocalDateTime.now()) ? MatchEnum.MatchStatus.READY : MatchEnum.MatchStatus.CANCELED;
+                        // matchStatus = matchDateTime.isAfter(LocalDateTime.now()) ?
+                        // MatchEnum.MatchStatus.READY : MatchEnum.MatchStatus.CANCELED;
                         matchStatus = reason.equals("-") ? MatchEnum.MatchStatus.READY : MatchEnum.MatchStatus.CANCELED;
                         String formattedDate = matchDateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                         matchId = formattedDate + kboAway + kboHome + 0;
-                    } else {
+                    }
+                    else {
                         String replayRowText = relayTd.innerText().trim();
-                        matchStatus = replayRowText.equals("리뷰") ? MatchEnum.MatchStatus.END : MatchEnum.MatchStatus.READY;
+                        matchStatus = replayRowText.equals("리뷰") ? MatchEnum.MatchStatus.END
+                                : MatchEnum.MatchStatus.READY;
 
                         ElementHandle reviewLink = row.querySelector("td.relay a#btnReview");
                         ElementHandle previewLink = row.querySelector("td.relay a#btnPreView");
@@ -494,7 +519,8 @@ public class CrawServiceImpl implements CrawService {
 
                         if (reviewLink != null) {
                             href = reviewLink.getAttribute("href");
-                        } else if (previewLink != null) {
+                        }
+                        else if (previewLink != null) {
                             href = previewLink.getAttribute("href");
                         }
 
@@ -518,23 +544,9 @@ public class CrawServiceImpl implements CrawService {
                         continue;
                     }
 
-                    GameMatchEntity gameMatch = new GameMatchEntity(
-                            matchId
-                            ,matchType
-                            ,seriesType
-                            ,sYear
-                            ,matchDateTime
-                            ,awayEntity
-                            ,away
-                            ,awayScore
-                            ,homeEntity
-                            ,home
-                            ,homeScore
-                            ,stadiumEntity
-                            ,matchStatus
-                            ,reason
-                            ,false
-                    );
+                    GameMatchEntity gameMatch = new GameMatchEntity(matchId, matchType, seriesType, sYear,
+                            matchDateTime, awayEntity, away, awayScore, homeEntity, home, homeScore, stadiumEntity,
+                            matchStatus, reason, false, false);
 
                     gameEntities.add(gameMatch);
 
@@ -549,7 +561,8 @@ public class CrawServiceImpl implements CrawService {
             }
 
             gameMatchRepository.saveAll(gameEntities);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -569,7 +582,8 @@ public class CrawServiceImpl implements CrawService {
     private String safeInnerText(List<ElementHandle> list, int index) {
         try {
             return list.get(index).innerText();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return "";
         }
     }
@@ -598,7 +612,8 @@ public class CrawServiceImpl implements CrawService {
         return stadium;
     }
 
-    private static List<HitterRecordEntity> scrapeHitterTable(Page page, Boolean isHome, String year, GameMatchEntity gameMatchEntity) {
+    private static List<HitterRecordEntity> scrapeHitterTable(Page page, Boolean isHome, String year,
+            GameMatchEntity gameMatchEntity) {
         List<ElementHandle> infoRows = page.querySelectorAll("#HitterRank table.tbl-new.fixed tbody tr");
         List<ElementHandle> statRows = page.querySelectorAll("#HitterRank .scroll-box table.tbl-new tbody tr");
 
@@ -628,27 +643,15 @@ public class CrawServiceImpl implements CrawService {
             var ballFour = Short.parseShort(stats.get(5).innerText());
             var strikeOut = Short.parseShort(stats.get(6).innerText());
 
-            hitterEntities.add(new HitterRecordEntity(
-                    turn,
-                    name,
-                    position,
-                    hitCount,
-                    score,
-                    hit,
-                    homeRun,
-                    hitScore,
-                    ballFour,
-                    strikeOut,
-                    gameMatchEntity,
-                    year,
-                    isHome
-            ));
+            hitterEntities.add(new HitterRecordEntity(turn, name, position, hitCount, score, hit, homeRun, hitScore,
+                    ballFour, strikeOut, gameMatchEntity, year, isHome));
         }
 
         return hitterEntities;
     }
 
-    private static List<PitcherRecordEntity> scrapPitcherTable(Page page, Boolean isHome, String year, GameMatchEntity gameMatchEntity) {
+    private static List<PitcherRecordEntity> scrapPitcherTable(Page page, Boolean isHome, String year,
+            GameMatchEntity gameMatchEntity) {
         List<ElementHandle> infoRows = page.querySelectorAll("#PitcherRank table.tbl-new.fixed tbody tr");
         List<ElementHandle> statRows = page.querySelectorAll("#PitcherRank .scroll-box table.tbl-new tbody tr");
 
@@ -679,23 +682,11 @@ public class CrawServiceImpl implements CrawService {
             var strikeOut = Short.parseShort(stats.get(7).innerText());
             var score = Short.parseShort(stats.get(8).innerText());
 
-            pitcherEntities.add(new PitcherRecordEntity(
-                    turn,
-                    name,
-                    position,
-                    inning,
-                    pitching,
-                    ballFour,
-                    strikeOut,
-                    hit,
-                    homeRun,
-                    score,
-                    gameMatchEntity,
-                    year,
-                    isHome
-            ));
+            pitcherEntities.add(new PitcherRecordEntity(turn, name, position, inning, pitching, ballFour, strikeOut,
+                    hit, homeRun, score, gameMatchEntity, year, isHome));
         }
 
         return pitcherEntities;
     }
+
 }
