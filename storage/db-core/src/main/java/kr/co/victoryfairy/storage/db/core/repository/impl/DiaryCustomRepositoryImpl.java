@@ -85,6 +85,7 @@ public class DiaryCustomRepositoryImpl extends QuerydslRepositorySupport impleme
                         , gameMatchEntity.homeScore
                         , gameRecordEntity.resultType
                         , gameMatchEntity.status
+                        , gameMatchEntity.reason
                         , stadiumEntity.shortName
                         , stadiumEntity.fullName
                         , diaryEntity.createdAt

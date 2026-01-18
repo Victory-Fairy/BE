@@ -442,6 +442,11 @@ public class DiaryServiceImpl implements DiaryService {
                         }
                     }
 
+                    // 취소된 경기는 취소 사유를 statusDetail로 반환
+                    var statusDetail = status.equals(MatchEnum.MatchStatus.CANCELED) && entity.getReason() != null
+                            ? entity.getReason()
+                            : status.getDesc();
+
                     return new DiaryDomain.DailyListResponse(
                                                             entity.getId(),
                                                             entity.getShortName(),
@@ -453,7 +458,7 @@ public class DiaryServiceImpl implements DiaryService {
                                                             entity.getContent(),
                                                             myResult,
                                                             status,
-                                                            status.getDesc(),
+                                                            statusDetail,
                                                             imageDto,
                                                             entity.getCreatedAt()
                     );

@@ -42,6 +42,7 @@ public interface DiaryModel {
         String fullName;
 
         MatchEnum.MatchStatus status;
+        String reason;  // 경기 취소 사유
 
         Long awayTeamId;
         String awayTeamName;

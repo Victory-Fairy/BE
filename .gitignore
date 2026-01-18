@@ -3,6 +3,9 @@
 !README.md
 !LICENCE.md
 
+### Documentation
+docs/
+
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar

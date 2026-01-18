@@ -204,13 +204,18 @@ public class MatchServiceImpl implements MatchService {
 
             var stadiumDto = stadiumEntity != null ? new MatchDomain.StadiumDto(stadiumEntity.getId(), stadiumEntity.getShortName(), stadiumEntity.getFullName()) : null;
 
+            // 취소된 경기는 취소 사유를 statusDetail로 반환
+            var statusDetail = matchEntity.getStatus().equals(MatchEnum.MatchStatus.CANCELED) && matchEntity.getReason() != null
+                    ? matchEntity.getReason()
+                    : matchEntity.getStatus().getDesc();
+
             return new MatchDomain.MatchInfoResponse(
                     matchEntity.getId(),
                     matchAt.toLocalDate(),
                     matchAt.format(DateTimeFormatter.ofPattern("HH:mm")),
                     stadiumDto,
                     matchEntity.getStatus(),
-                    matchEntity.getStatus().getDesc(),
+                    statusDetail,
                     awayTeamDto,
                     homeTeamDto);
         }
