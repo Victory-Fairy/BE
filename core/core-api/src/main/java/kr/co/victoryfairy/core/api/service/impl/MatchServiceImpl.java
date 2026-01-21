@@ -40,6 +40,11 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public MatchDomain.MatchListResponse findList(LocalDate date) {
+        return findList(date, null);
+    }
+
+    @Override
+    public MatchDomain.MatchListResponse findList(LocalDate date, MatchEnum.LeagueType league) {
         var memberId = RequestUtils.getId();
 
         var teamEntity = Optional.ofNullable(memberId)
@@ -55,7 +60,7 @@ public class MatchServiceImpl implements MatchService {
         var matchRedis = redisHandler.getHashMap(formatDate + "_match_list");
 
         if (matchRedis.isEmpty()) {
-            var matchEntities = gameMatchCustomRepository.findByMatchAt(date).stream()
+            var matchEntities = gameMatchCustomRepository.findByMatchAt(date, league).stream()
                     .sorted(Comparator.comparing(entity -> entity.getMatchAt()))
                     .toList();
 
@@ -110,6 +115,14 @@ public class MatchServiceImpl implements MatchService {
 
         for (Map.Entry<String, Map<String, Object>> entry : matchRedis.entrySet()) {
             Map<String, Object> matchData = entry.getValue();
+
+            // league 필터링
+            if (league != null) {
+                String matchLeague = (String) matchData.get("league");
+                if (matchLeague == null || !league.name().equals(matchLeague)) {
+                    continue;
+                }
+            }
 
             String id = entry.getKey();
             String time = (String) matchData.get("time");
@@ -606,13 +619,9 @@ public class MatchServiceImpl implements MatchService {
 
     @Override
     public MatchDomain.TodayMatchListResponse findTodayMatch() {
-        /**
-         * TODO
-         * 임의로 20250930 데이터 처리
-         */
-        var date = LocalDate.of(2025, 9, 30);
+        var date = LocalDate.now();
         var memberId = RequestUtils.getId();
-        var formatDate = "20250930";
+        var formatDate = date.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         var teamEntity = Optional.ofNullable(memberId)
                 .flatMap(memberInfoRepository::findByMemberEntity_Id)

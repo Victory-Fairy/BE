@@ -1,5 +1,6 @@
 package kr.co.victoryfairy.core.api.controller;
 
+import io.dodn.springboot.core.enums.MatchEnum;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,8 +23,10 @@ public class MatchController {
 
     @Operation(summary = "특정 날짜 경기 불러오기")
     @GetMapping("/list")
-    public CustomResponse<MatchDomain.MatchListResponse> findList(@RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate date) {
-        var response = matchService.findList(date);
+    public CustomResponse<MatchDomain.MatchListResponse> findList(
+            @RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate date,
+            @RequestParam(required = false) MatchEnum.LeagueType league) {
+        var response = matchService.findList(date, league);
         return CustomResponse.ok(response);
     }
 

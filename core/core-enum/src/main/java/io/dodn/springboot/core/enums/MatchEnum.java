@@ -87,4 +87,27 @@ public interface MatchEnum {
         }
     }
 
+    enum LeagueType {
+        KBO("KBO", "한국프로야구"),
+        WBC("WBC", "월드베이스볼클래식"),
+        MLB("MLB", "메이저리그")
+        ;
+
+        private final String code;
+        private final String desc;
+
+        LeagueType(String code, String desc) {
+            this.code = code;
+            this.desc = desc;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+    }
+
 }

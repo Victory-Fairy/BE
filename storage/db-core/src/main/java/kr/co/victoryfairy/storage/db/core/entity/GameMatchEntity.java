@@ -24,6 +24,12 @@ public class GameMatchEntity extends BaseEntity {
     @Id
     private String id;
 
+    @Column(length = 10, nullable = false)
+    @Comment("리그")
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private MatchEnum.LeagueType league = MatchEnum.LeagueType.KBO;
+
     @Column
     @Comment("경기 타입")
     @Enumerated(EnumType.STRING)

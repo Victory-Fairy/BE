@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
 import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
@@ -47,10 +48,38 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                         , gameMatchEntity.status
                         , gameMatchEntity.reason
                         , gameMatchEntity.isMatchInfoCraw
+                        , gameMatchEntity.league
                 ))
                 .from(gameMatchEntity)
                 .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
                 .where(this.eqMatchAt(matchAt))
+                .fetch();
+    }
+
+    @Override
+    public List<GameMatchEntity> findByMatchAt(LocalDate matchAt, MatchEnum.LeagueType league) {
+        return jpaQueryFactory
+                .select(Projections.fields(GameMatchEntity.class
+                        , gameMatchEntity.id
+                        , gameMatchEntity.type
+                        , gameMatchEntity.series
+                        , gameMatchEntity.season
+                        , gameMatchEntity.matchAt
+                        , gameMatchEntity.awayTeamEntity
+                        , gameMatchEntity.awayNm
+                        , gameMatchEntity.awayScore
+                        , gameMatchEntity.homeTeamEntity
+                        , gameMatchEntity.homeNm
+                        , gameMatchEntity.homeScore
+                        , stadiumEntity
+                        , gameMatchEntity.status
+                        , gameMatchEntity.reason
+                        , gameMatchEntity.isMatchInfoCraw
+                        , gameMatchEntity.league
+                ))
+                .from(gameMatchEntity)
+                .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
+                .where(this.eqMatchAt(matchAt), this.eqLeague(league))
                 .fetch();
     }
 
@@ -73,6 +102,7 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                         , gameMatchEntity.status
                         , gameMatchEntity.reason
                         , gameMatchEntity.isMatchInfoCraw
+                        , gameMatchEntity.league
                 ))
                 .from(gameMatchEntity)
                 .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
@@ -99,6 +129,7 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                         , gameMatchEntity.status
                         , gameMatchEntity.reason
                         , gameMatchEntity.isMatchInfoCraw
+                        , gameMatchEntity.league
                 ))
                 .from(gameMatchEntity)
                 .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
@@ -124,6 +155,7 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                         , gameMatchEntity.status
                         , gameMatchEntity.reason
                         , gameMatchEntity.isMatchInfoCraw
+                        , gameMatchEntity.league
                 ))
                 .from(gameMatchEntity)
                 .where(this.eqMatchAt(year, month))
@@ -154,5 +186,9 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                 "DATE_FORMAT({0}, '%Y-%m')", gameMatchEntity.matchAt);
 
         return dbDate.eq(year + "-" + month);
+    }
+
+    private BooleanExpression eqLeague(MatchEnum.LeagueType league) {
+        return league != null ? gameMatchEntity.league.eq(league) : null;
     }
 }

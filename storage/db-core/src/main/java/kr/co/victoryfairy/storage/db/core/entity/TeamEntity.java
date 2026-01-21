@@ -1,6 +1,7 @@
 package kr.co.victoryfairy.storage.db.core.entity;
 
 import jakarta.persistence.*;
+import io.dodn.springboot.core.enums.MatchEnum;
 import org.hibernate.annotations.Comment;
 
 @Entity(name = "team")
@@ -27,6 +28,15 @@ public class TeamEntity extends BaseEntity {
 
     @Column
     private Short orderNo;
+
+    @Column(length = 10)
+    @Enumerated(EnumType.STRING)
+    @Comment("리그 타입 (KBO, WBC, MLB)")
+    private MatchEnum.LeagueType league = MatchEnum.LeagueType.KBO;
+
+    @Column(length = 10)
+    @Comment("WBC 국가 코드 (KOR, JPN, USA 등)")
+    private String countryCode;
 
     public TeamEntity() {
     }
@@ -58,4 +68,8 @@ public class TeamEntity extends BaseEntity {
     }
 
     public Short getOrderNo() { return orderNo; }
+
+    public MatchEnum.LeagueType getLeague() { return league; }
+
+    public String getCountryCode() { return countryCode; }
 }

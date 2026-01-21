@@ -1,6 +1,7 @@
 package kr.co.victoryfairy.core.api.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.dodn.springboot.core.enums.MatchEnum;
 
 public interface CommonDomain {
 
@@ -13,7 +14,13 @@ public interface CommonDomain {
             String name,
 
             @Schema(description = "라벨")
-            String label
+            String label,
+
+            @Schema(description = "리그 타입 (KBO, WBC, MLB)")
+            MatchEnum.LeagueType league,
+
+            @Schema(description = "WBC 국가 코드 (KOR, JPN, USA 등)")
+            String countryCode
     ) {}
 
     record SeatListResponse(
