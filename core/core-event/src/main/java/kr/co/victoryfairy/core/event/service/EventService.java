@@ -86,6 +86,7 @@ public class EventService {
                 .status(matchEntity.getStatus())
                 .resultType(matchResult)
                 .season(matchEntity.getSeason())
+                .leagueType(matchEntity.getLeague())  // WBC 지원: 리그 타입 저장
                 .build();
         gameRecordRepository.save(gameRecordEntity);
         gameRecordRepository.flush();
@@ -150,6 +151,7 @@ public class EventService {
                     .status(matchEntity.getStatus())
                     .resultType(matchResult)
                     .season(matchEntity.getSeason())
+                    .leagueType(matchEntity.getLeague())  // WBC 지원: 리그 타입 저장
                     .build();
 
             gameRecordRepository.save(gameRecordEntity);

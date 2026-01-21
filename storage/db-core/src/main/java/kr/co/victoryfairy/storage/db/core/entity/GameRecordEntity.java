@@ -70,6 +70,11 @@ public class GameRecordEntity extends BaseEntity {
 
     private String season;
 
+    @Column(length = 10)
+    @Comment("리그 타입 (KBO, WBC, MLB)")
+    @Enumerated(EnumType.STRING)
+    private MatchEnum.LeagueType leagueType;
+
     public void updateRecord(TeamEntity teamEntity, TeamEntity opponentTeamEntity, MatchEnum.ResultType resultType) {
         this.teamEntity = teamEntity;
         this.teamName = teamEntity.getName();
