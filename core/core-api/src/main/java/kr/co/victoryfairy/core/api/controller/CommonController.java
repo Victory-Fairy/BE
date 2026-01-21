@@ -25,13 +25,10 @@ public class CommonController {
         return CustomResponse.ok(true);
     }
 
-    @Operation(summary = "팀 전체 목록 불러오기", description = "리그별 팀 목록 조회. league 파라미터 생략 시 전체 팀 반환")
+    @Operation(summary = "팀 전체 목록 불러오기", description = "KBO 팀 목록 조회")
     @GetMapping("/team")
-    public CustomResponse<List<CommonDomain.TeamListResponse>> findAll(
-            @Parameter(description = "리그 타입 (KBO, WBC, MLB). 생략 시 전체 조회")
-            @RequestParam(required = false) MatchEnum.LeagueType league
-    ) {
-        var response = commonService.findAll(league);
+    public CustomResponse<List<CommonDomain.TeamListResponse>> findAll() {
+        var response = commonService.findAll(MatchEnum.LeagueType.KBO);
         return CustomResponse.ok(response);
     }
 
