@@ -67,7 +67,10 @@ public class MatchServiceImpl implements MatchService {
         var matchRedis = redisHandler.getHashMap(formatDate + "_match_list");
 
         if (matchRedis.isEmpty()) {
-            var matchEntities = gameMatchCustomRepository.findByMatchAt(date, league)
+            var matchEntities = gameMatchCustomRepository.findByMatchAt(date, league);
+            System.out.println("[DEBUG] findList - date: " + date + ", league: " + league + ", matchEntities size: "
+                    + matchEntities.size());
+            matchEntities = matchEntities
                 .stream()
                 .sorted(Comparator.comparing(entity -> entity.getMatchAt()))
                 .toList();
