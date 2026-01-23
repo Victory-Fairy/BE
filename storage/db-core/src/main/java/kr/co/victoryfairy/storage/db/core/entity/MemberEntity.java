@@ -18,11 +18,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MemberEntity extends BaseEntity{
+public class MemberEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                            // 회원 식별자
+    private Long id; // 회원 식별자
 
     @Comment("회원 상태")
     @Enumerated(value = EnumType.STRING)
@@ -62,4 +62,5 @@ public class MemberEntity extends BaseEntity{
     public void updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
     }
+
 }

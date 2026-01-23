@@ -24,21 +24,20 @@ public class PushService {
     private final Logger log = LoggerFactory.getLogger(PushService.class);
 
     private final MemberCustomRepository memberCustomRepository;
+
     private final TeamRepository teamRepository;
 
     public PushService(MemberCustomRepository memberCustomRepository, TeamRepository teamRepository) {
-        this.memberCustomRepository  = memberCustomRepository;
+        this.memberCustomRepository = memberCustomRepository;
         this.teamRepository = teamRepository;
     }
 
     public boolean processPushFcm(EventDomain.PushEventDto pushEventDto) {
         log.info(">>> Start processing push event: {}", pushEventDto.gameId());
 
-        var awayTeamEntity = teamRepository.findById(pushEventDto.awayId())
-                .orElse(null);
+        var awayTeamEntity = teamRepository.findById(pushEventDto.awayId()).orElse(null);
 
-        var homeTeamEntity = teamRepository.findById(pushEventDto.homeId())
-                .orElse(null);
+        var homeTeamEntity = teamRepository.findById(pushEventDto.homeId()).orElse(null);
 
         var memberList = memberCustomRepository.findFcmTokenByTeamId(pushEventDto.awayId(), pushEventDto.homeId());
 
@@ -46,21 +45,24 @@ public class PushService {
             return false;
         }
 
-        List<String> fcmList = memberList.stream().filter(m -> StringUtils.hasText(m.getFcmToken()))
-                .map(s -> s.getFcmToken())
-                .toList();
+        List<String> fcmList = memberList.stream()
+            .filter(m -> StringUtils.hasText(m.getFcmToken()))
+            .map(s -> s.getFcmToken())
+            .toList();
 
         MulticastMessage messages = MulticastMessage.builder()
-                .addAllTokens(fcmList)
-                .setNotification(Notification.builder()
-                        .setTitle("승요의 일기장")
-                        .setBody(pushEventDto.status().equals(MatchEnum.MatchStatus.PROGRESS) ? "야구 볼 시간이에요⚾️" : "오늘 경기는 취소 되었어요⚾️")
-                        .build())
-                .build();
+            .addAllTokens(fcmList)
+            .setNotification(Notification.builder()
+                .setTitle("승요의 일기장")
+                .setBody(pushEventDto.status().equals(MatchEnum.MatchStatus.PROGRESS) ? "야구 볼 시간이에요⚾️"
+                        : "오늘 경기는 취소 되었어요⚾️")
+                .build())
+            .build();
 
         try {
             FirebaseMessaging.getInstance().sendEachForMulticast(messages);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
             return false;
         }

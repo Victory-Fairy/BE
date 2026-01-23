@@ -23,12 +23,15 @@ import java.nio.charset.StandardCharsets;
 public class RedirectController {
 
     private final ObjectMapper objectMapper;
+
     private final Logger log = LoggerFactory.getLogger(RedirectController.class);
 
-    /*@PostMapping(value = "/auth/callbackApple", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public void callbackApple(@ModelAttribute dto code, HttpServletResponse response) {
-        log.info("code : {}", code.getCode());
-    }*/
+    /*
+     * @PostMapping(value = "/auth/callbackApple", consumes =
+     * MediaType.APPLICATION_FORM_URLENCODED_VALUE) public void
+     * callbackApple(@ModelAttribute dto code, HttpServletResponse response) {
+     * log.info("code : {}", code.getCode()); }
+     */
 
     @PostMapping(value = "/redirect/apple", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void callbackApple(@ModelAttribute Dto dto, HttpServletResponse response) {
@@ -49,19 +52,19 @@ public class RedirectController {
                     email = user.getEmail();
                 }
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Failed to process user JSON", e);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        String fullRedirectUrl = UriComponentsBuilder
-                .fromUriString("https://seungyo.shop/auth/callbackApple")
-                .queryParam("code", dto.getCode())
-                .queryParam("name", name)
-                .queryParam("email", email)
-                .build()
-                .toUriString();
+        String fullRedirectUrl = UriComponentsBuilder.fromUriString("https://seungyo.shop/auth/callbackApple")
+            .queryParam("code", dto.getCode())
+            .queryParam("name", name)
+            .queryParam("email", email)
+            .build()
+            .toUriString();
 
         log.info("Redirecting to: " + fullRedirectUrl);
 
@@ -70,6 +73,7 @@ public class RedirectController {
     }
 
     class Dto {
+
         private String code;
 
         private String user;
@@ -89,11 +93,13 @@ public class RedirectController {
         public void setUser(String user) {
             this.user = user;
         }
+
     }
 
-
     public static class UserDTO {
+
         private Name name;
+
         private String email;
 
         public Name getName() {
@@ -113,7 +119,9 @@ public class RedirectController {
         }
 
         public static class Name {
+
             private String firstName;
+
             private String lastName;
 
             public String getFirstName() {
@@ -131,6 +139,9 @@ public class RedirectController {
             public void setLastName(String lastName) {
                 this.lastName = lastName;
             }
+
         }
+
     }
+
 }

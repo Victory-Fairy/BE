@@ -32,10 +32,13 @@ import java.util.stream.IntStream;
 public class FreeDiaryServiceImpl implements FreeDiaryService {
 
     private final FreeDiaryRepository freeDiaryRepository;
+
     private final MemberRepository memberRepository;
 
     private final FileRefDomainService fileRefDomainService;
+
     private final DiaryFoodDomainService diaryFoodDomainService;
+
     private final PartnerDomainService partnerDomainService;
 
     @Override
@@ -47,30 +50,31 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
         }
 
         MemberEntity member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         FreeDiaryEntity freeDiaryEntity = FreeDiaryEntity.builder()
-                .member(member)
-                .matchStatus(request.matchStatus())
-                .homeTeamName(request.homeTeamName())
-                .awayTeamName(request.awayTeamName())
-                .homeScore(request.homeScore())
-                .awayScore(request.awayScore())
-                .stadiumName(request.stadiumName())
-                .matchAt(request.matchAt())
-                .teamName(request.teamName())
-                .viewType(request.viewType())
-                .moodType(request.mood())
-                .weatherType(request.weather())
-                .content(request.content())
-                .seatReview(request.seatReview())
-                .build();
+            .member(member)
+            .matchStatus(request.matchStatus())
+            .homeTeamName(request.homeTeamName())
+            .awayTeamName(request.awayTeamName())
+            .homeScore(request.homeScore())
+            .awayScore(request.awayScore())
+            .stadiumName(request.stadiumName())
+            .matchAt(request.matchAt())
+            .teamName(request.teamName())
+            .viewType(request.viewType())
+            .moodType(request.mood())
+            .weatherType(request.weather())
+            .content(request.content())
+            .seatReview(request.seatReview())
+            .build();
         freeDiaryRepository.save(freeDiaryEntity);
 
         // 도메인 서비스를 통한 연관 데이터 저장
         fileRefDomainService.saveFileRefs(RefType.FREE_DIARY, freeDiaryEntity.getId(), request.fileIdList());
         diaryFoodDomainService.saveFoods(RefType.FREE_DIARY, freeDiaryEntity.getId(), request.foodNameList());
-        partnerDomainService.savePartners(RefType.FREE_DIARY, freeDiaryEntity.getId(), toPartnerSaveRequests(request.partnerList()));
+        partnerDomainService.savePartners(RefType.FREE_DIARY, freeDiaryEntity.getId(),
+                toPartnerSaveRequests(request.partnerList()));
 
         return new FreeDiaryDomain.WriteResponse(freeDiaryEntity.getId());
     }
@@ -84,23 +88,11 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
         }
 
         FreeDiaryEntity freeDiaryEntity = freeDiaryRepository.findByMemberIdAndId(memberId, id)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
-        freeDiaryEntity.updateFreeDiary(
-                request.matchStatus(),
-                request.homeTeamName(),
-                request.awayTeamName(),
-                request.homeScore(),
-                request.awayScore(),
-                request.stadiumName(),
-                request.matchAt(),
-                request.teamName(),
-                request.viewType(),
-                request.mood(),
-                request.weather(),
-                request.content(),
-                request.seatReview()
-        );
+        freeDiaryEntity.updateFreeDiary(request.matchStatus(), request.homeTeamName(), request.awayTeamName(),
+                request.homeScore(), request.awayScore(), request.stadiumName(), request.matchAt(), request.teamName(),
+                request.viewType(), request.mood(), request.weather(), request.content(), request.seatReview());
 
         // 도메인 서비스를 통한 연관 데이터 교체 (기존 삭제 후 새로 저장)
         fileRefDomainService.replaceFileRefs(RefType.FREE_DIARY, id, request.fileIdList());
@@ -117,7 +109,7 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
         }
 
         FreeDiaryEntity freeDiaryEntity = freeDiaryRepository.findByMemberIdAndId(memberId, id)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         // 도메인 서비스를 통한 연관 데이터 삭제
         fileRefDomainService.deleteFileRefs(RefType.FREE_DIARY, id);
@@ -135,42 +127,28 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
         }
 
         FreeDiaryEntity entity = freeDiaryRepository.findByMemberIdAndId(memberId, id)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         // 이미지 조회
-        var images = fileRefDomainService.findImagesByRefId(RefType.FREE_DIARY, id).stream()
-                .map(dto -> new FreeDiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
-                .toList();
+        var images = fileRefDomainService.findImagesByRefId(RefType.FREE_DIARY, id)
+            .stream()
+            .map(dto -> new FreeDiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
+            .toList();
 
         // 음식 조회
         var foodList = diaryFoodDomainService.findFoodNamesByRefId(RefType.FREE_DIARY, id);
 
         // 파트너 조회
-        var partnerList = partnerDomainService.findPartnersByRefId(RefType.FREE_DIARY, id).stream()
-                .map(dto -> new FreeDiaryDomain.PartnerDto(dto.name(), dto.teamId()))
-                .toList();
+        var partnerList = partnerDomainService.findPartnersByRefId(RefType.FREE_DIARY, id)
+            .stream()
+            .map(dto -> new FreeDiaryDomain.PartnerDto(dto.name(), dto.teamId()))
+            .toList();
 
-        return new FreeDiaryDomain.DetailResponse(
-                entity.getId(),
-                entity.getMatchStatus(),
-                entity.getHomeTeamName(),
-                entity.getAwayTeamName(),
-                entity.getHomeScore(),
-                entity.getAwayScore(),
-                entity.getStadiumName(),
-                entity.getMatchAt(),
-                entity.getTeamName(),
-                entity.getViewType(),
-                entity.getMoodType(),
-                entity.getWeatherType(),
-                entity.getContent(),
-                entity.getSeatReview(),
-                images,
-                foodList,
-                partnerList,
-                entity.getCreatedAt(),
-                entity.getUpdatedAt()
-        );
+        return new FreeDiaryDomain.DetailResponse(entity.getId(), entity.getMatchStatus(), entity.getHomeTeamName(),
+                entity.getAwayTeamName(), entity.getHomeScore(), entity.getAwayScore(), entity.getStadiumName(),
+                entity.getMatchAt(), entity.getTeamName(), entity.getViewType(), entity.getMoodType(),
+                entity.getWeatherType(), entity.getContent(), entity.getSeatReview(), images, foodList, partnerList,
+                entity.getCreatedAt(), entity.getUpdatedAt());
     }
 
     @Override
@@ -180,14 +158,12 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
         var startDate = date.atDay(1);
         var endDate = date.atEndOfMonth();
 
-        var monthOfDays = IntStream.rangeClosed(1, date.lengthOfMonth())
-                .mapToObj(date::atDay)
-                .toList();
+        var monthOfDays = IntStream.rangeClosed(1, date.lengthOfMonth()).mapToObj(date::atDay).toList();
 
         if (memberId == null) {
             return monthOfDays.stream()
-                    .map(day -> new FreeDiaryDomain.ListResponse(null, day, null, List.of()))
-                    .toList();
+                .map(day -> new FreeDiaryDomain.ListResponse(null, day, null, List.of()))
+                .toList();
         }
 
         var startDateTime = startDate.atStartOfDay();
@@ -197,8 +173,8 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
 
         if (diaryList.isEmpty()) {
             return monthOfDays.stream()
-                    .map(day -> new FreeDiaryDomain.ListResponse(null, day, null, List.of()))
-                    .toList();
+                .map(day -> new FreeDiaryDomain.ListResponse(null, day, null, List.of()))
+                .toList();
         }
 
         var diaryIds = diaryList.stream().map(FreeDiaryEntity::getId).toList();
@@ -206,43 +182,38 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
         var fileMap = fileRefDomainService.findImageMapByRefIds(RefType.FREE_DIARY, diaryIds);
 
         // 날짜별로 일기 그룹핑
-        var diaryMap = diaryList.stream()
-                .collect(Collectors.groupingBy(entity -> entity.getMatchAt().toLocalDate()));
+        var diaryMap = diaryList.stream().collect(Collectors.groupingBy(entity -> entity.getMatchAt().toLocalDate()));
 
-        return monthOfDays.stream()
-                .map(day -> {
-                    var diaries = diaryMap.get(day);
+        return monthOfDays.stream().map(day -> {
+            var diaries = diaryMap.get(day);
 
-                    if (diaries == null || diaries.isEmpty()) {
-                        return new FreeDiaryDomain.ListResponse(null, day, null, List.of());
-                    }
+            if (diaries == null || diaries.isEmpty()) {
+                return new FreeDiaryDomain.ListResponse(null, day, null, List.of());
+            }
 
-                    // 최신 일기 찾기
-                    var latestDiary = diaries.stream()
-                            .max((d1, d2) -> {
-                                var time1 = d1.getUpdatedAt() != null ? d1.getUpdatedAt() : d1.getCreatedAt();
-                                var time2 = d2.getUpdatedAt() != null ? d2.getUpdatedAt() : d2.getCreatedAt();
-                                return time1.compareTo(time2);
-                            })
-                            .orElse(diaries.get(0));
+            // 최신 일기 찾기
+            var latestDiary = diaries.stream().max((d1, d2) -> {
+                var time1 = d1.getUpdatedAt() != null ? d1.getUpdatedAt() : d1.getCreatedAt();
+                var time2 = d2.getUpdatedAt() != null ? d2.getUpdatedAt() : d2.getCreatedAt();
+                return time1.compareTo(time2);
+            }).orElse(diaries.get(0));
 
-                    // 최신 일기의 이미지
-                    var image = fileMap.get(latestDiary.getId());
-                    FreeDiaryDomain.ImageDto imageDto = null;
-                    if (image != null) {
-                        imageDto = new FreeDiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext());
-                    }
+            // 최신 일기의 이미지
+            var image = fileMap.get(latestDiary.getId());
+            FreeDiaryDomain.ImageDto imageDto = null;
+            if (image != null) {
+                imageDto = new FreeDiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext());
+            }
 
-                    // 해당 날짜의 모든 일기 이미지 수집
-                    var images = diaries.stream()
-                            .map(diary -> fileMap.get(diary.getId()))
-                            .filter(Objects::nonNull)
-                            .map(dto -> new FreeDiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
-                            .toList();
-
-                    return new FreeDiaryDomain.ListResponse(latestDiary.getId(), day, imageDto, images);
-                })
+            // 해당 날짜의 모든 일기 이미지 수집
+            var images = diaries.stream()
+                .map(diary -> fileMap.get(diary.getId()))
+                .filter(Objects::nonNull)
+                .map(dto -> new FreeDiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
                 .toList();
+
+            return new FreeDiaryDomain.ListResponse(latestDiary.getId(), day, imageDto, images);
+        }).toList();
     }
 
     @Override
@@ -266,38 +237,26 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
 
         var fileMap = fileRefDomainService.findImageMapByRefIds(RefType.FREE_DIARY, diaryIds);
 
-        return diaryList.stream()
-                .sorted((e1, e2) -> {
-                    var t1 = e1.getUpdatedAt() != null ? e1.getUpdatedAt() : e1.getCreatedAt();
-                    var t2 = e2.getUpdatedAt() != null ? e2.getUpdatedAt() : e2.getCreatedAt();
-                    return t2.compareTo(t1); // 최신순
-                })
-                .map(entity -> {
-                    var image = fileMap.get(entity.getId());
-                    FreeDiaryDomain.ImageDto imageDto = null;
+        return diaryList.stream().sorted((e1, e2) -> {
+            var t1 = e1.getUpdatedAt() != null ? e1.getUpdatedAt() : e1.getCreatedAt();
+            var t2 = e2.getUpdatedAt() != null ? e2.getUpdatedAt() : e2.getCreatedAt();
+            return t2.compareTo(t1); // 최신순
+        }).map(entity -> {
+            var image = fileMap.get(entity.getId());
+            FreeDiaryDomain.ImageDto imageDto = null;
 
-                    if (image != null) {
-                        imageDto = new FreeDiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext());
-                    }
+            if (image != null) {
+                imageDto = new FreeDiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext());
+            }
 
-                    var homeTeam = new FreeDiaryDomain.TeamDto(entity.getHomeTeamName(), entity.getHomeScore());
-                    var awayTeam = new FreeDiaryDomain.TeamDto(entity.getAwayTeamName(), entity.getAwayScore());
+            var homeTeam = new FreeDiaryDomain.TeamDto(entity.getHomeTeamName(), entity.getHomeScore());
+            var awayTeam = new FreeDiaryDomain.TeamDto(entity.getAwayTeamName(), entity.getAwayScore());
 
-                    return new FreeDiaryDomain.DailyListResponse(
-                            entity.getId(),
-                            entity.getStadiumName(),
-                            entity.getMatchAt().toLocalDate(),
-                            entity.getMatchAt().format(DateTimeFormatter.ofPattern("HH:mm")),
-                            entity.getTeamName(),
-                            homeTeam,
-                            awayTeam,
-                            entity.getContent(),
-                            entity.getMatchStatus(),
-                            imageDto,
-                            entity.getCreatedAt()
-                    );
-                })
-                .toList();
+            return new FreeDiaryDomain.DailyListResponse(entity.getId(), entity.getStadiumName(),
+                    entity.getMatchAt().toLocalDate(), entity.getMatchAt().format(DateTimeFormatter.ofPattern("HH:mm")),
+                    entity.getTeamName(), homeTeam, awayTeam, entity.getContent(), entity.getMatchStatus(), imageDto,
+                    entity.getCreatedAt());
+        }).toList();
     }
 
     /**
@@ -307,8 +266,7 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
         if (partnerDtoList == null || partnerDtoList.isEmpty()) {
             return List.of();
         }
-        return partnerDtoList.stream()
-                .map(dto -> new CommonDto.PartnerSaveRequest(dto.name(), dto.teamId()))
-                .toList();
+        return partnerDtoList.stream().map(dto -> new CommonDto.PartnerSaveRequest(dto.name(), dto.teamId())).toList();
     }
+
 }

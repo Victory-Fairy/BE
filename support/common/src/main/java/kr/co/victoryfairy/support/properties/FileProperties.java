@@ -10,7 +10,11 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 public class FileProperties {
+
     private String storagePath;
+
     private Integer[] imageResizes;
+
     private Integer[] videoResizes;
+
 }

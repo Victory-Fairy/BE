@@ -27,27 +27,11 @@ public class AccessTokenWebFilter extends PathPatternWebFilter {
         this.addIncludePathPatterns("/member/**");
         this.addIncludePathPatterns("/my-page/**");
         this.addIncludePathPatterns("/diary/**");
-        this.addExcludePathPatterns(
-            "/",
-            "/swagger-ui/**",
-            "/swagger/**",
-            "/v2/api/member/auth-path",
-            "/v2/api/member/login",
-            "/member/login",
-            "/member/auth-path",
-            "/v2/api/match/list",
-            "/match/list",
-            "/v2/api/diary/list",
-            "/diary/list",
-            "/v2/api/diary/daily-list",
-            "/diary/daily-list",
-            "/v2/api/member/match-today",
-            "/member/match-today",
-            "/v2/api/my-page/member",
-            "/my-page/member",
-            "/v2/api/my-page/victory-power",
-            "/my-page/victory-power"
-        );
+        this.addExcludePathPatterns("/", "/swagger-ui/**", "/swagger/**", "/v2/api/member/auth-path",
+                "/v2/api/member/login", "/member/login", "/member/auth-path", "/v2/api/match/list", "/match/list",
+                "/v2/api/diary/list", "/diary/list", "/v2/api/diary/daily-list", "/diary/daily-list",
+                "/v2/api/member/match-today", "/member/match-today", "/v2/api/my-page/member", "/my-page/member",
+                "/v2/api/my-page/victory-power", "/my-page/victory-power");
     }
 
     @Override

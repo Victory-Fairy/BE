@@ -1,12 +1,12 @@
 package kr.co.victoryfairy.support.exception;
+
 import kr.co.victoryfairy.support.constant.EnumDescriptor;
 import kr.co.victoryfairy.support.constant.StatusEnum;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
- * 일반적인 Exception 이외는 Custom Exception 으로 던진다.
- * <pre>
+ * 일반적인 Exception 이외는 Custom Exception 으로 던진다. <pre>
  *     example : newsCrawlingCustomRepository.findNewsCrawlingById(id.getId())
  *                 .orElseThrow(() -> CustomException.of(MessageEnum.Data.FAIL_NO_RESULT));
  * </pre>
@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 public class CustomException extends RuntimeException {
 
     private HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR; // HttpStatus 필드 추가
+
     private StatusEnum statusEnum;
 
     public CustomException() {
@@ -51,13 +52,13 @@ public class CustomException extends RuntimeException {
     }
 
     // HttpStatus를 가져오는 Getter
-//    public HttpStatus getHttpStatus() {
-//        return httpStatus;
-//    }
-//
-//    public StatusEnum getGet
-//        return httpStatus;
-//    }
+    // public HttpStatus getHttpStatus() {
+    // return httpStatus;
+    // }
+    //
+    // public StatusEnum getGet
+    // return httpStatus;
+    // }
 
     public static CustomException of() {
         return new CustomException();
@@ -74,4 +75,5 @@ public class CustomException extends RuntimeException {
     public static CustomException of(EnumDescriptor descriptor) {
         return new CustomException(descriptor);
     }
+
 }

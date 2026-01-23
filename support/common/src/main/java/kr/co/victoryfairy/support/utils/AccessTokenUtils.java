@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AccessTokenUtils {
 
-    //private final JwtProperties jwtProperties;
+    // private final JwtProperties jwtProperties;
 
     public static String getAccessToken(HttpServletRequest request) {
         var accessToken = request.getHeader("Authorization");
@@ -40,7 +40,7 @@ public class AccessTokenUtils {
             return accessError(accessToken);
         }
 
-        //유효시간내의 토큰 해석
+        // 유효시간내의 토큰 해석
         checkAccessToken(accessToken, jwtProperties, request);
         return true;
     }
@@ -51,7 +51,7 @@ public class AccessTokenUtils {
         var parseToken = JwtUtils.parseToken(accessToken, jwtProperties.getSecretKey());
         boolean isCertifiedToken = Boolean.parseBoolean(parseToken.get("isCertifiedToken").toString());
         if (!isCertifiedToken) {
-            //accessToken is wrong
+            // accessToken is wrong
             return accessError(accessToken);
         }
         boolean isExpired = Boolean.parseBoolean(parseToken.get("isExpired").toString());
@@ -78,7 +78,6 @@ public class AccessTokenUtils {
         }
         return true;
     }
-
 
     /**
      * Access Token, Refresh Token 생성
@@ -137,7 +136,6 @@ public class AccessTokenUtils {
             accessError(accessToken); // ADMIN 권한 없으면 에러 처리
         }
     }
-
 
     private static Boolean accessError(String accessToken) {
         log.warn("accessToken is wrong : {}", accessToken);

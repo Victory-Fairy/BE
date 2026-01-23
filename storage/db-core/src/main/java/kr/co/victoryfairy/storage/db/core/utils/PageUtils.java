@@ -11,15 +11,11 @@ import org.springframework.data.domain.Pageable;
 public class PageUtils {
 
     public static <T> PageResult<T> getPageResult(JPAQuery<T> listQuery, Pageable pageable) {
-        var totalCount = listQuery.clone()
-                .select(Expressions.ONE.count())
-                .fetchOne();
+        var totalCount = listQuery.clone().select(Expressions.ONE.count()).fetchOne();
 
-        var resultList = listQuery
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+        var resultList = listQuery.offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
 
         return new PageResult<>(resultList, totalCount);
     }
+
 }

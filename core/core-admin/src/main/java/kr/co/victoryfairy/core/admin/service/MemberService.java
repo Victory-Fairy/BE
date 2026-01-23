@@ -6,5 +6,7 @@ import kr.co.victoryfairy.support.model.PageResult;
 import java.util.List;
 
 public interface MemberService {
+
     PageResult<MemberDomain.MemberListResponse> findList(MemberDomain.MemberListRequest request);
+
 }

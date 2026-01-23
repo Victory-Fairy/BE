@@ -8,7 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SeatUseHistoryRepository extends JpaRepository<SeatUseHistoryEntity,Long> {
+public interface SeatUseHistoryRepository extends JpaRepository<SeatUseHistoryEntity, Long> {
+
     SeatUseHistoryEntity findByDiaryEntityId(Long diaryId);
+
     List<SeatUseHistoryEntity> findAllByDiaryEntityIdIn(List<Long> diaryId);
+
 }

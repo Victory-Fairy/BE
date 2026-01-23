@@ -19,4 +19,5 @@ public interface FreeDiaryService {
     List<FreeDiaryDomain.ListResponse> findList(YearMonth date);
 
     List<FreeDiaryDomain.DailyListResponse> findDailyList(LocalDate date);
+
 }

@@ -24,18 +24,15 @@ import java.util.List;
 public class MemberController {
 
     private final MemberService memberService;
+
     private final MatchService matchService;
 
     @Operation(summary = "sns 별 인증 주소 불러오기")
     @GetMapping("/auth-path")
     public CustomResponse<MemberDomain.MemberOauthPathResponse> authPath(
-            @RequestParam @Validated
-            @Schema(description = "인증 로그인 타입", example = "KAKAO", implementation = MemberEnum.SnsType.class)
-            MemberEnum.SnsType snsType,
-            @RequestParam(required = false)
-            @Schema(description = "redirect url")
-            String redirectUrl
-    ) {
+            @RequestParam @Validated @Schema(description = "인증 로그인 타입", example = "KAKAO",
+                    implementation = MemberEnum.SnsType.class) MemberEnum.SnsType snsType,
+            @RequestParam(required = false) @Schema(description = "redirect url") String redirectUrl) {
         var response = memberService.getOauthPath(snsType, redirectUrl);
         return CustomResponse.ok(response);
     }
@@ -58,7 +55,8 @@ public class MemberController {
     @SecurityRequirement(name = "accessToken")
     @Operation(summary = "관심 팀 등록")
     @PutMapping("/team")
-    public CustomResponse<MessageEnum> updateTeam(@RequestBody  @Validated MemberDomain.MemberTeamUpdateRequest request) {
+    public CustomResponse<MessageEnum> updateTeam(
+            @RequestBody @Validated MemberDomain.MemberTeamUpdateRequest request) {
         memberService.updateTeam(request);
         return CustomResponse.ok(MessageEnum.Common.UPDATE);
     }
@@ -66,14 +64,16 @@ public class MemberController {
     @SecurityRequirement(name = "accessToken")
     @Operation(summary = "닉네임 중복 체크")
     @PostMapping("/check-nick-duplicate")
-    public CustomResponse<MemberDomain.MemberCheckNickDuplicateResponse> checkNickNmDuplicate(@RequestBody String nickNm) {
+    public CustomResponse<MemberDomain.MemberCheckNickDuplicateResponse> checkNickNmDuplicate(
+            @RequestBody String nickNm) {
         return CustomResponse.ok(memberService.checkNickNmDuplicate(nickNm));
     }
 
     @SecurityRequirement(name = "accessToken")
     @Operation(summary = "프로필 사진 수정")
     @PatchMapping("/profile")
-    public CustomResponse<MessageEnum> updateMemberProfile(@RequestBody @Validated MemberDomain.MemberProfileUpdateRequest request) {
+    public CustomResponse<MessageEnum> updateMemberProfile(
+            @RequestBody @Validated MemberDomain.MemberProfileUpdateRequest request) {
         memberService.updateMemberProfile(request);
         return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
@@ -81,7 +81,8 @@ public class MemberController {
     @SecurityRequirement(name = "accessToken")
     @Operation(summary = "닉네임 수정")
     @PatchMapping("/nick-name")
-    public CustomResponse<MessageEnum> updateMemberNickNm(@RequestBody @Validated MemberDomain.MemberNickNmUpdateRequest request) {
+    public CustomResponse<MessageEnum> updateMemberNickNm(
+            @RequestBody @Validated MemberDomain.MemberNickNmUpdateRequest request) {
         memberService.updateMemberNickNm(request);
         return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
@@ -101,10 +102,10 @@ public class MemberController {
         return CustomResponse.ok(response);
     }
 
-
     @Operation(summary = "토큰 재발행")
     @PatchMapping("/refresh-token")
-    public CustomResponse<MemberDomain.RefreshTokenResponse> refreshToken(@RequestParam(required = true) String refreshToken) {
+    public CustomResponse<MemberDomain.RefreshTokenResponse> refreshToken(
+            @RequestParam(required = true) String refreshToken) {
         var response = memberService.refreshToken(refreshToken);
         return CustomResponse.ok(response);
     }

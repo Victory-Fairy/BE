@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class RedisOperator {
+
     private final RedisTemplate<String, String> redisTemplate;
 
     public PendingMessagesSummary pendingSummary(String streamKey, String groupName) {
@@ -23,12 +24,8 @@ public class RedisOperator {
         var connection = redisTemplate.getConnectionFactory().getConnection();
         var streamCommands = connection.streamCommands();
 
-        var pendingMessages = streamCommands.xPending(
-            streamKey.getBytes(),
-            groupName,
-            Range.unbounded(),
-            Long.valueOf(count)
-        );
+        var pendingMessages = streamCommands.xPending(streamKey.getBytes(), groupName, Range.unbounded(),
+                Long.valueOf(count));
 
         return pendingMessages.stream().toList();
     }
@@ -46,14 +43,12 @@ public class RedisOperator {
             var range = Range.closed(startId, endId);
 
             // 메시지 조회
-            List<PendingMessage> messages = streamCommands.xPending(
-                    streamKey.getBytes(),
-                    groupName,
-                    range,
-                    (long) pageSize
-            ).toList();
+            List<PendingMessage> messages = streamCommands
+                .xPending(streamKey.getBytes(), groupName, range, (long) pageSize)
+                .toList();
 
-            if (messages.isEmpty()) break;
+            if (messages.isEmpty())
+                break;
 
             allMessages.addAll(messages);
 
@@ -62,37 +57,35 @@ public class RedisOperator {
             startId = incrementStreamId(lastId);
 
             // 페이징이 끝났는지 확인
-            if (messages.size() < pageSize) break;
+            if (messages.size() < pageSize)
+                break;
         }
 
         return allMessages;
     }
 
-    public List<MapRecord<String, Object, Object>> read(String streamKey, String groupName, String consumerName, String id) {
-        return redisTemplate.opsForStream().read(
-                Consumer.from(groupName, consumerName),
-                StreamReadOptions.empty().count(1),
-                StreamOffset.create(streamKey, ReadOffset.from(RecordId.of(id)))
-        );
+    public List<MapRecord<String, Object, Object>> read(String streamKey, String groupName, String consumerName,
+            String id) {
+        return redisTemplate.opsForStream()
+            .read(Consumer.from(groupName, consumerName), StreamReadOptions.empty().count(1),
+                    StreamOffset.create(streamKey, ReadOffset.from(RecordId.of(id))));
     }
 
     public void ack(String streamKey, String groupName, String id) {
         redisTemplate.opsForStream().acknowledge(streamKey, groupName, RecordId.of(id));
     }
 
-    public List<MapRecord<String, Object, Object>> readAll(String streamKey, String groupName, String consumerName, int count) {
-        return redisTemplate.opsForStream().read(
-                Consumer.from(groupName, consumerName),
-                StreamReadOptions.empty().count(count),
-                StreamOffset.create(streamKey, ReadOffset.from("0")) // 처음부터 읽기 (ack 여부 상관없음)
-        );
+    public List<MapRecord<String, Object, Object>> readAll(String streamKey, String groupName, String consumerName,
+            int count) {
+        return redisTemplate.opsForStream()
+            .read(Consumer.from(groupName, consumerName), StreamReadOptions.empty().count(count),
+                    StreamOffset.create(streamKey, ReadOffset.from("0")) // 처음부터 읽기 (ack
+                                                                         // 여부 상관없음)
+            );
     }
 
     public List<MapRecord<String, Object, Object>> rangeAll(String streamKey) {
-        return redisTemplate.opsForStream().range(
-                streamKey,
-                Range.unbounded()
-        );
+        return redisTemplate.opsForStream().range(streamKey, Range.unbounded());
     }
 
     private String incrementStreamId(String id) {
@@ -101,4 +94,5 @@ public class RedisOperator {
         long sequence = Long.parseLong(parts[1]);
         return timestamp + "-" + (sequence + 1);
     }
+
 }

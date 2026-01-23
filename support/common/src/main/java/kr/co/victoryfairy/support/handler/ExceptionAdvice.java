@@ -41,16 +41,17 @@ public class ExceptionAdvice {
     public ResponseEntity<CustomResponse<String>> exception(CustomException e) {
         log.error(e.getMessage(), e);
 
-        if(!ObjectUtils.isEmpty(e.getStatusEnum())) {
+        if (!ObjectUtils.isEmpty(e.getStatusEnum())) {
             return CustomResponse.failed(e.getHttpStatus(), e.getStatusEnum());
-        } else {
+        }
+        else {
             // TODO ??
             return CustomResponse.failed(e.getHttpStatus(), e);
         }
     }
 
     /**
-     *  파라미터 누락
+     * 파라미터 누락
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CustomResponse<String>> exception(MethodArgumentNotValidException e) {
@@ -66,7 +67,7 @@ public class ExceptionAdvice {
 
             resultMessage = this.getMessageSource(filedErrors.get(0).getDefaultMessage(), arguments);
         }
-        return CustomResponse.failed(resultMessage, HttpStatus.BAD_REQUEST,  MessageEnum.Common.REQUEST_PARAMETER);
+        return CustomResponse.failed(resultMessage, HttpStatus.BAD_REQUEST, MessageEnum.Common.REQUEST_PARAMETER);
     }
 
     @ExceptionHandler(Exception.class)
@@ -74,7 +75,6 @@ public class ExceptionAdvice {
         log.error(e.getMessage(), e);
         return CustomResponse.failed(e, MessageEnum.Common.REQUEST_FAIL);
     }
-
 
     ///////////////////////////////////////////
 
@@ -84,16 +84,17 @@ public class ExceptionAdvice {
         for (FieldError fieldError : ex.getFieldErrors()) {
             // 필드 이름과 메시지 부분만 추출
             errorMessage.append("Field: ")
-                    .append(fieldError.getField())
-                    .append(", Error: ")
-                    .append(fieldError.getDefaultMessage())
-                    .append("\n");
+                .append(fieldError.getField())
+                .append(", Error: ")
+                .append(fieldError.getDefaultMessage())
+                .append("\n");
         }
         return errorMessage.toString();
     }
 
     private String getMessageSource(String messageKey, Object[] args) {
-        //메세지중 {0...1}부분 파라미터로 전환
+        // 메세지중 {0...1}부분 파라미터로 전환
         return MessageFormat.format("{0} {1}", args[0], messageKey);
     }
+
 }

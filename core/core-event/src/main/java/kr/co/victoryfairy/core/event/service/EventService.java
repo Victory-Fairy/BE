@@ -15,16 +15,20 @@ public class EventService {
     private final Logger log = LoggerFactory.getLogger(EventService.class);
 
     private final MemberRepository memberRepository;
+
     private final DiaryRepository diaryRepository;
+
     private final TeamRepository teamRepository;
+
     private final GameMatchRepository matchRepository;
+
     private final GameRecordRepository gameRecordRepository;
 
     private final WinningRateRepository winningRateRepository;
 
     public EventService(MemberRepository memberRepository, DiaryRepository diaryRepository,
-                        GameMatchRepository matchRepository, TeamRepository teamRepository,
-                        GameRecordRepository gameRecordRepository, WinningRateRepository winningRateRepository) {
+            GameMatchRepository matchRepository, TeamRepository teamRepository,
+            GameRecordRepository gameRecordRepository, WinningRateRepository winningRateRepository) {
         this.memberRepository = memberRepository;
         this.diaryRepository = diaryRepository;
         this.matchRepository = matchRepository;
@@ -36,22 +40,18 @@ public class EventService {
     @Transactional
     public boolean processDiary(EventDomain.WriteEventDto eventDto) {
         log.info(">>> Start processing diary event: {}", eventDto.diaryId());
-        var memberEntity = memberRepository.findById(eventDto.memberId())
-                .orElse(null);
+        var memberEntity = memberRepository.findById(eventDto.memberId()).orElse(null);
 
-        var matchEntity = matchRepository.findById(eventDto.gameId())
-                .orElse(null);
+        var matchEntity = matchRepository.findById(eventDto.gameId()).orElse(null);
 
-        var diaryEntity = diaryRepository.findById(eventDto.diaryId())
-                .orElse(null);
+        var diaryEntity = diaryRepository.findById(eventDto.diaryId()).orElse(null);
 
         if (diaryEntity == null || diaryEntity.getIsRated()) {
             log.info(">>> Diary is null: {}", eventDto.diaryId());
             return true;
         }
 
-        var teamEntity = teamRepository.findById(diaryEntity.getTeamEntity().getId())
-                .orElse(null);
+        var teamEntity = teamRepository.findById(diaryEntity.getTeamEntity().getId()).orElse(null);
 
         if (memberEntity == null || matchEntity == null || teamEntity == null) {
             return false;
@@ -74,20 +74,20 @@ public class EventService {
                 : (isWin ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
 
         var gameRecordEntity = GameRecordEntity.builder()
-                .member(memberEntity)
-                .diaryEntity(diaryEntity)
-                .gameMatchEntity(matchEntity)
-                .teamEntity(teamEntity)
-                .teamName(teamEntity.getName())
-                .opponentTeamEntity(isAway ? homeTeam : awayTeam)
-                .opponentTeamName(isAway ? homeTeam.getName() : awayTeam.getName())
-                .stadiumEntity(matchEntity.getStadiumEntity())
-                .viewType(diaryEntity.getViewType())
-                .status(matchEntity.getStatus())
-                .resultType(matchResult)
-                .season(matchEntity.getSeason())
-                .leagueType(matchEntity.getLeague())  // WBC 지원: 리그 타입 저장
-                .build();
+            .member(memberEntity)
+            .diaryEntity(diaryEntity)
+            .gameMatchEntity(matchEntity)
+            .teamEntity(teamEntity)
+            .teamName(teamEntity.getName())
+            .opponentTeamEntity(isAway ? homeTeam : awayTeam)
+            .opponentTeamName(isAway ? homeTeam.getName() : awayTeam.getName())
+            .stadiumEntity(matchEntity.getStadiumEntity())
+            .viewType(diaryEntity.getViewType())
+            .status(matchEntity.getStatus())
+            .resultType(matchResult)
+            .season(matchEntity.getSeason())
+            .leagueType(matchEntity.getLeague()) // WBC 지원: 리그 타입 저장
+            .build();
         gameRecordRepository.save(gameRecordEntity);
         gameRecordRepository.flush();
 
@@ -102,8 +102,7 @@ public class EventService {
 
     @Transactional
     public boolean processBatch(EventDomain.WriteEventDto eventDto) {
-        var matchEntity = matchRepository.findById(eventDto.gameId())
-                .orElse(null);
+        var matchEntity = matchRepository.findById(eventDto.gameId()).orElse(null);
 
         var diaryEntities = diaryRepository.findByGameMatchEntityAndIsRatedFalse(matchEntity);
 
@@ -116,11 +115,9 @@ public class EventService {
                 return;
             }
 
-            var memberEntity = memberRepository.findById(diaryEntity.getMember().getId())
-                    .orElse(null);
+            var memberEntity = memberRepository.findById(diaryEntity.getMember().getId()).orElse(null);
 
-            var teamEntity = teamRepository.findById(diaryEntity.getTeamEntity().getId())
-                    .orElse(null);
+            var teamEntity = teamRepository.findById(diaryEntity.getTeamEntity().getId()).orElse(null);
 
             var awayTeam = matchEntity.getAwayTeamEntity();
             var homeTeam = matchEntity.getHomeTeamEntity();
@@ -139,20 +136,20 @@ public class EventService {
                     : (isWin ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
 
             var gameRecordEntity = GameRecordEntity.builder()
-                    .member(memberEntity)
-                    .diaryEntity(diaryEntity)
-                    .teamEntity(teamEntity)
-                    .gameMatchEntity(matchEntity)
-                    .teamName(teamEntity.getName())
-                    .opponentTeamEntity(isAway ? homeTeam : awayTeam)
-                    .opponentTeamName(isAway ? homeTeam.getName() : awayTeam.getName())
-                    .stadiumEntity(matchEntity.getStadiumEntity())
-                    .viewType(diaryEntity.getViewType())
-                    .status(matchEntity.getStatus())
-                    .resultType(matchResult)
-                    .season(matchEntity.getSeason())
-                    .leagueType(matchEntity.getLeague())  // WBC 지원: 리그 타입 저장
-                    .build();
+                .member(memberEntity)
+                .diaryEntity(diaryEntity)
+                .teamEntity(teamEntity)
+                .gameMatchEntity(matchEntity)
+                .teamName(teamEntity.getName())
+                .opponentTeamEntity(isAway ? homeTeam : awayTeam)
+                .opponentTeamName(isAway ? homeTeam.getName() : awayTeam.getName())
+                .stadiumEntity(matchEntity.getStadiumEntity())
+                .viewType(diaryEntity.getViewType())
+                .status(matchEntity.getStatus())
+                .resultType(matchResult)
+                .season(matchEntity.getSeason())
+                .leagueType(matchEntity.getLeague()) // WBC 지원: 리그 타입 저장
+                .build();
 
             gameRecordRepository.save(gameRecordEntity);
 
@@ -162,4 +159,5 @@ public class EventService {
         });
         return true;
     }
+
 }

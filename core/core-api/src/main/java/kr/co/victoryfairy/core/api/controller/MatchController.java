@@ -49,4 +49,5 @@ public class MatchController {
         var response = matchService.findRecordById(id);
         return CustomResponse.ok(response);
     }
+
 }

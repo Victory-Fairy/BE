@@ -11,15 +11,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * QA-008: status/statusDetail 일관성 테스트
  *
- * 세 API의 statusDetail 반환 로직이 일관되게 동작하는지 검증합니다.
- * - /match/list
- * - /match/{id}
- * - /diary/daily-list
+ * 세 API의 statusDetail 반환 로직이 일관되게 동작하는지 검증합니다. - /match/list - /match/{id} -
+ * /diary/daily-list
  *
- * 규칙:
- * - CANCELED 상태 + reason 존재 → statusDetail = reason (취소 사유)
- * - CANCELED 상태 + reason null → statusDetail = "경기취소" (fallback)
- * - 그 외 상태 → statusDetail = status.getDesc()
+ * 규칙: - CANCELED 상태 + reason 존재 → statusDetail = reason (취소 사유) - CANCELED 상태 + reason
+ * null → statusDetail = "경기취소" (fallback) - 그 외 상태 → statusDetail = status.getDesc()
  */
 @Tag("develop")
 @DisplayName("QA-008: statusDetail 로직 테스트")
@@ -29,9 +25,7 @@ class StatusDetailLogicTest {
      * 수정된 statusDetail 결정 로직 (DiaryServiceImpl, MatchServiceImpl에서 사용)
      */
     private String determineStatusDetail(MatchEnum.MatchStatus status, String reason) {
-        return status.equals(MatchEnum.MatchStatus.CANCELED) && reason != null
-                ? reason
-                : status.getDesc();
+        return status.equals(MatchEnum.MatchStatus.CANCELED) && reason != null ? reason : status.getDesc();
     }
 
     @Nested
@@ -79,6 +73,7 @@ class StatusDetailLogicTest {
             // then
             assertThat(statusDetail).isEqualTo("경기취소");
         }
+
     }
 
     @Nested
@@ -104,7 +99,7 @@ class StatusDetailLogicTest {
         void whenReadyWithReason_thenStillReturnScheduled() {
             // given
             MatchEnum.MatchStatus status = MatchEnum.MatchStatus.READY;
-            String reason = "우천취소";  // 이 값은 무시되어야 함
+            String reason = "우천취소"; // 이 값은 무시되어야 함
 
             // when
             String statusDetail = determineStatusDetail(status, reason);
@@ -112,6 +107,7 @@ class StatusDetailLogicTest {
             // then
             assertThat(statusDetail).isEqualTo("경기예정");
         }
+
     }
 
     @Nested
@@ -131,6 +127,7 @@ class StatusDetailLogicTest {
             // then
             assertThat(statusDetail).isEqualTo("진행중");
         }
+
     }
 
     @Nested
@@ -150,6 +147,7 @@ class StatusDetailLogicTest {
             // then
             assertThat(statusDetail).isEqualTo("종료");
         }
+
     }
 
     @Nested
@@ -160,24 +158,21 @@ class StatusDetailLogicTest {
         @DisplayName("모든 상태에서 일관된 statusDetail을 반환한다")
         void allStatusesShouldReturnConsistentStatusDetail() {
             // READY
-            assertThat(determineStatusDetail(MatchEnum.MatchStatus.READY, null))
-                    .isEqualTo("경기예정");
+            assertThat(determineStatusDetail(MatchEnum.MatchStatus.READY, null)).isEqualTo("경기예정");
 
             // PROGRESS
-            assertThat(determineStatusDetail(MatchEnum.MatchStatus.PROGRESS, null))
-                    .isEqualTo("진행중");
+            assertThat(determineStatusDetail(MatchEnum.MatchStatus.PROGRESS, null)).isEqualTo("진행중");
 
             // END
-            assertThat(determineStatusDetail(MatchEnum.MatchStatus.END, null))
-                    .isEqualTo("종료");
+            assertThat(determineStatusDetail(MatchEnum.MatchStatus.END, null)).isEqualTo("종료");
 
             // CANCELED with reason
-            assertThat(determineStatusDetail(MatchEnum.MatchStatus.CANCELED, "우천취소"))
-                    .isEqualTo("우천취소");
+            assertThat(determineStatusDetail(MatchEnum.MatchStatus.CANCELED, "우천취소")).isEqualTo("우천취소");
 
             // CANCELED without reason (fallback)
-            assertThat(determineStatusDetail(MatchEnum.MatchStatus.CANCELED, null))
-                    .isEqualTo("경기취소");
+            assertThat(determineStatusDetail(MatchEnum.MatchStatus.CANCELED, null)).isEqualTo("경기취소");
         }
+
     }
+
 }

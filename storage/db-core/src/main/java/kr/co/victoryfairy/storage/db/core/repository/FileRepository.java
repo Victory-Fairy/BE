@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 public interface FileRepository extends JpaRepository<FileEntity, Long> {
+
 }

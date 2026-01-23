@@ -17,6 +17,7 @@ import static kr.co.victoryfairy.storage.db.core.entity.QFileRefEntity.fileRefEn
 
 @Service
 public class FileCustomRepositoryImpl extends QuerydslRepositorySupport implements FileCustomRepository {
+
     private final JPAQueryFactory jpaQueryFactory;
 
     public FileCustomRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
@@ -27,19 +28,13 @@ public class FileCustomRepositoryImpl extends QuerydslRepositorySupport implemen
     @Override
     public List<FileEntity> findMissingFile(LocalDateTime date) {
         return jpaQueryFactory
-                .select(Projections.fields(FileEntity.class
-                        , fileEntity.id
-                        , fileEntity.name
-                        , fileEntity.saveName
-                        , fileEntity.path
-                        , fileEntity.ext
-                        , fileEntity.size
-                ))
-                .from(fileEntity)
-                .leftJoin(fileRefEntity).on(fileEntity.id.eq(fileRefEntity.fileEntity.id))
-                .where(fileRefEntity.fileEntity.id.isNull()
-                        .and(fileEntity.createdAt.before(date))
-                )
-                .fetch();
+            .select(Projections.fields(FileEntity.class, fileEntity.id, fileEntity.name, fileEntity.saveName,
+                    fileEntity.path, fileEntity.ext, fileEntity.size))
+            .from(fileEntity)
+            .leftJoin(fileRefEntity)
+            .on(fileEntity.id.eq(fileRefEntity.fileEntity.id))
+            .where(fileRefEntity.fileEntity.id.isNull().and(fileEntity.createdAt.before(date)))
+            .fetch();
     }
+
 }

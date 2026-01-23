@@ -7,7 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SeatRepository extends JpaRepository<SeatEntity,Long> {
+public interface SeatRepository extends JpaRepository<SeatEntity, Long> {
 
     List<SeatEntity> findByStadiumEntityIdAndSeason(Long id, String season);
+
 }

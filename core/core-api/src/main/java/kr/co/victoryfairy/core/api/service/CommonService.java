@@ -10,4 +10,5 @@ public interface CommonService {
     List<CommonDomain.TeamListResponse> findAll(MatchEnum.LeagueType league);
 
     List<CommonDomain.SeatListResponse> findSeat(Long id, String season);
+
 }

@@ -20,12 +20,15 @@ public class PushFcmConsumer {
 
     @Value("${event.fcm.key}")
     private String key;
+
     @Value("${event.fcm.group}")
     private String group;
+
     @Value("${event.fcm.consumer}")
     private String consumer;
 
     private final RedisHandler redisHandler;
+
     private final ObjectMapper objectMapper;
 
     private final PushService pushService;
@@ -46,11 +49,12 @@ public class PushFcmConsumer {
 
             boolean success = pushService.processPushFcm(event);
 
-            /*if (success) {
-                redisHandler.eventKnowEdge(key, group, message.getId().getValue());
-            } else {
-                log.warn("Event processing skipped: {}", message.getId());
-            }*/
+            /*
+             * if (success) { redisHandler.eventKnowEdge(key, group,
+             * message.getId().getValue()); } else {
+             * log.warn("Event processing skipped: {}", message.getId()); }
+             */
         }
     }
+
 }

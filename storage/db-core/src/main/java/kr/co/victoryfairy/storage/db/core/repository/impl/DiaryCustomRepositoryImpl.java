@@ -48,21 +48,17 @@ public class DiaryCustomRepositoryImpl extends QuerydslRepositorySupport impleme
     @Override
     public List<DiaryModel.DiaryDto> findList(DiaryModel.ListRequest request) {
         return jpaQueryFactory
-                .select(Projections.fields(DiaryModel.DiaryDto.class
-                        , diaryEntity.id
-                        , diaryEntity.teamEntity.id.as("teamId")
-                        , gameMatchEntity.matchAt
-                        , gameRecordEntity.resultType
-                        , diaryEntity.createdAt
-                        , diaryEntity.updatedAt
-                ))
-                .from(diaryEntity)
-                .leftJoin(gameMatchEntity).on(gameMatchEntity.id.eq(diaryEntity.gameMatchEntity.id))
-                .leftJoin(gameRecordEntity).on(gameRecordEntity.diaryEntity.id.eq(diaryEntity.id))
-                .where(diaryEntity.member.id.eq(request.memberId())
-                        .and(this.betweenMatchAt(request.startDate(), request.endDate()))
-                )
-                .fetch();
+            .select(Projections.fields(DiaryModel.DiaryDto.class, diaryEntity.id,
+                    diaryEntity.teamEntity.id.as("teamId"), gameMatchEntity.matchAt, gameRecordEntity.resultType,
+                    diaryEntity.createdAt, diaryEntity.updatedAt))
+            .from(diaryEntity)
+            .leftJoin(gameMatchEntity)
+            .on(gameMatchEntity.id.eq(diaryEntity.gameMatchEntity.id))
+            .leftJoin(gameRecordEntity)
+            .on(gameRecordEntity.diaryEntity.id.eq(diaryEntity.id))
+            .where(diaryEntity.member.id.eq(request.memberId())
+                .and(this.betweenMatchAt(request.startDate(), request.endDate())))
+            .fetch();
     }
 
     @Override
@@ -71,67 +67,52 @@ public class DiaryCustomRepositoryImpl extends QuerydslRepositorySupport impleme
         var homeEntity = new QTeamEntity("homeTeamEntity");
 
         return jpaQueryFactory
-                .select(Projections.fields(DiaryModel.DiaryDto.class
-                        , diaryEntity.id
-                        , diaryEntity.teamEntity.id.as("teamId")
-                        , diaryEntity.content
-                        , gameMatchEntity.id.as("gameMatchId")
-                        , gameMatchEntity.matchAt
-                        , awayEntity.id.as("awayTeamId")
-                        , awayEntity.name.as("awayTeamName")
-                        , gameMatchEntity.awayScore
-                        , homeEntity.id.as("homeTeamId")
-                        , homeEntity.name.as("homeTeamName")
-                        , gameMatchEntity.homeScore
-                        , gameRecordEntity.resultType
-                        , gameMatchEntity.status
-                        , gameMatchEntity.reason
-                        , stadiumEntity.shortName
-                        , stadiumEntity.fullName
-                        , diaryEntity.createdAt
-                        , diaryEntity.updatedAt
-                ))
-                .from(diaryEntity)
-                .leftJoin(gameMatchEntity).on(gameMatchEntity.id.eq(diaryEntity.gameMatchEntity.id))
-                .leftJoin(awayEntity).on(awayEntity.id.eq(gameMatchEntity.awayTeamEntity.id))
-                .leftJoin(homeEntity).on(homeEntity.id.eq(gameMatchEntity.homeTeamEntity.id))
-                .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
-                .leftJoin(gameRecordEntity).on(gameRecordEntity.diaryEntity.id.eq(diaryEntity.id))
-                .where(diaryEntity.member.id.eq(request.memberId())
-                        .and(this.eqMatchAt(request.date()))
-                )
-                .fetch();
+            .select(Projections.fields(DiaryModel.DiaryDto.class, diaryEntity.id,
+                    diaryEntity.teamEntity.id.as("teamId"), diaryEntity.content, gameMatchEntity.id.as("gameMatchId"),
+                    gameMatchEntity.matchAt, awayEntity.id.as("awayTeamId"), awayEntity.name.as("awayTeamName"),
+                    gameMatchEntity.awayScore, homeEntity.id.as("homeTeamId"), homeEntity.name.as("homeTeamName"),
+                    gameMatchEntity.homeScore, gameRecordEntity.resultType, gameMatchEntity.status,
+                    gameMatchEntity.reason, stadiumEntity.shortName, stadiumEntity.fullName, diaryEntity.createdAt,
+                    diaryEntity.updatedAt))
+            .from(diaryEntity)
+            .leftJoin(gameMatchEntity)
+            .on(gameMatchEntity.id.eq(diaryEntity.gameMatchEntity.id))
+            .leftJoin(awayEntity)
+            .on(awayEntity.id.eq(gameMatchEntity.awayTeamEntity.id))
+            .leftJoin(homeEntity)
+            .on(homeEntity.id.eq(gameMatchEntity.homeTeamEntity.id))
+            .leftJoin(stadiumEntity)
+            .on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
+            .leftJoin(gameRecordEntity)
+            .on(gameRecordEntity.diaryEntity.id.eq(diaryEntity.id))
+            .where(diaryEntity.member.id.eq(request.memberId()).and(this.eqMatchAt(request.date())))
+            .fetch();
     }
 
     @Override
     public PageResult<DiaryModel.DiaryListResponse> findAll(DiaryModel.DiaryListRequest request) {
-        var pageRequest = PageRequest.of(request.page()-1, request.size());
+        var pageRequest = PageRequest.of(request.page() - 1, request.size());
 
         var query = jpaQueryFactory
-                .select(Projections.fields(DiaryModel.DiaryListResponse.class
-                        , diaryEntity.id
-                        , teamEntity.id.as("teamId")
-                        , teamEntity.name.as("teamName")
-                        , diaryEntity.content
-                        , memberEntity.id.as("memberId")
-                        , memberInfoEntity.nickNm
-                        , gameMatchEntity.matchAt
-                        , gameMatchEntity.status
-                        , diaryEntity.moodType
-                        , diaryEntity.viewType
-                        , diaryEntity.weatherType
-                ))
-                .from(diaryEntity)
-                .innerJoin(memberEntity).on(diaryEntity.member.id.eq(memberEntity.id))
-                .innerJoin(memberInfoEntity).on(memberEntity.id.eq(memberInfoEntity.memberEntity.id))
-                .leftJoin(teamEntity).on(diaryEntity.teamEntity.id.eq(teamEntity.id))
-                .leftJoin(gameMatchEntity).on(gameMatchEntity.id.eq(diaryEntity.gameMatchEntity.id))
-                //.leftJoin(diaryFoodEntity).on(diaryEntity.id.eq(diaryFoodEntity.diaryEntity.id))
-                //.leftJoin(partnerEntity).on(diaryEntity.id.eq(partnerEntity.diaryEntity.id))
-                //.leftJoin(seatUseHistoryEntity).on(diaryEntity.id.eq(seatUseHistoryEntity.diaryEntity.id))
-                //.leftJoin(seatEntity).on(seatUseHistoryEntity.seatEntity.id.eq(seatEntity.id))
-                .orderBy(diaryEntity.id.desc())
-                .where(this.eqMatchAt(request.date()), this.eqStatus(request.status()));
+            .select(Projections.fields(DiaryModel.DiaryListResponse.class, diaryEntity.id, teamEntity.id.as("teamId"),
+                    teamEntity.name.as("teamName"), diaryEntity.content, memberEntity.id.as("memberId"),
+                    memberInfoEntity.nickNm, gameMatchEntity.matchAt, gameMatchEntity.status, diaryEntity.moodType,
+                    diaryEntity.viewType, diaryEntity.weatherType))
+            .from(diaryEntity)
+            .innerJoin(memberEntity)
+            .on(diaryEntity.member.id.eq(memberEntity.id))
+            .innerJoin(memberInfoEntity)
+            .on(memberEntity.id.eq(memberInfoEntity.memberEntity.id))
+            .leftJoin(teamEntity)
+            .on(diaryEntity.teamEntity.id.eq(teamEntity.id))
+            .leftJoin(gameMatchEntity)
+            .on(gameMatchEntity.id.eq(diaryEntity.gameMatchEntity.id))
+            // .leftJoin(diaryFoodEntity).on(diaryEntity.id.eq(diaryFoodEntity.diaryEntity.id))
+            // .leftJoin(partnerEntity).on(diaryEntity.id.eq(partnerEntity.diaryEntity.id))
+            // .leftJoin(seatUseHistoryEntity).on(diaryEntity.id.eq(seatUseHistoryEntity.diaryEntity.id))
+            // .leftJoin(seatEntity).on(seatUseHistoryEntity.seatEntity.id.eq(seatEntity.id))
+            .orderBy(diaryEntity.id.desc())
+            .where(this.eqMatchAt(request.date()), this.eqStatus(request.status()));
 
         return PageUtils.getPageResult(query, pageRequest);
     }
@@ -154,8 +135,7 @@ public class DiaryCustomRepositoryImpl extends QuerydslRepositorySupport impleme
 
         String matchAtStr = matchAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        StringTemplate dbDate = Expressions.stringTemplate(
-                "DATE_FORMAT({0}, '%Y-%m-%d')", gameMatchEntity.matchAt);
+        StringTemplate dbDate = Expressions.stringTemplate("DATE_FORMAT({0}, '%Y-%m-%d')", gameMatchEntity.matchAt);
 
         return dbDate.eq(matchAtStr);
     }
@@ -167,4 +147,5 @@ public class DiaryCustomRepositoryImpl extends QuerydslRepositorySupport impleme
     private BooleanExpression eqResultType(MatchEnum.MatchType type) {
         return null;
     }
+
 }

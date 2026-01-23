@@ -38,4 +38,5 @@ public class RedisConfig {
         redisTemplate.setEnableDefaultSerializer(true);
         return redisTemplate;
     }
+
 }

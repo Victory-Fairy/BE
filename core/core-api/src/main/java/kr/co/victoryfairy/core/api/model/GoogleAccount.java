@@ -1,7 +1,9 @@
 package kr.co.victoryfairy.core.api.model;
 
 public class GoogleAccount {
+
     private String email;
+
     private Boolean isEmailVerified;
 
     public GoogleAccount() {
@@ -15,4 +17,5 @@ public class GoogleAccount {
     public String getEmail() {
         return email;
     }
+
 }

@@ -23,9 +23,11 @@ public class FileController {
     }
 
     @Operation(summary = "파일 등록")
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public CustomResponse<List<FileDomain.Response>> createFile(@ModelAttribute FileDomain.CreateRequest request) {
         var response = fileService.createFile(request);
         return CustomResponse.ok(response);
     }
+
 }

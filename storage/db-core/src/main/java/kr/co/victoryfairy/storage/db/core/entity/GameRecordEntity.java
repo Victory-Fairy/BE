@@ -22,7 +22,7 @@ public class GameRecordEntity extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "member_id")
-    private MemberEntity member;                  // 회원 식별자
+    private MemberEntity member; // 회원 식별자
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "diary_id")
@@ -30,7 +30,7 @@ public class GameRecordEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_match_id")
-    private GameMatchEntity gameMatchEntity;      // 경기 식별자
+    private GameMatchEntity gameMatchEntity; // 경기 식별자
 
     @Comment("응원 팀 id")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -82,4 +82,5 @@ public class GameRecordEntity extends BaseEntity {
         this.opponentTeamName = opponentTeamEntity.getName();
         this.resultType = resultType;
     }
+
 }

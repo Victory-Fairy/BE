@@ -47,9 +47,10 @@ public class CustomResponse<T> {
      */
     public static <T> CustomResponse<T> ok(T data) {
         return (CustomResponse<T>) CustomResponse.builder()
-                .rowCount((data instanceof List list ? list.size() : null))
-                .status(HttpStatus.OK.value())
-                .data(data).build();
+            .rowCount((data instanceof List list ? list.size() : null))
+            .status(HttpStatus.OK.value())
+            .data(data)
+            .build();
     }
 
     /**
@@ -57,38 +58,39 @@ public class CustomResponse<T> {
      */
     public static <T> CustomResponse<T> ok(T data, Long totalCount) {
         return (CustomResponse<T>) CustomResponse.builder()
-                .rowCount((data instanceof List list ? list.size() : null))
-                .totalCount(totalCount)
-                .status(HttpStatus.OK.value())
-                .data(data).build();
+            .rowCount((data instanceof List list ? list.size() : null))
+            .totalCount(totalCount)
+            .status(HttpStatus.OK.value())
+            .data(data)
+            .build();
     }
-
 
     public static <T> CustomResponse<T> ok(EnumDescriptor enumDescriptor) {
         return (CustomResponse<T>) CustomResponse.builder()
-                .status(HttpStatus.OK.value())
-                .message(enumDescriptor.getDescKr())
-                .build();
+            .status(HttpStatus.OK.value())
+            .message(enumDescriptor.getDescKr())
+            .build();
     }
 
     public static ResponseEntity<CustomResponse<String>> failed(Exception e, EnumDescriptor descriptor) {
         var httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
         var response = CustomResponse.<String>builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(descriptor.getDescKr())
-                .errorMsg(e.getMessage())
-                .build();
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .message(descriptor.getDescKr())
+            .errorMsg(e.getMessage())
+            .build();
 
         return ResponseEntity.status(httpStatus).body(response);
     }
 
-    public static ResponseEntity<CustomResponse<String>> failed(String message, HttpStatus httpStatus, EnumDescriptor descriptor) {
+    public static ResponseEntity<CustomResponse<String>> failed(String message, HttpStatus httpStatus,
+            EnumDescriptor descriptor) {
         var response = CustomResponse.<String>builder()
-                .status(httpStatus.value())
-                .message(descriptor.getDescKr())
-                .errorMsg(message)
-                .build();
+            .status(httpStatus.value())
+            .message(descriptor.getDescKr())
+            .errorMsg(message)
+            .build();
 
         return ResponseEntity.status(httpStatus).body(response);
     }
@@ -98,9 +100,9 @@ public class CustomResponse<T> {
      */
     public static <T> CustomResponse<T> failed(Exception e, String message) {
         return (CustomResponse<T>) CustomResponse.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(message)
-                .build();
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .message(message)
+            .build();
     }
 
     /**
@@ -108,10 +110,10 @@ public class CustomResponse<T> {
      */
     public static <T> CustomResponse<T> failed(Exception e, String message, String errorMsg) {
         return (CustomResponse<T>) CustomResponse.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .message(message)
-                .errorMsg(errorMsg)
-                .build();
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .message(message)
+            .errorMsg(errorMsg)
+            .build();
     }
 
     /**
@@ -119,10 +121,10 @@ public class CustomResponse<T> {
      */
     public static ResponseEntity<CustomResponse<String>> failed(HttpStatus httpStatus, Exception e, String message) {
         var response = CustomResponse.<String>builder()
-                .status(httpStatus.value())
-                .message(message)
-                .errorMsg(e.getMessage())
-                .build();
+            .status(httpStatus.value())
+            .message(message)
+            .errorMsg(e.getMessage())
+            .build();
 
         return ResponseEntity.status(httpStatus).body(response);
     }
@@ -132,9 +134,9 @@ public class CustomResponse<T> {
      */
     public static ResponseEntity<CustomResponse<String>> failed(HttpStatus httpStatus, StatusEnum statusEnum) {
         var response = CustomResponse.<String>builder()
-                .status(statusEnum.getStatus())
-                .message(statusEnum.getDescKr())
-                .build();
+            .status(statusEnum.getStatus())
+            .message(statusEnum.getDescKr())
+            .build();
 
         return ResponseEntity.status(httpStatus).body(response);
     }
@@ -143,10 +145,7 @@ public class CustomResponse<T> {
      * API Failed
      */
     public static ResponseEntity<CustomResponse<String>> failed(HttpStatus httpStatus, CustomException e) {
-        var response = CustomResponse.<String>builder()
-                .status(httpStatus.value())
-                .message(e.getMessage())
-                .build();
+        var response = CustomResponse.<String>builder().status(httpStatus.value()).message(e.getMessage()).build();
 
         return ResponseEntity.status(httpStatus).body(response);
     }

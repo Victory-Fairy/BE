@@ -34,7 +34,8 @@ public class FreeDiaryController {
     @SecurityRequirement(name = "accessToken")
     @Operation(summary = "자유 일기 수정")
     @PatchMapping("/{id}")
-    public CustomResponse<MessageEnum> update(@PathVariable Long id, @RequestBody FreeDiaryDomain.UpdateRequest request) {
+    public CustomResponse<MessageEnum> update(@PathVariable Long id,
+            @RequestBody FreeDiaryDomain.UpdateRequest request) {
         freeDiaryService.update(id, request);
         return CustomResponse.ok(MessageEnum.Common.UPDATE);
     }
@@ -70,4 +71,5 @@ public class FreeDiaryController {
         var response = freeDiaryService.findDailyList(date);
         return CustomResponse.ok(response);
     }
+
 }

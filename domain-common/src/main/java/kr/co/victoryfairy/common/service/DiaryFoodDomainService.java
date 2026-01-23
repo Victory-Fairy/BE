@@ -24,10 +24,9 @@ public class DiaryFoodDomainService {
 
     /**
      * 음식 목록 저장
-     *
-     * @param refType       참조 타입 (DIARY, FREE_DIARY)
-     * @param refId         참조 ID
-     * @param foodNameList  음식 이름 목록
+     * @param refType 참조 타입 (DIARY, FREE_DIARY)
+     * @param refId 참조 ID
+     * @param foodNameList 음식 이름 목록
      */
     @Transactional
     public void saveFoods(RefType refType, Long refId, List<String> foodNameList) {
@@ -36,22 +35,16 @@ public class DiaryFoodDomainService {
         }
 
         var foodEntities = foodNameList.stream()
-                .map(food -> DiaryFoodEntity.builder()
-                        .refId(refId)
-                        .refType(refType)
-                        .foodName(food)
-                        .build()
-                )
-                .toList();
+            .map(food -> DiaryFoodEntity.builder().refId(refId).refType(refType).foodName(food).build())
+            .toList();
         diaryFoodRepository.saveAll(foodEntities);
     }
 
     /**
      * 기존 음식 목록 삭제 후 새로 저장
-     *
-     * @param refType       참조 타입
-     * @param refId         참조 ID
-     * @param foodNameList  새로운 음식 이름 목록
+     * @param refType 참조 타입
+     * @param refId 참조 ID
+     * @param foodNameList 새로운 음식 이름 목록
      */
     @Transactional
     public void replaceFoods(RefType refType, Long refId, List<String> foodNameList) {
@@ -61,9 +54,8 @@ public class DiaryFoodDomainService {
 
     /**
      * 음식 목록 삭제
-     *
      * @param refType 참조 타입
-     * @param refId   참조 ID
+     * @param refId 참조 ID
      */
     @Transactional
     public void deleteFoods(RefType refType, Long refId) {
@@ -75,22 +67,21 @@ public class DiaryFoodDomainService {
 
     /**
      * 음식 이름 목록 조회
-     *
      * @param refType 참조 타입
-     * @param refId   참조 ID
+     * @param refId 참조 ID
      * @return 음식 이름 목록
      */
     public List<String> findFoodNamesByRefId(RefType refType, Long refId) {
-        return diaryFoodRepository.findByRefTypeAndRefId(refType, refId).stream()
-                .map(DiaryFoodEntity::getFoodName)
-                .toList();
+        return diaryFoodRepository.findByRefTypeAndRefId(refType, refId)
+            .stream()
+            .map(DiaryFoodEntity::getFoodName)
+            .toList();
     }
 
     /**
      * 여러 참조 ID에 대한 음식 맵 조회
-     *
      * @param refType 참조 타입
-     * @param refIds  참조 ID 목록
+     * @param refIds 참조 ID 목록
      * @return refId -> 음식 이름 목록 맵
      */
     public Map<Long, List<String>> findFoodMapByRefIds(RefType refType, List<Long> refIds) {
@@ -98,10 +89,10 @@ public class DiaryFoodDomainService {
             return Map.of();
         }
 
-        return diaryFoodRepository.findByRefTypeAndRefIdIn(refType, refIds).stream()
-                .collect(Collectors.groupingBy(
-                        DiaryFoodEntity::getRefId,
-                        Collectors.mapping(DiaryFoodEntity::getFoodName, Collectors.toList())
-                ));
+        return diaryFoodRepository.findByRefTypeAndRefIdIn(refType, refIds)
+            .stream()
+            .collect(Collectors.groupingBy(DiaryFoodEntity::getRefId,
+                    Collectors.mapping(DiaryFoodEntity::getFoodName, Collectors.toList())));
     }
+
 }

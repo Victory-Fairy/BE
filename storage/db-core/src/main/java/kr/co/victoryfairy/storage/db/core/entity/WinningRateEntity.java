@@ -18,7 +18,7 @@ public class WinningRateEntity extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "member_id")
-    private MemberEntity member;                  // 회원 식별자
+    private MemberEntity member; // 회원 식별자
 
     @Comment("시즌")
     private String season;
@@ -58,9 +58,8 @@ public class WinningRateEntity extends BaseEntity {
         this.season = season;
     }
 
-    public void updateWinningRate(Short totalCnt, Short totalWinCnt, Float totalAvg,
-                                  Short homeCnt, Short homeWinCnt, Float homeAvg,
-                                  Short stadiumCnt, Short stadiumWinCnt, Float stadiumAvg) {
+    public void updateWinningRate(Short totalCnt, Short totalWinCnt, Float totalAvg, Short homeCnt, Short homeWinCnt,
+            Float homeAvg, Short stadiumCnt, Short stadiumWinCnt, Float stadiumAvg) {
         this.totalCnt = totalCnt;
         this.totalWinCnt = totalWinCnt;
         this.totalAvg = totalAvg;
@@ -71,4 +70,5 @@ public class WinningRateEntity extends BaseEntity {
         this.stadiumWinCnt = stadiumWinCnt;
         this.stadiumAvg = stadiumAvg;
     }
+
 }

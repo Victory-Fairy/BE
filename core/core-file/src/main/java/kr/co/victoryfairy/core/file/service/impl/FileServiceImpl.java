@@ -33,12 +33,13 @@ import java.util.List;
 public class FileServiceImpl implements FileService {
 
     private final FileProperties fileProperties;
+
     private final FileRepository fileRepository;
+
     private final FileRefRepository fileRefRepository;
 
-    public FileServiceImpl(FileProperties fileProperties,
-                           FileRepository fileRepository,
-                           FileRefRepository fileRefRepository) {
+    public FileServiceImpl(FileProperties fileProperties, FileRepository fileRepository,
+            FileRefRepository fileRefRepository) {
         this.fileProperties = fileProperties;
         this.fileRepository = fileRepository;
         this.fileRefRepository = fileRefRepository;
@@ -47,28 +48,31 @@ public class FileServiceImpl implements FileService {
     @Override
     @Transactional
     public List<FileDomain.Response> createFile(FileDomain.CreateRequest request) {
-        if (request.file().isEmpty()) return null;
+        if (request.file().isEmpty())
+            return null;
 
         var fileDomains = this.convertFile(request.fileRefType(), request.file());
 
-        if (fileDomains.isEmpty()) return null;
+        if (fileDomains.isEmpty())
+            return null;
 
         var fileEntities = fileDomains.stream()
-                .map(file -> FileEntity.builder()
-                        .name(file.name())
-                        .saveName(file.saveName())
-                        .path(file.path())
-                        .ext(file.ext())
-                        .size(file.size())
-                        .build()
-                ).toList();
+            .map(file -> FileEntity.builder()
+                .name(file.name())
+                .saveName(file.saveName())
+                .path(file.path())
+                .ext(file.ext())
+                .size(file.size())
+                .build())
+            .toList();
         fileRepository.saveAll(fileEntities);
 
         List<FileDomain.Response> response = new ArrayList<>();
 
         return fileEntities.stream()
-                .map(entity -> new FileDomain.Response(entity.getId(), entity.getName(),entity.getSaveName(), entity.getPath(), entity.getExt()))
-                .toList();
+            .map(entity -> new FileDomain.Response(entity.getId(), entity.getName(), entity.getSaveName(),
+                    entity.getPath(), entity.getExt()))
+            .toList();
     }
 
     private List<FileDomain.File> convertFile(RefType refType, List<MultipartFile> multipartFiles) {
@@ -88,7 +92,8 @@ public class FileServiceImpl implements FileService {
                 path = path.replaceAll("\\\\", "/");
             }
 
-            FileDomain.File fileDomain = new FileDomain.File(refType, file.getOriginalFilename(), saveName, path, getExtension(file), file.getSize());
+            FileDomain.File fileDomain = new FileDomain.File(refType, file.getOriginalFilename(), saveName, path,
+                    getExtension(file), file.getSize());
             files.add(fileDomain);
         });
 
@@ -111,7 +116,8 @@ public class FileServiceImpl implements FileService {
 
         if (originalFilename != null && originalFilename.contains(".")) {
             extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
-        } else {
+        }
+        else {
             throw new CustomException(MessageEnum.File.WRONG_FILE);
         }
 
@@ -169,8 +175,8 @@ public class FileServiceImpl implements FileService {
         Path savedPath = Path.of(fileProperties.getStoragePath(), path, saveName + "." + getExtension(file));
 
         try {
-            //File savedFile = new File(savedPath, saveName);
-            //file.transferTo(savedFile);
+            // File savedFile = new File(savedPath, saveName);
+            // file.transferTo(savedFile);
             Files.copy(file.getInputStream(), savedPath, StandardCopyOption.REPLACE_EXISTING);
             File savedFile = savedPath.toFile();
 
@@ -189,7 +195,8 @@ public class FileServiceImpl implements FileService {
                 });
             }
 
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new CustomException(MessageEnum.File.FAIL_UPLOAD);
         }
 
@@ -213,7 +220,8 @@ public class FileServiceImpl implements FileService {
 
             File savedFile = new File(filePath, newFileName);
             ImageIO.write(newImage, ext, savedFile);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new CustomException(MessageEnum.File.FAIL_UPLOAD);
         }
     }
@@ -226,16 +234,20 @@ public class FileServiceImpl implements FileService {
             if (size == 1920) {
                 width = 1920;
                 height = 1080;
-            } else if (size == 1280) {
+            }
+            else if (size == 1280) {
                 width = 1280;
                 height = 720;
-            } else if (size == 960) {
+            }
+            else if (size == 960) {
                 width = 960;
                 height = 540;
-            } else if (size == 640) {
+            }
+            else if (size == 640) {
                 width = 640;
                 height = 360;
-            } else if (size == 320) {
+            }
+            else if (size == 320) {
                 width = 320;
                 height = 180;
             }
@@ -248,23 +260,25 @@ public class FileServiceImpl implements FileService {
 
             FFmpeg ffmpeg = new FFmpeg(fileProperties.getStoragePath());
             FFprobe ffprobe = new FFprobe(fileProperties.getStoragePath());
-            FFmpegBuilder builder = new FFmpegBuilder()
-                    .overrideOutputFiles(true) // 오버라이드 여부
-                    .setInput(orgFile.getAbsolutePath()) // 생성대상 파일
-                    .addOutput(savedFile.getAbsolutePath()) // 생성 파일의 Path
-                    .setFormat("mp4")
-                    .setVideoCodec("libx264") // 비디오 코덱
-                    .setVideoFrameRate(30, 1) // 비디오 프레임
-                    .setVideoResolution(width, height) // 비디오 해상도
-                    .setStrict(FFmpegBuilder.Strict.EXPERIMENTAL) // x264 사용
-                    .addExtraArgs("-crf", "28") // 화질
-                    .addExtraArgs("-movflags", "use_metadata_tags") // 메타데이터 복사
-                    .done();
+            FFmpegBuilder builder = new FFmpegBuilder().overrideOutputFiles(true) // 오버라이드
+                                                                                  // 여부
+                .setInput(orgFile.getAbsolutePath()) // 생성대상 파일
+                .addOutput(savedFile.getAbsolutePath()) // 생성 파일의 Path
+                .setFormat("mp4")
+                .setVideoCodec("libx264") // 비디오 코덱
+                .setVideoFrameRate(30, 1) // 비디오 프레임
+                .setVideoResolution(width, height) // 비디오 해상도
+                .setStrict(FFmpegBuilder.Strict.EXPERIMENTAL) // x264 사용
+                .addExtraArgs("-crf", "28") // 화질
+                .addExtraArgs("-movflags", "use_metadata_tags") // 메타데이터 복사
+                .done();
             FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
             executor.createJob(builder).run();
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new CustomException(MessageEnum.File.FAIL_UPLOAD);
         }
     }
+
 }

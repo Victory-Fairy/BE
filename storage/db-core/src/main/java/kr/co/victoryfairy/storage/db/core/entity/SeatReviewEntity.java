@@ -11,16 +11,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SeatReviewEntity extends BaseEntity{
+public class SeatReviewEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                            // 좌석 리뷰 식별자
+    private Long id; // 좌석 리뷰 식별자
 
     @ManyToOne
     @JoinColumn(name = "seat_use_history_id")
-    private SeatUseHistoryEntity seatUseHistoryEntity;      // 좌석 이용 내역 식별자
+    private SeatUseHistoryEntity seatUseHistoryEntity; // 좌석 이용 내역 식별자
 
-    private String seatReview;                  // 좌석 리뷰
+    private String seatReview; // 좌석 리뷰
 
 }

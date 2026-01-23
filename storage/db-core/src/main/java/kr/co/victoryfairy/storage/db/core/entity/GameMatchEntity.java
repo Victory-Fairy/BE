@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
@@ -17,7 +16,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@DynamicInsert
 @DynamicUpdate
 public class GameMatchEntity extends BaseEntity {
 
@@ -94,5 +92,7 @@ public class GameMatchEntity extends BaseEntity {
 
     @Comment("경기 시작 알림 발송 여부")
     @Column(columnDefinition = "bit(1) DEFAULT b'0'")
+    @Builder.Default
     private Boolean isSendPush = false;
+
 }

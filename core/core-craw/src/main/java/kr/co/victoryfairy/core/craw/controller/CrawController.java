@@ -3,6 +3,7 @@ package kr.co.victoryfairy.core.craw.controller;
 import kr.co.victoryfairy.core.craw.service.CrawService;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.model.CustomResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -11,7 +12,7 @@ public class CrawController {
 
     private final CrawService crawService;
 
-    public CrawController(CrawService crawService) {
+    public CrawController(@Qualifier("crawServiceImpl") CrawService crawService) {
         this.crawService = crawService;
     }
 

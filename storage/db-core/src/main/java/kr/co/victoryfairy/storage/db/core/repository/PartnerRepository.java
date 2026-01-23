@@ -8,7 +8,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PartnerRepository extends JpaRepository<PartnerEntity,Long> {
+public interface PartnerRepository extends JpaRepository<PartnerEntity, Long> {
+
     List<PartnerEntity> findByRefTypeAndRefId(RefType refType, Long refId);
+
     List<PartnerEntity> findByRefTypeAndRefIdIn(RefType refType, List<Long> refIds);
+
 }

@@ -22,7 +22,9 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class RedisHandler {
+
     private final RedisTemplate<String, Object> redisTemplate;
+
     private final ObjectMapper objectMapper;
 
     private Logger log = LoggerFactory.getLogger(RedisHandler.class);
@@ -30,9 +32,10 @@ public class RedisHandler {
     public void setMap(String key, Map<String, String> map) {
         HashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
         hashOperations.putAll(key, map);
-        /*map.entrySet().forEach(entry -> {
-            hashOperations.put(key, entry.getKey(), entry.getValue());
-        });*/
+        /*
+         * map.entrySet().forEach(entry -> { hashOperations.put(key, entry.getKey(),
+         * entry.getValue()); });
+         */
     }
 
     public void put(String hashKey, String key, Object value) {
@@ -76,10 +79,12 @@ public class RedisHandler {
      */
     public <T> T getHashValue(String hashKey, String key, Class<T> clazz) {
         Object json = redisTemplate.opsForHash().get(hashKey, key);
-        if (json == null) return null;
+        if (json == null)
+            return null;
         try {
             return objectMapper.readValue(json.toString(), clazz);
-        } catch (JsonProcessingException e) {
+        }
+        catch (JsonProcessingException e) {
             log.error("Redis JSON 역직렬화 실패 - hashKey: {}, key: {}", hashKey, key, e);
             throw new CustomException(MessageEnum.Common.REQUEST_FAIL);
         }
@@ -92,7 +97,8 @@ public class RedisHandler {
         try {
             String json = objectMapper.writeValueAsString(value);
             redisTemplate.opsForHash().put(hashKey, key, json);
-        } catch (JsonProcessingException e) {
+        }
+        catch (JsonProcessingException e) {
             log.error("Redis JSON 직렬화 실패 - hashKey: {}, key: {}", hashKey, key, e);
             throw new CustomException(MessageEnum.Common.REQUEST_FAIL);
         }
@@ -110,9 +116,11 @@ public class RedisHandler {
      */
     public void pushEvent(String channel, Object obj) {
         try {
-            Map<String, String> map = objectMapper.convertValue(obj, new TypeReference<>() {});
+            Map<String, String> map = objectMapper.convertValue(obj, new TypeReference<>() {
+            });
             redisTemplate.opsForStream().add(channel, map);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Redis Stream 이벤트 발행 실패 - channel: {}", channel, e);
         }
     }
@@ -123,9 +131,8 @@ public class RedisHandler {
 
     public List<MapRecord<String, Object, Object>> getEventMessages(String key, String groupName, String consumer) {
         return redisTemplate.opsForStream()
-                .read(Consumer.from(groupName, consumer),
-                        StreamReadOptions.empty().block(Duration.ofSeconds(2)).count(10),
-                        StreamOffset.create(key, ReadOffset.lastConsumed()));
+            .read(Consumer.from(groupName, consumer), StreamReadOptions.empty().block(Duration.ofSeconds(2)).count(10),
+                    StreamOffset.create(key, ReadOffset.lastConsumed()));
     }
 
     public void eventKnowEdge(String key, String groupName, String recordId) {
@@ -139,7 +146,8 @@ public class RedisHandler {
         try {
             String json = objectMapper.writeValueAsString(data);
             redisTemplate.opsForHash().put(key, id, json); // 덮어쓰기
-        } catch (JsonProcessingException e) {
+        }
+        catch (JsonProcessingException e) {
             throw new RuntimeException("Redis JSON 직렬화 실패", e);
         }
     }
@@ -159,9 +167,11 @@ public class RedisHandler {
         entries.forEach((rKey, value) -> {
             try {
                 String id = rKey.toString();
-                Map<String, Object> matchData = objectMapper.readValue(value.toString(), new TypeReference<>() {});
+                Map<String, Object> matchData = objectMapper.readValue(value.toString(), new TypeReference<>() {
+                });
                 result.put(id, matchData);
-            } catch (JsonProcessingException e) {
+            }
+            catch (JsonProcessingException e) {
                 throw new RuntimeException("Redis JSON 역직렬화 실패", e);
             }
         });
@@ -176,9 +186,11 @@ public class RedisHandler {
         entries.forEach((rKey, value) -> {
             try {
                 String id = rKey.toString();
-                List<Object> matchData = objectMapper.readValue(value.toString(), new TypeReference<>() {});
+                List<Object> matchData = objectMapper.readValue(value.toString(), new TypeReference<>() {
+                });
                 result.put(id, matchData);
-            } catch (JsonProcessingException e) {
+            }
+            catch (JsonProcessingException e) {
                 throw new RuntimeException("Redis JSON 역직렬화 실패", e);
             }
         });

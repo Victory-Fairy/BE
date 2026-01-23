@@ -25,8 +25,10 @@ public class MemberController {
     @SecurityRequirement(name = "accessToken")
     @Operation(summary = "회원 목록 불러오기")
     @GetMapping("/list")
-    public CustomResponse<List<MemberDomain.MemberListResponse>> findList(@Validated MemberDomain.MemberListRequest request){
+    public CustomResponse<List<MemberDomain.MemberListResponse>> findList(
+            @Validated MemberDomain.MemberListRequest request) {
         var result = memberService.findList(request);
         return CustomResponse.ok(result.getContents(), result.getTotal());
     }
+
 }

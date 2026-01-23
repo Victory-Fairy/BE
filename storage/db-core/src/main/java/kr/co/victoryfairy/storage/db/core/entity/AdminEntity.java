@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AdminEntity extends BaseEntity{
+public class AdminEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,4 +54,5 @@ public class AdminEntity extends BaseEntity{
         this.lastConnectIp = lastConnectIp;
         this.lastConnectAt = lastConnectAt;
     }
+
 }

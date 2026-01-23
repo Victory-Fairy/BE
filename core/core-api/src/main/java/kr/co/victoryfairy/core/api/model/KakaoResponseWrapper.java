@@ -27,4 +27,5 @@ public class KakaoResponseWrapper {
     public KakaoProperties getKakaoProperties() {
         return kakaoProperties;
     }
+
 }

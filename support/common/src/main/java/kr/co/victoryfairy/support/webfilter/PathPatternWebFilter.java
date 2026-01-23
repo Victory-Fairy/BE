@@ -14,6 +14,7 @@ import java.util.List;
 public abstract class PathPatternWebFilter extends OncePerRequestFilter {
 
     private final List<String> includePathPatterns = new ArrayList<>();
+
     private final List<String> excludePathPatterns = new ArrayList<>();
 
     @Override
@@ -48,6 +49,7 @@ public abstract class PathPatternWebFilter extends OncePerRequestFilter {
         excludePathPatterns.addAll(List.of(patterns));
     }
 
-    public abstract void filterMatched(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException;
+    public abstract void filterMatched(HttpServletRequest request, HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException;
+
 }

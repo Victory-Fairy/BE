@@ -10,11 +10,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DiaryRepository extends JpaRepository<DiaryEntity,Long> {
+public interface DiaryRepository extends JpaRepository<DiaryEntity, Long> {
+
     DiaryEntity findByMemberAndGameMatchEntity(MemberEntity memberEntity, GameMatchEntity gameMatchEntity);
+
     List<DiaryEntity> findByGameMatchEntityAndIsRatedFalse(GameMatchEntity gameMatchEntity);
+
     Optional<DiaryEntity> findByMemberIdAndId(Long memberId, Long id);
+
     List<DiaryEntity> findByMemberId(Long memberId);
 
     Optional<DiaryEntity> findByMemberIdAndGameMatchEntityId(Long memberId, String gameMatchEntityId);
+
 }

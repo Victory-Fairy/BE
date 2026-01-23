@@ -34,8 +34,10 @@ public class CommonController {
 
     @Operation(summary = "좌석 정보 불러오기")
     @GetMapping("/seat/{id}")
-    public CustomResponse<List<CommonDomain.SeatListResponse>> findSeat(@PathVariable Long id, @RequestParam String season) {
+    public CustomResponse<List<CommonDomain.SeatListResponse>> findSeat(@PathVariable Long id,
+            @RequestParam String season) {
         var response = commonService.findSeat(id, season);
         return CustomResponse.ok(response);
     }
+
 }

@@ -11,21 +11,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SeatUseHistoryEntity extends BaseEntity{
+public class SeatUseHistoryEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                    // 좌석 이용 내역 식별자
+    private Long id; // 좌석 이용 내역 식별자
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seat_id")
-    private SeatEntity seatEntity;                  // 좌석 식별자
+    private SeatEntity seatEntity; // 좌석 식별자
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "diary_id")
-    private DiaryEntity diaryEntity;                // 일기 식별자
+    private DiaryEntity diaryEntity; // 일기 식별자
 
     @Column(name = "seat_name")
-    private String seatName;          // 좌석 번호
+    private String seatName; // 좌석 번호
 
 }

@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface MatchService {
+
     MatchDomain.MatchListResponse findList(LocalDate date);
 
     MatchDomain.MatchListResponse findList(LocalDate date, MatchEnum.LeagueType league);
@@ -18,4 +19,5 @@ public interface MatchService {
     List<MatchDomain.InterestTeamMatchInfoResponse> findByTeam();
 
     MatchDomain.TodayMatchListResponse findTodayMatch();
+
 }

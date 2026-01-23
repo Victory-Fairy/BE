@@ -67,4 +67,5 @@ public interface MemberService {
      * 로그아웃 - Redis에서 Refresh Token 삭제
      */
     void logout();
+
 }

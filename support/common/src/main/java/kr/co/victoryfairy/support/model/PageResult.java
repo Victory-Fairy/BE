@@ -8,10 +8,12 @@ import java.util.List;
 public class PageResult<T> {
 
     private final List<T> contents;
+
     private final long total;
 
     public PageResult(List<T> content, long total) {
         this.contents = content;
         this.total = total;
     }
+
 }

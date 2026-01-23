@@ -25,21 +25,22 @@ public class KakaoSnsService implements OauthService {
 
     @Value("${auth.kakao.cas.client_id}")
     private String kakaoClientId;
+
     @Value("${auth.kakao.cas.client_secret}")
     private String kakaoClientSecret;
+
     @Value("${auth.kakao.cas.callback_url}")
     private String kakaoCallbackUrl;
 
     @Override
     public String initSnsAuthPath(String redirectUrl) {
-        return UriComponentsBuilder
-                .fromUriString("https://kauth.kakao.com/oauth/authorize")
-                .queryParam("client_id", kakaoClientId)
-                .queryParam("redirect_uri", StringUtils.hasText(redirectUrl) ? redirectUrl : kakaoCallbackUrl)
-                .queryParam("response_type", "code")
-                .queryParam("prompt", "login")
-                .build()
-                .toUriString();
+        return UriComponentsBuilder.fromUriString("https://kauth.kakao.com/oauth/authorize")
+            .queryParam("client_id", kakaoClientId)
+            .queryParam("redirect_uri", StringUtils.hasText(redirectUrl) ? redirectUrl : kakaoCallbackUrl)
+            .queryParam("response_type", "code")
+            .queryParam("prompt", "login")
+            .build()
+            .toUriString();
     }
 
     @Override
@@ -58,14 +59,15 @@ public class KakaoSnsService implements OauthService {
         param.put("code", request.code());
 
         ObjectMapper mapper = new ObjectMapper();
-        var response = HttpClientUtils.doPost(url , param);
+        var response = HttpClientUtils.doPost(url, param);
 
         log.info("response : {}", response);
         AuthToken tokenResponse = null;
 
         try {
             tokenResponse = mapper.readValue(response, AuthToken.class);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
             throw new CustomException(MessageEnum.Auth.FAIL_SNS);
         }
@@ -74,7 +76,8 @@ public class KakaoSnsService implements OauthService {
 
         var kakaoResponse = getUserInfo(tokenResponse.getAccessToken());
 
-        return new MemberDomain.MemberSns(MemberEnum.SnsType.KAKAO, kakaoResponse.getId(), kakaoResponse.getKakaoAccount().getEmail());
+        return new MemberDomain.MemberSns(MemberEnum.SnsType.KAKAO, kakaoResponse.getId(),
+                kakaoResponse.getKakaoAccount().getEmail());
     }
 
     private KakaoResponseWrapper getUserInfo(String accessToken) {
@@ -90,9 +93,11 @@ public class KakaoSnsService implements OauthService {
             log.warn("wrapper: " + wrapper);
 
             return wrapper;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Failed to parse KakaoUserInfoResponse", e);
             throw new CustomException(MessageEnum.Auth.FAIL_SNS);
         }
     }
+
 }

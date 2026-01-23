@@ -9,7 +9,9 @@ import java.util.List;
 public interface DiaryCustomRepository {
 
     List<DiaryModel.DiaryDto> findList(DiaryModel.ListRequest request);
+
     List<DiaryModel.DiaryDto> findDailyList(DiaryModel.DailyListRequest request);
 
     PageResult<DiaryModel.DiaryListResponse> findAll(DiaryModel.DiaryListRequest request);
+
 }

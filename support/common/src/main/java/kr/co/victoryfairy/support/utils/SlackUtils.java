@@ -36,7 +36,8 @@ public class SlackUtils {
         String jsonBody;
         try {
             jsonBody = objectMapper.writeValueAsString(requestBody);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new RuntimeException("Failed to convert request body to JSON", e);
         }
 
@@ -64,30 +65,30 @@ public class SlackUtils {
             StringBuffer sb = new StringBuffer();
 
             sb.append("[Victory Fairy / ")
-                    .append(InetAddress.getLocalHost().getHostName())
-                    .append(" / ")
-                    .append(activeProfile)
-                    .append("]")
-                    .append("\n\n")
+                .append(InetAddress.getLocalHost().getHostName())
+                .append(" / ")
+                .append(activeProfile)
+                .append("]")
+                .append("\n\n")
 
-                    .append("```\n")
-                    .append(url)
-                    .append("\n")
-                    .append("```")
+                .append("```\n")
+                .append(url)
+                .append("\n")
+                .append("```")
 
-                    .append("\n\n")
+                .append("\n\n")
 
-                    .append("```\n")
-                    .append(responseBody)
-                    .append("\n")
-                    .append("```")
+                .append("```\n")
+                .append(responseBody)
+                .append("\n")
+                .append("```")
 
-                    .append("\n\n")
+                .append("\n\n")
 
-                    .append("```\n")
-                    .append(curl)
-                    .append("\n")
-                    .append("```");
+                .append("```\n")
+                .append(curl)
+                .append("\n")
+                .append("```");
 
             Map<String, List<Map<String, String>>> body = new HashMap<>();
             Map<String, String> content = new HashMap<>();
@@ -98,8 +99,10 @@ public class SlackUtils {
 
             HttpEntity<Map> request = new HttpEntity<>(body, headers);
             restTemplate.postForObject(slackWebhookUrl, request, String.class);
-        } catch(Exception e1) {
+        }
+        catch (Exception e1) {
             e1.printStackTrace();
         }
     }
+
 }

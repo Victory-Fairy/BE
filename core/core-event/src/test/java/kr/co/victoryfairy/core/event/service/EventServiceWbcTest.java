@@ -30,14 +30,19 @@ class EventServiceWbcTest {
 
     @Mock
     private MemberRepository memberRepository;
+
     @Mock
     private DiaryRepository diaryRepository;
+
     @Mock
     private TeamRepository teamRepository;
+
     @Mock
     private GameMatchRepository matchRepository;
+
     @Mock
     private GameRecordRepository gameRecordRepository;
+
     @Mock
     private WinningRateRepository winningRateRepository;
 
@@ -45,17 +50,19 @@ class EventServiceWbcTest {
     private EventService eventService;
 
     private MemberEntity memberEntity;
+
     private TeamEntity koreaTeam;
+
     private TeamEntity japanTeam;
+
     private TeamEntity samsungTeam;
+
     private TeamEntity lgTeam;
 
     @BeforeEach
     void setUp() {
         // 회원
-        memberEntity = MemberEntity.builder()
-                .id(1L)
-                .build();
+        memberEntity = MemberEntity.builder().id(1L).build();
 
         // WBC 국가 (TeamEntity 재사용 - 생성자 사용)
         koreaTeam = createTeamEntity(101L, "대한민국", MatchEnum.LeagueType.WBC, "KOR");
@@ -80,24 +87,24 @@ class EventServiceWbcTest {
         var eventDto = new EventDomain.WriteEventDto(gameId, 1L, 1L, EventType.DIARY);
 
         var matchEntity = GameMatchEntity.builder()
-                .id(gameId)
-                .league(MatchEnum.LeagueType.WBC)
-                .awayTeamEntity(koreaTeam)
-                .homeTeamEntity(japanTeam)
-                .awayScore((short) 5)
-                .homeScore((short) 3)
-                .status(MatchEnum.MatchStatus.END)
-                .season("2025")
-                .matchAt(LocalDateTime.of(2025, 3, 15, 19, 0))
-                .build();
+            .id(gameId)
+            .league(MatchEnum.LeagueType.WBC)
+            .awayTeamEntity(koreaTeam)
+            .homeTeamEntity(japanTeam)
+            .awayScore((short) 5)
+            .homeScore((short) 3)
+            .status(MatchEnum.MatchStatus.END)
+            .season("2025")
+            .matchAt(LocalDateTime.of(2025, 3, 15, 19, 0))
+            .build();
 
         var diaryEntity = DiaryEntity.builder()
-                .id(1L)
-                .teamEntity(koreaTeam)
-                .gameMatchEntity(matchEntity)
-                .viewType(DiaryEnum.ViewType.HOME)
-                .isRated(false)
-                .build();
+            .id(1L)
+            .teamEntity(koreaTeam)
+            .gameMatchEntity(matchEntity)
+            .viewType(DiaryEnum.ViewType.HOME)
+            .isRated(false)
+            .build();
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(memberEntity));
         given(matchRepository.findById(gameId)).willReturn(Optional.of(matchEntity));
@@ -128,24 +135,24 @@ class EventServiceWbcTest {
         var eventDto = new EventDomain.WriteEventDto(gameId, 1L, 1L, EventType.DIARY);
 
         var matchEntity = GameMatchEntity.builder()
-                .id(gameId)
-                .league(MatchEnum.LeagueType.WBC)
-                .awayTeamEntity(koreaTeam)
-                .homeTeamEntity(japanTeam)
-                .awayScore((short) 2)  // 한국 2점
-                .homeScore((short) 5)  // 일본 5점
-                .status(MatchEnum.MatchStatus.END)
-                .season("2025")
-                .matchAt(LocalDateTime.of(2025, 3, 15, 19, 0))
-                .build();
+            .id(gameId)
+            .league(MatchEnum.LeagueType.WBC)
+            .awayTeamEntity(koreaTeam)
+            .homeTeamEntity(japanTeam)
+            .awayScore((short) 2) // 한국 2점
+            .homeScore((short) 5) // 일본 5점
+            .status(MatchEnum.MatchStatus.END)
+            .season("2025")
+            .matchAt(LocalDateTime.of(2025, 3, 15, 19, 0))
+            .build();
 
         var diaryEntity = DiaryEntity.builder()
-                .id(1L)
-                .teamEntity(koreaTeam)
-                .gameMatchEntity(matchEntity)
-                .viewType(DiaryEnum.ViewType.HOME)
-                .isRated(false)
-                .build();
+            .id(1L)
+            .teamEntity(koreaTeam)
+            .gameMatchEntity(matchEntity)
+            .viewType(DiaryEnum.ViewType.HOME)
+            .isRated(false)
+            .build();
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(memberEntity));
         given(matchRepository.findById(gameId)).willReturn(Optional.of(matchEntity));
@@ -174,24 +181,24 @@ class EventServiceWbcTest {
         var eventDto = new EventDomain.WriteEventDto(gameId, 1L, 1L, EventType.DIARY);
 
         var matchEntity = GameMatchEntity.builder()
-                .id(gameId)
-                .league(MatchEnum.LeagueType.KBO)
-                .awayTeamEntity(samsungTeam)
-                .homeTeamEntity(lgTeam)
-                .awayScore((short) 4)
-                .homeScore((short) 2)
-                .status(MatchEnum.MatchStatus.END)
-                .season("2025")
-                .matchAt(LocalDateTime.of(2025, 9, 30, 18, 30))
-                .build();
+            .id(gameId)
+            .league(MatchEnum.LeagueType.KBO)
+            .awayTeamEntity(samsungTeam)
+            .homeTeamEntity(lgTeam)
+            .awayScore((short) 4)
+            .homeScore((short) 2)
+            .status(MatchEnum.MatchStatus.END)
+            .season("2025")
+            .matchAt(LocalDateTime.of(2025, 9, 30, 18, 30))
+            .build();
 
         var diaryEntity = DiaryEntity.builder()
-                .id(1L)
-                .teamEntity(samsungTeam)
-                .gameMatchEntity(matchEntity)
-                .viewType(DiaryEnum.ViewType.HOME)
-                .isRated(false)
-                .build();
+            .id(1L)
+            .teamEntity(samsungTeam)
+            .gameMatchEntity(matchEntity)
+            .viewType(DiaryEnum.ViewType.HOME)
+            .isRated(false)
+            .build();
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(memberEntity));
         given(matchRepository.findById(gameId)).willReturn(Optional.of(matchEntity));
@@ -222,24 +229,24 @@ class EventServiceWbcTest {
         var eventDto = new EventDomain.WriteEventDto(gameId, 1L, 1L, EventType.DIARY);
 
         var matchEntity = GameMatchEntity.builder()
-                .id(gameId)
-                .league(MatchEnum.LeagueType.WBC)
-                .awayTeamEntity(koreaTeam)
-                .homeTeamEntity(japanTeam)
-                .awayScore((short) 3)
-                .homeScore((short) 3)  // 무승부
-                .status(MatchEnum.MatchStatus.END)
-                .season("2025")
-                .matchAt(LocalDateTime.of(2025, 3, 15, 19, 0))
-                .build();
+            .id(gameId)
+            .league(MatchEnum.LeagueType.WBC)
+            .awayTeamEntity(koreaTeam)
+            .homeTeamEntity(japanTeam)
+            .awayScore((short) 3)
+            .homeScore((short) 3) // 무승부
+            .status(MatchEnum.MatchStatus.END)
+            .season("2025")
+            .matchAt(LocalDateTime.of(2025, 3, 15, 19, 0))
+            .build();
 
         var diaryEntity = DiaryEntity.builder()
-                .id(1L)
-                .teamEntity(koreaTeam)
-                .gameMatchEntity(matchEntity)
-                .viewType(DiaryEnum.ViewType.HOME)
-                .isRated(false)
-                .build();
+            .id(1L)
+            .teamEntity(koreaTeam)
+            .gameMatchEntity(matchEntity)
+            .viewType(DiaryEnum.ViewType.HOME)
+            .isRated(false)
+            .build();
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(memberEntity));
         given(matchRepository.findById(gameId)).willReturn(Optional.of(matchEntity));
@@ -267,9 +274,9 @@ class EventServiceWbcTest {
         var eventDto = new EventDomain.WriteEventDto(gameId, 1L, 1L, EventType.DIARY);
 
         var diaryEntity = DiaryEntity.builder()
-                .id(1L)
-                .isRated(true)  // 이미 처리됨
-                .build();
+            .id(1L)
+            .isRated(true) // 이미 처리됨
+            .build();
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(memberEntity));
         given(matchRepository.findById(gameId)).willReturn(Optional.empty());
@@ -279,6 +286,7 @@ class EventServiceWbcTest {
         var result = eventService.processDiary(eventDto);
 
         // then
-        assertThat(result).isTrue();  // 이미 처리된 경우 true 반환
+        assertThat(result).isTrue(); // 이미 처리된 경우 true 반환
     }
+
 }

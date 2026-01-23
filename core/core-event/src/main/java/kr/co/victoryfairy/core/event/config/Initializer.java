@@ -17,6 +17,7 @@ public class Initializer {
 
     @Value("${event.steam.key}")
     private String key;
+
     @Value("${event.steam.group}")
     private String group;
 
@@ -25,11 +26,12 @@ public class Initializer {
         return () -> {
             try {
                 redisHandler.initEvent(key, group);
-            } catch (RedisSystemException e) {
-                if (e.getCause() instanceof RedisBusyException busy &&
-                        busy.getMessage().contains("BUSYGROUP")) {
+            }
+            catch (RedisSystemException e) {
+                if (e.getCause() instanceof RedisBusyException busy && busy.getMessage().contains("BUSYGROUP")) {
                     log.warn("Consumer group already exists: {}", group);
-                } else {
+                }
+                else {
                     throw e;
                 }
             }

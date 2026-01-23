@@ -19,6 +19,7 @@ public class MemberServiceImpl implements MemberService {
     private final Mapper mapper;
 
     private final MemberRepository memberRepository;
+
     private final MemberCustomRepository memberCustomRepository;
 
     @Override
@@ -29,12 +30,17 @@ public class MemberServiceImpl implements MemberService {
 
     @org.mapstruct.Mapper(config = MapStructConfig.class)
     public interface Mapper {
+
         MemberModel.MemberListRequest toRequest(MemberDomain.MemberListRequest request);
 
         List<MemberDomain.MemberListResponse> toMemberListResponse(List<MemberModel.MemberListResponse> response);
-        default PageResult<MemberDomain.MemberListResponse> toPageResult(PageResult<MemberModel.MemberListResponse> pageResult) {
+
+        default PageResult<MemberDomain.MemberListResponse> toPageResult(
+                PageResult<MemberModel.MemberListResponse> pageResult) {
             var response = toMemberListResponse(pageResult.getContents());
             return new PageResult<>(response, pageResult.getTotal());
         }
+
     }
+
 }

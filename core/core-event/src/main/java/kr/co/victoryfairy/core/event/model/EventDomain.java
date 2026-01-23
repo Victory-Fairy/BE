@@ -5,17 +5,10 @@ import io.dodn.springboot.core.enums.MatchEnum;
 
 public interface EventDomain {
 
-    record WriteEventDto(
-            String gameId,
-            Long memberId,
-            Long diaryId,
-            EventType type
-    ) {}
+    record WriteEventDto(String gameId, Long memberId, Long diaryId, EventType type) {
+    }
 
-    public record PushEventDto(
-            String gameId,
-            Long awayId,
-            Long homeId,
-            MatchEnum.MatchStatus status
-    ) {}
+    public record PushEventDto(String gameId, Long awayId, Long homeId, MatchEnum.MatchStatus status) {
+    }
+
 }

@@ -21,26 +21,27 @@ import java.util.Map;
 
 @Service("GOOGLE")
 public class GoogleSnsService implements OauthService {
+
     Logger log = LoggerFactory.getLogger(GoogleSnsService.class);
 
     @Value("${auth.google.cas.client_id}")
     private String googleClientId;
+
     @Value("${auth.google.cas.client_secret}")
     private String googleClientSecret;
+
     @Value("${auth.google.cas.callback_url}")
     private String googleCallbackUrl;
 
-
     @Override
     public String initSnsAuthPath(String redirectUrl) {
-        return UriComponentsBuilder
-                .fromUriString("https://accounts.google.com/o/oauth2/v2/auth")
-                .queryParam("client_id", googleClientId)
-                .queryParam("redirect_uri", StringUtils.hasText(redirectUrl) ? redirectUrl : googleCallbackUrl)
-                .queryParam("response_type", "code")
-                .queryParam("scope", "email openid")
-                .build()
-                .toUriString();
+        return UriComponentsBuilder.fromUriString("https://accounts.google.com/o/oauth2/v2/auth")
+            .queryParam("client_id", googleClientId)
+            .queryParam("redirect_uri", StringUtils.hasText(redirectUrl) ? redirectUrl : googleCallbackUrl)
+            .queryParam("response_type", "code")
+            .queryParam("scope", "email openid")
+            .build()
+            .toUriString();
     }
 
     @Override
@@ -58,21 +59,23 @@ public class GoogleSnsService implements OauthService {
         param.put("code", request.code());
 
         ObjectMapper mapper = new ObjectMapper();
-        var response = HttpClientUtils.doPost(url , param);
+        var response = HttpClientUtils.doPost(url, param);
 
         log.info("response : {}", response);
         AuthToken tokenResponse = null;
 
         try {
             tokenResponse = mapper.readValue(response, AuthToken.class);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
             throw new CustomException(MessageEnum.Auth.FAIL_SNS);
         }
 
         var googleResponse = getUserInfo(tokenResponse.getAccessToken());
 
-        return new MemberDomain.MemberSns(MemberEnum.SnsType.KAKAO, googleResponse.getId(), googleResponse.getGoogleAccount().getEmail());
+        return new MemberDomain.MemberSns(MemberEnum.SnsType.KAKAO, googleResponse.getId(),
+                googleResponse.getGoogleAccount().getEmail());
     }
 
     private GoogleResponseWrapper getUserInfo(String accessToken) {
@@ -88,9 +91,11 @@ public class GoogleSnsService implements OauthService {
             log.warn("wrapper: " + wrapper);
 
             return wrapper;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Failed to parse KakaoUserInfoResponse", e);
             throw new CustomException(MessageEnum.Auth.FAIL_SNS);
         }
     }
+
 }

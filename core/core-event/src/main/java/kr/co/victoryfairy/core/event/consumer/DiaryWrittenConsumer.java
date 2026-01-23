@@ -20,12 +20,15 @@ public class DiaryWrittenConsumer {
 
     @Value("${event.steam.key}")
     private String key;
+
     @Value("${event.steam.group}")
     private String group;
+
     @Value("${event.steam.consumer}")
     private String consumer;
 
     private final RedisHandler redisHandler;
+
     private final ObjectMapper objectMapper;
 
     private final EventService eventService;
@@ -51,12 +54,15 @@ public class DiaryWrittenConsumer {
 
                 if (success) {
                     redisHandler.eventKnowEdge(key, group, message.getId().getValue());
-                } else {
+                }
+                else {
                     log.warn("Event processing skipped: {}", message.getId());
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 log.error("Error processing diary_written message: {}", message, e);
             }
         }
     }
+
 }

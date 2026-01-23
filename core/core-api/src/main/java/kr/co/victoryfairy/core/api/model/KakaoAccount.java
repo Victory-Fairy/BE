@@ -28,11 +28,15 @@ public class KakaoAccount {
     public String getEmail() {
         return email;
     }
+
 }
 
 class Profile {
+
     @JsonProperty("nickname")
     String nickname;
+
     @JsonProperty("is_default_nickname")
     Boolean isDefaultNickname;
+
 }

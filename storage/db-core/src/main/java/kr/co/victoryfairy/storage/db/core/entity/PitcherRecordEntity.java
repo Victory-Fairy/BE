@@ -65,9 +65,9 @@ public class PitcherRecordEntity extends BaseEntity {
     public PitcherRecordEntity() {
     }
 
-    public PitcherRecordEntity(Short turn, String name, String position, String inning,
-                               Short pitching, Short ballFour, Short strikeOut, Short hit,
-                               Short homeRun, Short score, GameMatchEntity gameMatchEntities, String season, Boolean isHome) {
+    public PitcherRecordEntity(Short turn, String name, String position, String inning, Short pitching, Short ballFour,
+            Short strikeOut, Short hit, Short homeRun, Short score, GameMatchEntity gameMatchEntities, String season,
+            Boolean isHome) {
         this.turn = turn;
         this.name = name;
         this.position = position;
@@ -138,4 +138,5 @@ public class PitcherRecordEntity extends BaseEntity {
     public Boolean getHome() {
         return isHome;
     }
+
 }

@@ -25,13 +25,13 @@ import java.util.stream.Collectors;
 public class PartnerDomainService {
 
     private final PartnerRepository partnerRepository;
+
     private final TeamRepository teamRepository;
 
     /**
      * 동행자 목록 저장
-     *
-     * @param refType     참조 타입 (DIARY, FREE_DIARY)
-     * @param refId       참조 ID
+     * @param refType 참조 타입 (DIARY, FREE_DIARY)
+     * @param refId 참조 ID
      * @param partnerList 동행자 정보 목록
      */
     @Transactional
@@ -53,12 +53,12 @@ public class PartnerDomainService {
             }
 
             PartnerEntity partnerEntity = PartnerEntity.builder()
-                    .refId(refId)
-                    .refType(refType)
-                    .name(partnerDto.name())
-                    .teamName(partnerTeamName)
-                    .teamEntity(partnerTeamEntity)
-                    .build();
+                .refId(refId)
+                .refType(refType)
+                .name(partnerDto.name())
+                .teamName(partnerTeamName)
+                .teamEntity(partnerTeamEntity)
+                .build();
             partnerEntityList.add(partnerEntity);
         }
         partnerRepository.saveAll(partnerEntityList);
@@ -66,9 +66,8 @@ public class PartnerDomainService {
 
     /**
      * 기존 동행자 목록 삭제 후 새로 저장
-     *
-     * @param refType     참조 타입
-     * @param refId       참조 ID
+     * @param refType 참조 타입
+     * @param refId 참조 ID
      * @param partnerList 새로운 동행자 정보 목록
      */
     @Transactional
@@ -79,9 +78,8 @@ public class PartnerDomainService {
 
     /**
      * 동행자 목록 삭제
-     *
      * @param refType 참조 타입
-     * @param refId   참조 ID
+     * @param refId 참조 ID
      */
     @Transactional
     public void deletePartners(RefType refType, Long refId) {
@@ -93,25 +91,22 @@ public class PartnerDomainService {
 
     /**
      * 동행자 목록 조회
-     *
      * @param refType 참조 타입
-     * @param refId   참조 ID
+     * @param refId 참조 ID
      * @return 동행자 응답 목록
      */
     public List<CommonDto.PartnerResponse> findPartnersByRefId(RefType refType, Long refId) {
-        return partnerRepository.findByRefTypeAndRefId(refType, refId).stream()
-                .map(entity -> new CommonDto.PartnerResponse(
-                        entity.getName(),
-                        entity.getTeamEntity() != null ? entity.getTeamEntity().getId() : null
-                ))
-                .toList();
+        return partnerRepository.findByRefTypeAndRefId(refType, refId)
+            .stream()
+            .map(entity -> new CommonDto.PartnerResponse(entity.getName(),
+                    entity.getTeamEntity() != null ? entity.getTeamEntity().getId() : null))
+            .toList();
     }
 
     /**
      * 여러 참조 ID에 대한 동행자 이름 맵 조회
-     *
      * @param refType 참조 타입
-     * @param refIds  참조 ID 목록
+     * @param refIds 참조 ID 목록
      * @return refId -> 동행자 이름 목록 맵
      */
     public Map<Long, List<String>> findPartnerNameMapByRefIds(RefType refType, List<Long> refIds) {
@@ -119,10 +114,10 @@ public class PartnerDomainService {
             return Map.of();
         }
 
-        return partnerRepository.findByRefTypeAndRefIdIn(refType, refIds).stream()
-                .collect(Collectors.groupingBy(
-                        PartnerEntity::getRefId,
-                        Collectors.mapping(PartnerEntity::getName, Collectors.toList())
-                ));
+        return partnerRepository.findByRefTypeAndRefIdIn(refType, refIds)
+            .stream()
+            .collect(Collectors.groupingBy(PartnerEntity::getRefId,
+                    Collectors.mapping(PartnerEntity::getName, Collectors.toList())));
     }
+
 }

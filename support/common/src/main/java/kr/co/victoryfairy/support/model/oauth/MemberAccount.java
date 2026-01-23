@@ -10,10 +10,17 @@ import java.util.List;
 @Getter
 @Setter
 public class MemberAccount {
+
     private Long id;
+
     private String ip;
+
     private String accessToken;
+
     private String refreshToken;
+
     private String expireMinutes;
+
     private List<String> roles;
+
 }

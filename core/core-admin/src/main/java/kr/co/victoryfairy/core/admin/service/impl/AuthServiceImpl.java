@@ -19,7 +19,9 @@ import java.time.LocalDateTime;
 public class AuthServiceImpl implements AuthService {
 
     private final JwtService jwtService;
+
     private final PasswordEncoder passwordEncoder;
+
     private final AdminRepository adminRepository;
 
     public AuthServiceImpl(JwtService jwtService, PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
@@ -41,14 +43,12 @@ public class AuthServiceImpl implements AuthService {
 
         // 관리자 조회
         var admin = adminRepository.findByAdminId(adminId)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         if (!StringUtils.hasText(admin.getPwd()) || !passwordEncoder.matches(adminPwd, admin.getPwd()))
             throw new CustomException(HttpStatus.BAD_REQUEST, MessageEnum.Auth.FAIL_LOGIN);
 
-        var adminDto = AuthModel.AdminDto.builder()
-                .id(admin.getId())
-                .build();
+        var adminDto = AuthModel.AdminDto.builder().id(admin.getId()).build();
 
         var accessTokenDto = jwtService.makeAccessToken(adminDto);
 
@@ -62,4 +62,5 @@ public class AuthServiceImpl implements AuthService {
         var accessTokenDto = jwtService.checkAdminRefreshToken(refreshToken);
         return new AuthDomain.RefreshTokenResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
     }
+
 }

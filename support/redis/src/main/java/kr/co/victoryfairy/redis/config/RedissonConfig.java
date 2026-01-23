@@ -17,22 +17,22 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RedissonConfig {
 
-	private final RedisProperties redisProperties;
+    private final RedisProperties redisProperties;
 
-	private static final String REDIS_PREFIX = "redis://";
+    private static final String REDIS_PREFIX = "redis://";
 
-	@Bean
-	public RedissonClient redissonClient() {
-		Config config = new Config();
-		String address = REDIS_PREFIX + redisProperties.getHost() + ":" + redisProperties.getPort();
+    @Bean
+    public RedissonClient redissonClient() {
+        Config config = new Config();
+        String address = REDIS_PREFIX + redisProperties.getHost() + ":" + redisProperties.getPort();
 
-		config.useSingleServer()
-			.setAddress(address)
-			.setDatabase(redisProperties.getDatabase())
-			.setConnectionMinimumIdleSize(1)
-			.setConnectionPoolSize(2);
+        config.useSingleServer()
+            .setAddress(address)
+            .setDatabase(redisProperties.getDatabase())
+            .setConnectionMinimumIdleSize(1)
+            .setConnectionPoolSize(2);
 
-		return Redisson.create(config);
-	}
+        return Redisson.create(config);
+    }
 
 }

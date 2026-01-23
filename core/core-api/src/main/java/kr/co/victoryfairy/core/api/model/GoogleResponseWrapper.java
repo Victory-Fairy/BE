@@ -3,11 +3,13 @@ package kr.co.victoryfairy.core.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class GoogleResponseWrapper {
+
     @JsonProperty("id")
     private String id;
 
     @JsonProperty("email")
     private String email;
+
     @JsonProperty("verified_email")
     private Boolean isEmailVerified;
 
@@ -21,4 +23,5 @@ public class GoogleResponseWrapper {
     public GoogleAccount getGoogleAccount() {
         return new GoogleAccount(email, isEmailVerified);
     }
+
 }

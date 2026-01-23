@@ -16,9 +16,6 @@ public interface FreeDiaryRepository extends JpaRepository<FreeDiaryEntity, Long
     Optional<FreeDiaryEntity> findByMemberIdAndId(Long memberId, Long id);
 
     // 월별 조회
-    List<FreeDiaryEntity> findByMemberIdAndMatchAtBetween(
-            Long memberId,
-            LocalDateTime startAt,
-            LocalDateTime endAt
-    );
+    List<FreeDiaryEntity> findByMemberIdAndMatchAtBetween(Long memberId, LocalDateTime startAt, LocalDateTime endAt);
+
 }

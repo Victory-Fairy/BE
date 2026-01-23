@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @DynamicInsert
 @DynamicUpdate
 public class MemberInfoEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

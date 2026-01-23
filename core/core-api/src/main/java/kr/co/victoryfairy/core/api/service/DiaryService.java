@@ -1,6 +1,5 @@
 package kr.co.victoryfairy.core.api.service;
 
-
 import kr.co.victoryfairy.core.api.domain.DiaryDomain;
 
 import java.time.LocalDate;
@@ -20,4 +19,5 @@ public interface DiaryService {
     List<DiaryDomain.DailyListResponse> findDailyList(LocalDate date);
 
     DiaryDomain.DiaryDetailResponse findById(Long id);
+
 }

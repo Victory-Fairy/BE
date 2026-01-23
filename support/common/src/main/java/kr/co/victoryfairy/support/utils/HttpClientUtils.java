@@ -16,7 +16,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -30,10 +29,10 @@ public class HttpClientUtils {
         var httpclient = HttpClients.createDefault();
 
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(10000)
-                .setConnectionRequestTimeout(10000)
-                .setSocketTimeout(10000)
-                .build();
+            .setConnectTimeout(10000)
+            .setConnectionRequestTimeout(10000)
+            .setSocketTimeout(10000)
+            .build();
 
         String resultString = "";
         CloseableHttpResponse response = null;
@@ -65,15 +64,18 @@ public class HttpClientUtils {
             if (response.getStatusLine().getStatusCode() == 200) {
                 resultString = EntityUtils.toString(response.getEntity(), "UTF-8");
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error(e.getMessage());
-        } finally {
+        }
+        finally {
             try {
                 if (response != null) {
                     response.close();
                 }
                 httpclient.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 log.error(e.getMessage());
             }
         }
@@ -84,10 +86,10 @@ public class HttpClientUtils {
         var httpClient = HttpClients.createDefault();
 
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(10000)
-                .setConnectionRequestTimeout(10000)
-                .setSocketTimeout(10000)
-                .build();
+            .setConnectTimeout(10000)
+            .setConnectionRequestTimeout(10000)
+            .setSocketTimeout(10000)
+            .build();
         CloseableHttpResponse response = null;
         String resultString = "";
         try {
@@ -112,12 +114,15 @@ public class HttpClientUtils {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 resultString = EntityUtils.toString(response.getEntity(), "utf-8");
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error(e.getMessage());
-        } finally {
+        }
+        finally {
             try {
                 response.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 log.error(e.getMessage());
             }
         }
@@ -128,10 +133,10 @@ public class HttpClientUtils {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(10000)
-                .setConnectionRequestTimeout(10000)
-                .setSocketTimeout(10000)
-                .build();
+            .setConnectTimeout(10000)
+            .setConnectionRequestTimeout(10000)
+            .setSocketTimeout(10000)
+            .build();
         CloseableHttpResponse response = null;
         String resultString = "";
         try {
@@ -146,15 +151,19 @@ public class HttpClientUtils {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 resultString = EntityUtils.toString(response.getEntity(), "utf-8");
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error(e.getMessage());
-        } finally {
+        }
+        finally {
             try {
                 response.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 log.error(e.getMessage());
             }
         }
         return resultString;
     }
+
 }

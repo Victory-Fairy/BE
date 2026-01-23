@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Configuration
 @EnableJpaAuditing(auditorAwareRef = "awareAuditService")
 public class DBConfig {
+
     private final EntityManager em;
 
     public DBConfig(EntityManager em) {
@@ -20,4 +21,5 @@ public class DBConfig {
     public JPAQueryFactory jpaQueryFactory() {
         return new JPAQueryFactory(JPQLTemplates.DEFAULT, em);
     }
+
 }

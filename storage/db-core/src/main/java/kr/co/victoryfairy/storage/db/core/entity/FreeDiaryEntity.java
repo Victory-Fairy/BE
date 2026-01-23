@@ -85,14 +85,10 @@ public class FreeDiaryEntity extends BaseEntity {
     @Column(name = "seat_review")
     private String seatReview;
 
-    public void updateFreeDiary(MatchEnum.MatchStatus matchStatus,
-                                String homeTeamName, String awayTeamName,
-                                Short homeScore, Short awayScore,
-                                String stadiumName, LocalDateTime matchAt,
-                                String teamName,
-                                DiaryEnum.ViewType viewType, DiaryEnum.MoodType moodType,
-                                DiaryEnum.WeatherType weatherType, String content,
-                                String seatReview) {
+    public void updateFreeDiary(MatchEnum.MatchStatus matchStatus, String homeTeamName, String awayTeamName,
+            Short homeScore, Short awayScore, String stadiumName, LocalDateTime matchAt, String teamName,
+            DiaryEnum.ViewType viewType, DiaryEnum.MoodType moodType, DiaryEnum.WeatherType weatherType, String content,
+            String seatReview) {
         this.matchStatus = matchStatus;
         this.homeTeamName = homeTeamName;
         this.awayTeamName = awayTeamName;
@@ -108,4 +104,5 @@ public class FreeDiaryEntity extends BaseEntity {
         this.seatReview = seatReview;
         update();
     }
+
 }

@@ -18,23 +18,18 @@ import java.util.List;
 public class CommonServiceImpl implements CommonService {
 
     private final TeamRepository teamRepository;
+
     private final SeatRepository seatRepository;
 
     @Override
     public List<CommonDomain.TeamListResponse> findAll(MatchEnum.LeagueType league) {
-        List<TeamEntity> teams = (league == null)
-                ? teamRepository.findAllByOrderByOrderNo()
+        List<TeamEntity> teams = (league == null) ? teamRepository.findAllByOrderByOrderNo()
                 : teamRepository.findByLeagueOrderByOrderNo(league);
 
         return teams.stream()
-                .map(entity -> new CommonDomain.TeamListResponse(
-                        entity.getId(),
-                        entity.getName(),
-                        entity.getLabel(),
-                        entity.getLeague(),
-                        entity.getCountryCode()
-                ))
-                .toList();
+            .map(entity -> new CommonDomain.TeamListResponse(entity.getId(), entity.getName(), entity.getLabel(),
+                    entity.getLeague(), entity.getCountryCode()))
+            .toList();
     }
 
     @Override
@@ -45,7 +40,8 @@ public class CommonServiceImpl implements CommonService {
         }
 
         return seatEntities.stream()
-                .map(entity -> new CommonDomain.SeatListResponse(entity.getId(), entity.getName()))
-                .toList();
+            .map(entity -> new CommonDomain.SeatListResponse(entity.getId(), entity.getName()))
+            .toList();
     }
+
 }

@@ -19,7 +19,8 @@ public class RequestUtils {
     public static String getHostName() {
         try {
             return InetAddress.getLocalHost().getHostName();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return "Unknown Host";
         }
     }
@@ -29,7 +30,8 @@ public class RequestUtils {
      * @return
      */
     public static Long getId() {
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder
+            .getRequestAttributes();
 
         if (requestAttributes != null) {
             var request = requestAttributes.getRequest();
@@ -45,4 +47,5 @@ public class RequestUtils {
         }
         return null;
     }
+
 }

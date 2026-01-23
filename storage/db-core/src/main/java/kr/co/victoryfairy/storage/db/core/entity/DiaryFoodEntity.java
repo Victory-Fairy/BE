@@ -13,11 +13,11 @@ import org.hibernate.annotations.Comment;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DiaryFoodEntity extends BaseEntity{
+public class DiaryFoodEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                // 일기 음식 식별자
+    private Long id; // 일기 음식 식별자
 
     @Comment("참조 ID")
     @Column(name = "ref_id")
@@ -28,6 +28,6 @@ public class DiaryFoodEntity extends BaseEntity{
     private RefType refType;
 
     @Column(name = "food_name")
-    private String foodName;        // 음식 이름
+    private String foodName; // 음식 이름
 
 }

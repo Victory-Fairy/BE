@@ -17,14 +17,13 @@ public class FCMInitializer {
 
     @PostConstruct
     public void initialize() throws IOException {
-        Resource resource = ResourcePatternUtils
-                .getResourcePatternResolver(new DefaultResourceLoader())
-                .getResource("classpath:cert/victory-fairy-69eb5-firebase-adminsdk-fbsvc-01c6b5ea5a.json");
+        Resource resource = ResourcePatternUtils.getResourcePatternResolver(new DefaultResourceLoader())
+            .getResource("classpath:cert/victory-fairy-69eb5-firebase-adminsdk-fbsvc-01c6b5ea5a.json");
         InputStream inputStream = resource.getInputStream();
 
         FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(inputStream))
-                .build();
+            .setCredentials(GoogleCredentials.fromStream(inputStream))
+            .build();
 
         if (FirebaseApp.getApps().isEmpty()) {
             FirebaseApp.initializeApp(options);

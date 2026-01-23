@@ -30,7 +30,8 @@ public class MyPageController {
 
     @Operation(summary = "승요 레벨")
     @GetMapping("/victory-power")
-    public CustomResponse<MyPageDomain.VictoryPowerResponse> findVictoryPower(@RequestParam(required = false) String season) {
+    public CustomResponse<MyPageDomain.VictoryPowerResponse> findVictoryPower(
+            @RequestParam(required = false) String season) {
         var response = myPageService.findVictoryPower(season);
         return CustomResponse.ok(response);
     }
@@ -50,4 +51,5 @@ public class MyPageController {
         myPageService.deleteMember(request);
         return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
+
 }

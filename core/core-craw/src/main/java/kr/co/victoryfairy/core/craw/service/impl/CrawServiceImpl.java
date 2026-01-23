@@ -73,7 +73,8 @@ public class CrawServiceImpl implements CrawService {
 
             List<GameMatchEntity> beforeMatches;
             if (StringUtils.hasText(sMonth)) {
-                beforeMatches = gameMatchCustomRepository.findByYearAndMonth(sYear, sMonth);
+                beforeMatches = gameMatchCustomRepository.findByYearAndMonthAndEqLeague(sYear, sMonth,
+                        MatchEnum.LeagueType.KBO);
             }
             else {
                 beforeMatches = gameMatchRepository.findBySeason(sYear);
@@ -234,9 +235,9 @@ public class CrawServiceImpl implements CrawService {
                             continue;
                         }
 
-                        GameMatchEntity gameMatch = new GameMatchEntity(matchId, matchType, seriesType, sYear,
-                                matchDateTime, awayEntity, away, awayScore, homeEntity, home, homeScore, stadiumEntity,
-                                matchStatus, reason, false, false);
+                        GameMatchEntity gameMatch = new GameMatchEntity(matchId, MatchEnum.LeagueType.KBO, matchType,
+                                seriesType, sYear, matchDateTime, awayEntity, away, awayScore, homeEntity, home,
+                                homeScore, stadiumEntity, matchStatus, reason, false, false);
 
                         gameEntities.add(gameMatch);
 
@@ -299,10 +300,11 @@ public class CrawServiceImpl implements CrawService {
                 pitcherEntities.addAll(awayPitcher);
                 pitcherEntities.addAll(homePitcher);
 
-                var updatedMatch = new GameMatchEntity(match.getId(), match.getType(), match.getSeries(),
-                        match.getSeason(), match.getMatchAt(), match.getAwayTeamEntity(), match.getAwayNm(),
-                        match.getAwayScore(), match.getHomeTeamEntity(), match.getHomeNm(), match.getHomeScore(),
-                        match.getStadiumEntity(), match.getStatus(), match.getReason(), true, match.getIsSendPush());
+                var updatedMatch = new GameMatchEntity(match.getId(), match.getLeague(), match.getType(),
+                        match.getSeries(), match.getSeason(), match.getMatchAt(), match.getAwayTeamEntity(),
+                        match.getAwayNm(), match.getAwayScore(), match.getHomeTeamEntity(), match.getHomeNm(),
+                        match.getHomeScore(), match.getStadiumEntity(), match.getStatus(), match.getReason(), true,
+                        match.getIsSendPush());
                 gameMatchRepository.save(updatedMatch);
             });
 
@@ -353,10 +355,10 @@ public class CrawServiceImpl implements CrawService {
             pitcherEntities.addAll(awayPitcher);
             pitcherEntities.addAll(homePitcher);
 
-            var updatedMatch = new GameMatchEntity(match.getId(), match.getType(), match.getSeries(), match.getSeason(),
-                    match.getMatchAt(), match.getAwayTeamEntity(), match.getAwayNm(), match.getAwayScore(),
-                    match.getHomeTeamEntity(), match.getHomeNm(), match.getHomeScore(), match.getStadiumEntity(),
-                    match.getStatus(), match.getReason(), true, match.getIsSendPush());
+            var updatedMatch = new GameMatchEntity(match.getId(), match.getLeague(), match.getType(), match.getSeries(),
+                    match.getSeason(), match.getMatchAt(), match.getAwayTeamEntity(), match.getAwayNm(),
+                    match.getAwayScore(), match.getHomeTeamEntity(), match.getHomeNm(), match.getHomeScore(),
+                    match.getStadiumEntity(), match.getStatus(), match.getReason(), true, match.getIsSendPush());
             gameMatchRepository.save(updatedMatch);
 
             browser.close();
@@ -390,7 +392,8 @@ public class CrawServiceImpl implements CrawService {
 
             List<GameMatchEntity> gameEntities = new ArrayList<>();
 
-            var beforeMatches = gameMatchCustomRepository.findByYearAndMonth(sYear, sMonth);
+            var beforeMatches = gameMatchCustomRepository.findByYearAndMonthAndEqLeague(sYear, sMonth,
+                    MatchEnum.LeagueType.KBO);
 
             gameMatchRepository.deleteAll(beforeMatches);
 
@@ -544,9 +547,9 @@ public class CrawServiceImpl implements CrawService {
                         continue;
                     }
 
-                    GameMatchEntity gameMatch = new GameMatchEntity(matchId, matchType, seriesType, sYear,
-                            matchDateTime, awayEntity, away, awayScore, homeEntity, home, homeScore, stadiumEntity,
-                            matchStatus, reason, false, false);
+                    GameMatchEntity gameMatch = new GameMatchEntity(matchId, MatchEnum.LeagueType.KBO, matchType,
+                            seriesType, sYear, matchDateTime, awayEntity, away, awayScore, homeEntity, home, homeScore,
+                            stadiumEntity, matchStatus, reason, false, false);
 
                     gameEntities.add(gameMatch);
 

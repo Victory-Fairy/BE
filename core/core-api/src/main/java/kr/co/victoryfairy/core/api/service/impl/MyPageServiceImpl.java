@@ -27,14 +27,21 @@ import java.util.Map;
 public class MyPageServiceImpl implements MyPageService {
 
     private final MemberRepository memberRepository;
+
     private final MemberInfoRepository memberInfoRepository;
+
     private final MemberCustomRepository memberCustomRepository;
+
     private final GameRecordRepository gameRecordRepository;
 
     private final DiaryRepository diaryRepository;
+
     private final DiaryFoodRepository diaryFoodRepository;
+
     private final PartnerRepository partnerRepository;
+
     private final SeatUseHistoryRepository seatUseHistoryRepository;
+
     private final SeatReviewRepository seatReviewRepository;
 
     private final WithdrawalReasonRepository withdrawalRepository;
@@ -44,28 +51,20 @@ public class MyPageServiceImpl implements MyPageService {
         var id = RequestUtils.getId();
 
         if (id == null) {
-            return new MyPageDomain.MemberInfoForMyPageResponse(
-                    null,
-                    null,
-                    null,
-                    null,
-                    null
-            );
+            return new MyPageDomain.MemberInfoForMyPageResponse(null, null, null, null, null);
         }
 
         var member = memberCustomRepository.findById(id)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
-        var teamDto = member.getTeamId() != null ? new MyPageDomain.TeamDto(member.getTeamId(), member.getTeamName(), member.getSponsorNm()) : null;
-        var fileDto = member.getFileId() != null ? new MyPageDomain.ImageDto(member.getFileId(), member.getPath(), member.getSaveName(), member.getExt()) : null;
+        var teamDto = member.getTeamId() != null
+                ? new MyPageDomain.TeamDto(member.getTeamId(), member.getTeamName(), member.getSponsorNm()) : null;
+        var fileDto = member.getFileId() != null
+                ? new MyPageDomain.ImageDto(member.getFileId(), member.getPath(), member.getSaveName(), member.getExt())
+                : null;
 
-        return new MyPageDomain.MemberInfoForMyPageResponse(
-                member.getId(),
-                fileDto,
-                member.getNickNm(),
-                member.getSnsType(),
-                teamDto
-        );
+        return new MyPageDomain.MemberInfoForMyPageResponse(member.getId(), fileDto, member.getNickNm(),
+                member.getSnsType(), teamDto);
     }
 
     @Override
@@ -73,39 +72,38 @@ public class MyPageServiceImpl implements MyPageService {
         var id = RequestUtils.getId();
 
         if (id == null) {
-            return new MyPageDomain.VictoryPowerResponse(
-                    null,
-                    null
-            );
+            return new MyPageDomain.VictoryPowerResponse(null, null);
         }
 
         var memberEntity = memberRepository.findById(id)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         var year = StringUtils.hasText(season) ? season : String.valueOf(LocalDate.now().getYear());
 
         var recordList = gameRecordRepository.findByMemberAndSeason(memberEntity, year);
 
         var stadiumRecord = recordList.stream()
-                .filter(record -> record.getViewType() == DiaryEnum.ViewType.STADIUM)
-                .toList();
+            .filter(record -> record.getViewType() == DiaryEnum.ViewType.STADIUM)
+            .toList();
 
-        var homeRecord = recordList.stream()
-                .filter(record -> record.getViewType() == DiaryEnum.ViewType.HOME)
-                .toList();
+        var homeRecord = recordList.stream().filter(record -> record.getViewType() == DiaryEnum.ViewType.HOME).toList();
 
         var power = this.getPower(stadiumRecord, homeRecord);
 
         short level = 0;
         if (0 < power && power < 20) {
             level = 1;
-        } else if (20 <= power && power < 40) {
+        }
+        else if (20 <= power && power < 40) {
             level = 2;
-        } else if (40 <= power && power < 60) {
+        }
+        else if (40 <= power && power < 60) {
             level = 3;
-        } else if (60 <= power && power < 80) {
+        }
+        else if (60 <= power && power < 80) {
             level = 4;
-        } else if (80 <= power) {
+        }
+        else if (80 <= power) {
             level = 5;
         }
 
@@ -115,18 +113,20 @@ public class MyPageServiceImpl implements MyPageService {
     @Override
     public MyPageDomain.ReportResponse findReport(String season) {
         var id = RequestUtils.getId();
-        if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+        if (id == null)
+            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
 
         var memberEntity = memberRepository.findById(id)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         if (!StringUtils.hasText(season)) {
             season = String.valueOf(LocalDate.now().getYear());
         }
 
-        var recordList = gameRecordRepository.findByMemberAndSeason(memberEntity, season).stream()
-                .sorted(Comparator.comparing(entity -> entity.getGameMatchEntity().getMatchAt()))
-                .toList();
+        var recordList = gameRecordRepository.findByMemberAndSeason(memberEntity, season)
+            .stream()
+            .sorted(Comparator.comparing(entity -> entity.getGameMatchEntity().getMatchAt()))
+            .toList();
 
         if (recordList.isEmpty()) {
             return new MyPageDomain.ReportResponse(null, null, null);
@@ -154,58 +154,50 @@ public class MyPageServiceImpl implements MyPageService {
             var result = record.getResultType();
 
             if (result == MatchEnum.ResultType.WIN) {
-                winMap.merge(opponent, new MyPageDomain.TeamResultDto(1, matchAt), (oldVal, newVal) ->
-                        new MyPageDomain.TeamResultDto(
-                                oldVal.count() + 1,
-                                matchAt.isAfter(oldVal.lastPlayedAt()) ? matchAt : oldVal.lastPlayedAt()
-                        )
-                );
-            } else if (result == MatchEnum.ResultType.LOSS) {
-                loseMap.merge(opponent, new MyPageDomain.TeamResultDto(1, matchAt), (oldVal, newVal) ->
-                        new MyPageDomain.TeamResultDto(
-                                oldVal.count() + 1,
-                                matchAt.isAfter(oldVal.lastPlayedAt()) ? matchAt : oldVal.lastPlayedAt()
-                        )
-                );
+                winMap.merge(opponent, new MyPageDomain.TeamResultDto(1, matchAt),
+                        (oldVal, newVal) -> new MyPageDomain.TeamResultDto(oldVal.count() + 1,
+                                matchAt.isAfter(oldVal.lastPlayedAt()) ? matchAt : oldVal.lastPlayedAt()));
+            }
+            else if (result == MatchEnum.ResultType.LOSS) {
+                loseMap.merge(opponent, new MyPageDomain.TeamResultDto(1, matchAt),
+                        (oldVal, newVal) -> new MyPageDomain.TeamResultDto(oldVal.count() + 1,
+                                matchAt.isAfter(oldVal.lastPlayedAt()) ? matchAt : oldVal.lastPlayedAt()));
             }
         }
 
         var stadiumRecord = recordList.stream()
-                .filter(record -> record.getViewType() == DiaryEnum.ViewType.STADIUM)
-                .toList();
+            .filter(record -> record.getViewType() == DiaryEnum.ViewType.STADIUM)
+            .toList();
 
         MyPageDomain.ViewTypeDto stadiumViewDto = null;
         if (!stadiumRecord.isEmpty()) {
             var winCount = (short) stadiumRecord.stream()
-                    .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END) && record.getResultType().equals(MatchEnum.ResultType.WIN))
-                    .count();
+                .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END)
+                        && record.getResultType().equals(MatchEnum.ResultType.WIN))
+                .count();
 
             var loseCount = (short) stadiumRecord.stream()
-                    .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END) && record.getResultType().equals(MatchEnum.ResultType.LOSS))
-                    .count();
+                .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END)
+                        && record.getResultType().equals(MatchEnum.ResultType.LOSS))
+                .count();
 
             var drawCount = (short) stadiumRecord.stream()
-                    .filter(record -> record.getStatus() != MatchEnum.MatchStatus.CANCELED && record.getResultType().equals(MatchEnum.ResultType.DRAW))
-                    .count();
+                .filter(record -> record.getStatus() != MatchEnum.MatchStatus.CANCELED
+                        && record.getResultType().equals(MatchEnum.ResultType.DRAW))
+                .count();
 
             var cancelCount = (short) stadiumRecord.stream()
-                    .filter(record -> record.getStatus() == MatchEnum.MatchStatus.CANCELED)
-                    .count();
+                .filter(record -> record.getStatus() == MatchEnum.MatchStatus.CANCELED)
+                .count();
 
             var validGameCount = winCount + loseCount;
 
             if (validGameCount > 0) {
                 double avg = (double) winCount / validGameCount * 100;
-                stadiumWinAvg = (short) Math.round(avg);  // 소수점 첫째자리 반올림
+                stadiumWinAvg = (short) Math.round(avg); // 소수점 첫째자리 반올림
             }
 
-            stadiumViewDto = new MyPageDomain.ViewTypeDto(
-                    stadiumWinAvg,
-                    winCount,
-                    loseCount,
-                    drawCount,
-                    cancelCount
-            );
+            stadiumViewDto = new MyPageDomain.ViewTypeDto(stadiumWinAvg, winCount, loseCount, drawCount, cancelCount);
 
             // 직관 데이터
             for (var record : stadiumRecord) {
@@ -214,12 +206,12 @@ public class MyPageServiceImpl implements MyPageService {
                 var matchEntity = record.getGameMatchEntity();
 
                 // 최대 방문 구장 처리
-                stadiumVisitCount.merge(stadiumEntity.getFullName(), new MyPageDomain.VisitInfoDto(1, matchEntity.getMatchAt()), (oldVal, newVal) -> {
-                    return new MyPageDomain.VisitInfoDto(
-                            oldVal.count() + 1,
-                            matchEntity.getMatchAt().isAfter(oldVal.lastVisited()) ? matchEntity.getMatchAt() : oldVal.lastVisited()
-                    );
-                });
+                stadiumVisitCount.merge(stadiumEntity.getFullName(),
+                        new MyPageDomain.VisitInfoDto(1, matchEntity.getMatchAt()), (oldVal, newVal) -> {
+                            return new MyPageDomain.VisitInfoDto(oldVal.count() + 1,
+                                    matchEntity.getMatchAt().isAfter(oldVal.lastVisited()) ? matchEntity.getMatchAt()
+                                            : oldVal.lastVisited());
+                        });
 
                 var myTeam = record.getTeamEntity();
 
@@ -231,7 +223,8 @@ public class MyPageServiceImpl implements MyPageService {
                     if (result == MatchEnum.ResultType.WIN) {
                         homeGameWinCount++;
                     }
-                } else {
+                }
+                else {
                     stadiumGameCount++;
                     if (result == MatchEnum.ResultType.WIN) {
                         stadiumGameWinCount++;
@@ -241,9 +234,11 @@ public class MyPageServiceImpl implements MyPageService {
                 if (result == MatchEnum.ResultType.WIN) {
                     currentStreak++;
                     maxStreak = (short) Math.max(maxStreak, currentStreak);
-                } else if (result == MatchEnum.ResultType.LOSS) {
+                }
+                else if (result == MatchEnum.ResultType.LOSS) {
                     currentStreak = 0; // 연승 끊김
-                } else {
+                }
+                else {
                     currentStreak = 0; // 연승 끊김
                 }
             }
@@ -251,84 +246,73 @@ public class MyPageServiceImpl implements MyPageService {
 
         MyPageDomain.ViewTypeDto homeViewDto = null;
         var homeRecord = recordList.stream()
-                .filter(record -> record.getViewType().equals(DiaryEnum.ViewType.HOME))
-                .toList();
+            .filter(record -> record.getViewType().equals(DiaryEnum.ViewType.HOME))
+            .toList();
 
         if (!homeRecord.isEmpty()) {
             var winCount = (short) homeRecord.stream()
-                    .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END) && record.getResultType().equals(MatchEnum.ResultType.WIN))
-                    .count();
+                .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END)
+                        && record.getResultType().equals(MatchEnum.ResultType.WIN))
+                .count();
 
             var loseCount = (short) homeRecord.stream()
-                    .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END) && record.getResultType().equals(MatchEnum.ResultType.LOSS))
-                    .count();
+                .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END)
+                        && record.getResultType().equals(MatchEnum.ResultType.LOSS))
+                .count();
 
             var drawCount = (short) homeRecord.stream()
-                    .filter(record -> record.getStatus() != MatchEnum.MatchStatus.CANCELED && record.getResultType() == MatchEnum.ResultType.DRAW)
-                    .count();
+                .filter(record -> record.getStatus() != MatchEnum.MatchStatus.CANCELED
+                        && record.getResultType() == MatchEnum.ResultType.DRAW)
+                .count();
 
             var cancelCount = (short) homeRecord.stream()
-                    .filter(record -> record.getStatus() == MatchEnum.MatchStatus.CANCELED)
-                    .count();
+                .filter(record -> record.getStatus() == MatchEnum.MatchStatus.CANCELED)
+                .count();
 
             var validGameCount = winCount + loseCount;
 
             if (validGameCount > 0) {
                 double avg = (double) winCount / validGameCount * 100;
-                homeWinAvg = (short) Math.round(avg);  // 소수점 첫째자리 반올림
+                homeWinAvg = (short) Math.round(avg); // 소수점 첫째자리 반올림
             }
 
-            homeViewDto = new MyPageDomain.ViewTypeDto(
-                    homeWinAvg,
-                    winCount,
-                    loseCount,
-                    drawCount,
-                    cancelCount
-            );
+            homeViewDto = new MyPageDomain.ViewTypeDto(homeWinAvg, winCount, loseCount, drawCount, cancelCount);
         }
 
         // 최대 승리 팀
-        var maxWinTeam = winMap.entrySet().stream()
-                .max((e1, e2) -> {
-                    int cmp = Integer.compare(e1.getValue().count(), e2.getValue().count());
-                    if (cmp != 0) return cmp;
-                    return e1.getValue().lastPlayedAt().compareTo(e2.getValue().lastPlayedAt());
-                })
-                .map(Map.Entry::getKey)
-                .orElse("-");
+        var maxWinTeam = winMap.entrySet().stream().max((e1, e2) -> {
+            int cmp = Integer.compare(e1.getValue().count(), e2.getValue().count());
+            if (cmp != 0)
+                return cmp;
+            return e1.getValue().lastPlayedAt().compareTo(e2.getValue().lastPlayedAt());
+        }).map(Map.Entry::getKey).orElse("-");
 
         // 최대 패배 팀
-        var maxLoseTeam = loseMap.entrySet().stream()
-                .max((e1, e2) -> {
-                    int cmp = Integer.compare(e1.getValue().count(), e2.getValue().count());
-                    if (cmp != 0) return cmp;
-                    return e1.getValue().lastPlayedAt().compareTo(e2.getValue().lastPlayedAt());
-                })
-                .map(Map.Entry::getKey)
-                .orElse("-");
+        var maxLoseTeam = loseMap.entrySet().stream().max((e1, e2) -> {
+            int cmp = Integer.compare(e1.getValue().count(), e2.getValue().count());
+            if (cmp != 0)
+                return cmp;
+            return e1.getValue().lastPlayedAt().compareTo(e2.getValue().lastPlayedAt());
+        }).map(Map.Entry::getKey).orElse("-");
 
         // 최대 방문 구장
         // 방문 수가 같으면 마지막 방문일이 늦은 게 우선
-        var maxVisitedStadium = stadiumVisitCount.entrySet().stream()
-                .max(Comparator.comparingInt((Map.Entry<String, MyPageDomain.VisitInfoDto> e) ->
-                        e.getValue().count()).thenComparing(e -> e.getValue().lastVisited()))
-                .map(Map.Entry::getKey)
-                .orElse(null);
+        var maxVisitedStadium = stadiumVisitCount.entrySet()
+            .stream()
+            .max(Comparator.comparingInt((Map.Entry<String, MyPageDomain.VisitInfoDto> e) -> e.getValue().count())
+                .thenComparing(e -> e.getValue().lastVisited()))
+            .map(Map.Entry::getKey)
+            .orElse(null);
 
         // 홈 승률
-        short homeWinRate = (short) (homeGameCount == 0 ? 0 : Math.round(((double) homeGameWinCount / homeGameCount) * 100));
+        short homeWinRate = (short) (homeGameCount == 0 ? 0
+                : Math.round(((double) homeGameWinCount / homeGameCount) * 100));
         // 직관 승률
-        short stadiumWinRate = (short) (stadiumGameCount == 0 ? 0 : Math.round(((double) stadiumGameWinCount / stadiumGameCount) * 100));
+        short stadiumWinRate = (short) (stadiumGameCount == 0 ? 0
+                : Math.round(((double) stadiumGameWinCount / stadiumGameCount) * 100));
 
-
-        var visitStatisticsDto = new MyPageDomain.ViewStatisticsDto(
-                maxWinTeam,
-                maxLoseTeam,
-                maxVisitedStadium,
-                maxStreak,
-                homeWinRate,
-                stadiumWinRate
-        );
+        var visitStatisticsDto = new MyPageDomain.ViewStatisticsDto(maxWinTeam, maxLoseTeam, maxVisitedStadium,
+                maxStreak, homeWinRate, stadiumWinRate);
         return new MyPageDomain.ReportResponse(stadiumViewDto, homeViewDto, visitStatisticsDto);
     }
 
@@ -336,25 +320,25 @@ public class MyPageServiceImpl implements MyPageService {
     @Transactional
     public void deleteMember(MyPageDomain.DeleteAccountRequest request) {
         var id = RequestUtils.getId();
-        if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+        if (id == null)
+            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
 
         var memberEntity = memberRepository.findById(id)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         var memberInfoEntity = memberInfoRepository.findByMemberEntity(memberEntity)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         var diaryEntities = diaryRepository.findByMemberId(memberEntity.getId());
         var recordEntities = gameRecordRepository.findByMemberId(id);
 
-        var diaryIds = diaryEntities.stream()
-                .map(entity -> entity.getId())
-                .toList();
+        var diaryIds = diaryEntities.stream().map(entity -> entity.getId()).toList();
 
         var diaryFoodEntities = diaryFoodRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds);
         var partnerEntities = partnerRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds);
         var seatUserEntities = seatUseHistoryRepository.findAllByDiaryEntityIdIn(diaryIds);
-        var seatReviewEntities = seatReviewRepository.findAllBySeatUseHistoryEntityIdIn(seatUserEntities.stream().map(entity -> entity.getId()).toList());
+        var seatReviewEntities = seatReviewRepository
+            .findAllBySeatUseHistoryEntityIdIn(seatUserEntities.stream().map(entity -> entity.getId()).toList());
 
         // 회원 정보 삭제
         memberInfoRepository.delete(memberInfoEntity);
@@ -373,9 +357,7 @@ public class MyPageServiceImpl implements MyPageService {
         // 일기 삭제
         diaryRepository.deleteAll(diaryEntities);
 
-        var entity = WithdrawalReasonEntity.builder()
-                .reason(request.reason())
-                .build();
+        var entity = WithdrawalReasonEntity.builder().reason(request.reason()).build();
         withdrawalRepository.save(entity);
     }
 
@@ -386,48 +368,52 @@ public class MyPageServiceImpl implements MyPageService {
         // 직관 기록이 있는 경우만 계산
         if (!stadiumRecord.isEmpty()) {
             var winCount = (short) stadiumRecord.stream()
-                    .filter(record -> record.getResultType() == MatchEnum.ResultType.WIN)
-                    .count();
+                .filter(record -> record.getResultType() == MatchEnum.ResultType.WIN)
+                .count();
 
             var loseCount = (short) stadiumRecord.stream()
-                    .filter(record -> record.getResultType() == MatchEnum.ResultType.LOSS)
-                    .count();
+                .filter(record -> record.getResultType() == MatchEnum.ResultType.LOSS)
+                .count();
 
             var validGameCount = winCount + loseCount;
 
             if (validGameCount > 0) {
                 double avg = (double) winCount / validGameCount * 100;
-                stadiumWinAvg = (short) Math.round(avg);  // 소수점 첫째자리 반올림
+                stadiumWinAvg = (short) Math.round(avg); // 소수점 첫째자리 반올림
             }
         }
 
         // 집관 기록이 있는 경우만 계산
         if (!homeRecord.isEmpty()) {
             var winCount = (short) homeRecord.stream()
-                    .filter(record -> record.getResultType() == MatchEnum.ResultType.WIN)
-                    .count();
+                .filter(record -> record.getResultType() == MatchEnum.ResultType.WIN)
+                .count();
 
             var loseCount = (short) homeRecord.stream()
-                    .filter(record -> record.getResultType() == MatchEnum.ResultType.LOSS)
-                    .count();
+                .filter(record -> record.getResultType() == MatchEnum.ResultType.LOSS)
+                .count();
 
             var validGameCount = winCount + loseCount;
 
             if (validGameCount > 0) {
                 double avg = (double) winCount / validGameCount * 100;
-                homeWinAvg = (short) Math.round(avg);  // 소수점 첫째자리 반올림
+                homeWinAvg = (short) Math.round(avg); // 소수점 첫째자리 반올림
             }
         }
 
         // 조건 분기 처리
         if (stadiumWinAvg != null && homeWinAvg != null) {
             return (short) Math.round((stadiumWinAvg + homeWinAvg) / 2.0);
-        } else if (stadiumWinAvg != null) {
+        }
+        else if (stadiumWinAvg != null) {
             return stadiumWinAvg;
-        } else if (homeWinAvg != null) {
+        }
+        else if (homeWinAvg != null) {
             return homeWinAvg;
-        } else {
+        }
+        else {
             return 0; // 직관/집관 모두 없음
         }
     }
+
 }

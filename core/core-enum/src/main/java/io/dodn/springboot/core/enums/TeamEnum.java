@@ -3,17 +3,8 @@ package io.dodn.springboot.core.enums;
 public interface TeamEnum {
 
     enum KboTeamNm {
-        HT("KIA"),
-        SS("삼성"),
-        LG("LG"),
-        OB("두산"),
-        KT("KT"),
-        SK("SSG"),
-        LT("롯데"),
-        HH("한화"),
-        NC("NC"),
-        WO("키움"),
-        ;
+
+        HT("KIA"), SS("삼성"), LG("LG"), OB("두산"), KT("KT"), SK("SSG"), LT("롯데"), HH("한화"), NC("NC"), WO("키움"),;
 
         private String desc;
 
@@ -33,6 +24,7 @@ public interface TeamEnum {
             }
             return null;
         }
+
     }
 
 }

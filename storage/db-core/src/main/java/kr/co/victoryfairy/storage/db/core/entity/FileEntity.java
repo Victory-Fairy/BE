@@ -40,4 +40,5 @@ public class FileEntity extends BaseEntity {
 
     @Comment("Size")
     private Long size;
+
 }

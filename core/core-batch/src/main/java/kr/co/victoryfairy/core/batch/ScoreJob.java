@@ -9,7 +9,7 @@ public class ScoreJob {
 
     private final BatchService batchService;
 
-    public ScoreJob(BatchService batchService)  {
+    public ScoreJob(BatchService batchService) {
         this.batchService = batchService;
     }
 
@@ -18,25 +18,24 @@ public class ScoreJob {
         batchService.batchScore();
     }
 
-    //@Scheduled(cron = "${batch.check.info}", zone = "Asia/Seoul")
+    // @Scheduled(cron = "${batch.check.info}", zone = "Asia/Seoul")
     public void checkInfo() {
         batchService.batchMatchInfo();
     }
 
-    //@Scheduled(fixedDelay = 60000)
+    // @Scheduled(fixedDelay = 60000)
     public void checkEvent() {
         batchService.checkEvent();
     }
 
-    //@Scheduled(cron = "${batch.check.match}", zone = "Asia/Seoul")
+    // @Scheduled(cron = "${batch.check.match}", zone = "Asia/Seoul")
     public void checkMatchList() {
         batchService.checkMatchList();
     }
 
-    //@Scheduled(cron = "${batch.check.file}", zone = "Asia/Seoul")
+    // @Scheduled(cron = "${batch.check.file}", zone = "Asia/Seoul")
     public void checkMissFile() {
         batchService.checkMissFile();
     }
-
 
 }

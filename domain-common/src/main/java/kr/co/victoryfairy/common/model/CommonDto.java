@@ -12,26 +12,19 @@ public interface CommonDto {
     /**
      * 이미지 정보 DTO
      */
-    record ImageDto(
-            Long id,
-            String path,
-            String saveName,
-            String ext
-    ) {}
+    record ImageDto(Long id, String path, String saveName, String ext) {
+    }
 
     /**
      * 파트너(동행자) 저장 요청 DTO
      */
-    record PartnerSaveRequest(
-            String name,
-            Long teamId
-    ) {}
+    record PartnerSaveRequest(String name, Long teamId) {
+    }
 
     /**
      * 파트너(동행자) 응답 DTO
      */
-    record PartnerResponse(
-            String name,
-            Long teamId
-    ) {}
+    record PartnerResponse(String name, Long teamId) {
+    }
+
 }

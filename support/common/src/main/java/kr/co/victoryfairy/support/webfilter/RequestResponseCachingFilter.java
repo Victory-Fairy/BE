@@ -22,19 +22,23 @@ import java.io.IOException;
 public class RequestResponseCachingFilter implements Filter {
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, jakarta.servlet.ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, jakarta.servlet.ServletException {
         if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
             chain.doFilter(request, response);
             return;
         }
 
         ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper((HttpServletRequest) request);
-        ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper((HttpServletResponse) response);
+        ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(
+                (HttpServletResponse) response);
 
         try {
             chain.doFilter(wrappedRequest, wrappedResponse);
-        } finally {
+        }
+        finally {
             wrappedResponse.copyBodyToResponse(); // 응답 본문 클라이언트로 복사
         }
     }
+
 }

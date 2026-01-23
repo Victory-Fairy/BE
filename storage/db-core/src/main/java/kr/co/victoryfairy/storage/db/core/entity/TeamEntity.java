@@ -67,9 +67,16 @@ public class TeamEntity extends BaseEntity {
         return label;
     }
 
-    public Short getOrderNo() { return orderNo; }
+    public Short getOrderNo() {
+        return orderNo;
+    }
 
-    public MatchEnum.LeagueType getLeague() { return league; }
+    public MatchEnum.LeagueType getLeague() {
+        return league;
+    }
 
-    public String getCountryCode() { return countryCode; }
+    public String getCountryCode() {
+        return countryCode;
+    }
+
 }

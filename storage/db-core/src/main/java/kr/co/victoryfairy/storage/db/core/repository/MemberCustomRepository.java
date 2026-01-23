@@ -9,6 +9,9 @@ import java.util.Optional;
 public interface MemberCustomRepository {
 
     Optional<MemberModel.MemberInfo> findById(Long memberId);
+
     PageResult<MemberModel.MemberListResponse> findAll(MemberModel.MemberListRequest request);
+
     List<MemberModel.MemberInfo> findFcmTokenByTeamId(Long awayId, Long homeId);
+
 }

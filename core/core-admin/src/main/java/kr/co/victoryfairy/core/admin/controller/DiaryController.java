@@ -25,8 +25,10 @@ public class DiaryController {
     @SecurityRequirement(name = "accessToken")
     @Operation(summary = "일기 목록 불러오기")
     @GetMapping("/list")
-    public CustomResponse<List<DiaryDomain.DiaryListResponse>> findAll(@Validated DiaryDomain.DiaryListRequest request) {
+    public CustomResponse<List<DiaryDomain.DiaryListResponse>> findAll(
+            @Validated DiaryDomain.DiaryListRequest request) {
         var result = diaryService.findAll(request);
         return CustomResponse.ok(result.getContents(), result.getTotal());
     }
+
 }

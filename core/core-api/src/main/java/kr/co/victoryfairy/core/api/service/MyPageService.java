@@ -28,4 +28,5 @@ public interface MyPageService {
      * @param request
      */
     void deleteMember(MyPageDomain.DeleteAccountRequest request);
+
 }

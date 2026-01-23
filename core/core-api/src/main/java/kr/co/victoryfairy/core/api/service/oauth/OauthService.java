@@ -16,4 +16,5 @@ public interface OauthService {
      * @return
      */
     MemberDomain.MemberSns parseSnsInfo(MemberDomain.MemberLoginRequest request);
+
 }

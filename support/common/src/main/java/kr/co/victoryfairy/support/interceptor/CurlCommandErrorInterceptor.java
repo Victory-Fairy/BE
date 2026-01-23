@@ -28,7 +28,8 @@ public class CurlCommandErrorInterceptor implements HandlerInterceptor {
     private final SlackUtils slackUtils;
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+            throws Exception {
 
         String uri = request.getRequestURI();
         if (uri.contains("/swagger") || uri.contains("/v3/api-docs")) {
@@ -41,16 +42,18 @@ public class CurlCommandErrorInterceptor implements HandlerInterceptor {
                 ContentCachingResponseWrapper wrappedResponse = (ContentCachingResponseWrapper) response;
 
                 String contentType = response.getContentType();
-                /*if (contentType == null || !contentType.contains("application/json")) {
-                    return;
-                }*/
+                /*
+                 * if (contentType == null || !contentType.contains("application/json")) {
+                 * return; }
+                 */
 
                 String responseBody = this.getResponseBody(wrappedResponse);
                 if (this.isErrorResponse(responseBody)) {
                     String requestBody = this.getRequestBody(wrappedRequest);
                     this.generateCurlCommand(wrappedRequest, requestBody, responseBody);
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 log.error("Error in CurlCommandErrorInterceptor: ", e);
             }
         }
@@ -96,7 +99,8 @@ public class CurlCommandErrorInterceptor implements HandlerInterceptor {
                 int status = (int) responseMap.get("status");
                 return status == 500; // 에러로 간주할 상태 코드
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
         return false;
@@ -108,7 +112,8 @@ public class CurlCommandErrorInterceptor implements HandlerInterceptor {
             if (content.length > 0) {
                 return new String(content, request.getCharacterEncoding());
             }
-        } catch (UnsupportedEncodingException e) {
+        }
+        catch (UnsupportedEncodingException e) {
             log.error("Error reading request body: ", e);
         }
         return null;
@@ -121,4 +126,5 @@ public class CurlCommandErrorInterceptor implements HandlerInterceptor {
         }
         return null;
     }
+
 }

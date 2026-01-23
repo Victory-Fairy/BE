@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-
 @Slf4j
 public class JwtUtils {
 
@@ -19,22 +18,25 @@ public class JwtUtils {
         try {
 
             claims = Jwts.parserBuilder()
-                    .setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
-//                    .requireAudience(getIp(request))
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                .setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
+                // .requireAudience(getIp(request))
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
             claims.put("isCertifiedToken", Boolean.TRUE);
             claims.put("isExpired", Boolean.FALSE);
-        } catch (ExpiredJwtException ex) {
+        }
+        catch (ExpiredJwtException ex) {
             log.debug("The token is expired", ex);
             claims.put("isCertifiedToken", Boolean.TRUE);
             claims.put("isExpired", Boolean.TRUE);
-        } catch (JwtException ex) {
-            log.error("JwtException occurs when parseToken",ex);
+        }
+        catch (JwtException ex) {
+            log.error("JwtException occurs when parseToken", ex);
             claims.put("isCertifiedToken", Boolean.FALSE);
-        } catch (IllegalArgumentException ex) {
-            log.error("IllegalArgumentException occurs when parseToken",ex);
+        }
+        catch (IllegalArgumentException ex) {
+            log.error("IllegalArgumentException occurs when parseToken", ex);
             claims.put("isCertifiedToken", Boolean.FALSE);
         }
         return claims;
@@ -50,7 +52,7 @@ public class JwtUtils {
             }
 
             jwtBuilder.setId(getJwtId());
-//            jwtBuilder.setAudience(getIp(request));
+            // jwtBuilder.setAudience(getIp(request));
 
             if (expireMinutes > 0) {
                 Date expireDate = DateUtils.addMinutes(new Date(), expireMinutes);
@@ -58,11 +60,14 @@ public class JwtUtils {
             }
 
             byte[] secreKeyBytes = DatatypeConverter.parseBase64Binary(secretKey);
-            jwtBuilder.signWith(new SecretKeySpec(secreKeyBytes, SignatureAlgorithm.HS256.getJcaName()), SignatureAlgorithm.HS256);
+            jwtBuilder.signWith(new SecretKeySpec(secreKeyBytes, SignatureAlgorithm.HS256.getJcaName()),
+                    SignatureAlgorithm.HS256);
             token = jwtBuilder.compact();
-        } catch (JwtException ex) {
+        }
+        catch (JwtException ex) {
             log.error("JwtException occurs when generateToken", ex);
-        } catch (IllegalArgumentException ex) {
+        }
+        catch (IllegalArgumentException ex) {
             log.error("IllegalArgumentException occurs when generateToken", ex);
         }
         return token;
@@ -72,4 +77,5 @@ public class JwtUtils {
         // create unique jwtId not do
         return UUID.randomUUID().toString();
     }
+
 }

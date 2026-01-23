@@ -17,5 +17,6 @@ public interface GameMatchCustomRepository {
 
     List<GameMatchEntity> findByTeamIdIn(Long teamId, LocalDate matchAt);
 
-    List<GameMatchEntity> findByYearAndMonth(String year, String month);
+    List<GameMatchEntity> findByYearAndMonthAndEqLeague(String year, String month, MatchEnum.LeagueType league);
+
 }

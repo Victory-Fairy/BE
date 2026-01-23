@@ -12,4 +12,5 @@ public class AwareAuditService implements AuditorAware<Long> {
     public Optional<Long> getCurrentAuditor() {
         return Optional.empty();
     }
+
 }

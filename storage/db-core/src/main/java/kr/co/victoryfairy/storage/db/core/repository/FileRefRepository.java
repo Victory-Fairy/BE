@@ -9,13 +9,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FileRefRepository extends JpaRepository<FileRefEntity, Long> {
+
     Optional<FileRefEntity> findByFileEntityIdAndIsUseTrue(Long fileId);
 
-    @EntityGraph(attributePaths = {"fileEntity"})
+    @EntityGraph(attributePaths = { "fileEntity" })
     List<FileRefEntity> findByRefTypeAndRefIdInAndIsUseTrue(RefType refType, List<Long> refIds);
 
-    @EntityGraph(attributePaths = {"fileEntity"})
+    @EntityGraph(attributePaths = { "fileEntity" })
     List<FileRefEntity> findAllByRefTypeAndRefIdAndIsUseTrue(RefType refType, Long refId);
 
     Optional<FileRefEntity> findByRefTypeAndRefIdAndIsUseTrue(RefType refType, Long refId);
+
 }

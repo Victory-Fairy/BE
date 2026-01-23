@@ -37,81 +37,72 @@ public class MemberCustomRepositoryImpl extends QuerydslRepositorySupport implem
     @Override
     public Optional<MemberModel.MemberInfo> findById(Long memberId) {
         return Optional.ofNullable(jpaQueryFactory
-                .select(Projections.fields(MemberModel.MemberInfo.class
-                        , memberEntity.id
-                        , memberInfoEntity.nickNm
-                        , memberInfoEntity.snsType
-                        , teamEntity.id.as("teamId")
-                        , teamEntity.name.as("teamName")
-                        , teamEntity.sponsorNm
-                        , fileEntity.id.as("fileId")
-                        , fileEntity.path
-                        , fileEntity.saveName
-                        , fileEntity.ext
-                ))
-                .from(memberEntity)
-                .innerJoin(memberInfoEntity).on(memberInfoEntity.memberEntity.id.eq(memberEntity.id))
-                .leftJoin(teamEntity).on(memberInfoEntity.teamEntity.id.eq(teamEntity.id))
-                .leftJoin(fileRefEntity).on(fileRefEntity.refType.eq(RefType.PROFILE).and(fileRefEntity.refId.eq(memberEntity.id)).and(fileRefEntity.isUse.eq(true)))
-                .leftJoin(fileEntity).on(fileRefEntity.fileEntity.id.eq(fileEntity.id))
-                .where(memberEntity.id.eq(memberId))
-                .fetchOne());
+            .select(Projections.fields(MemberModel.MemberInfo.class, memberEntity.id, memberInfoEntity.nickNm,
+                    memberInfoEntity.snsType, teamEntity.id.as("teamId"), teamEntity.name.as("teamName"),
+                    teamEntity.sponsorNm, fileEntity.id.as("fileId"), fileEntity.path, fileEntity.saveName,
+                    fileEntity.ext))
+            .from(memberEntity)
+            .innerJoin(memberInfoEntity)
+            .on(memberInfoEntity.memberEntity.id.eq(memberEntity.id))
+            .leftJoin(teamEntity)
+            .on(memberInfoEntity.teamEntity.id.eq(teamEntity.id))
+            .leftJoin(fileRefEntity)
+            .on(fileRefEntity.refType.eq(RefType.PROFILE)
+                .and(fileRefEntity.refId.eq(memberEntity.id))
+                .and(fileRefEntity.isUse.eq(true)))
+            .leftJoin(fileEntity)
+            .on(fileRefEntity.fileEntity.id.eq(fileEntity.id))
+            .where(memberEntity.id.eq(memberId))
+            .fetchOne());
     }
 
     @Override
     public PageResult<MemberModel.MemberListResponse> findAll(MemberModel.MemberListRequest request) {
-        var pageRequest = PageRequest.of(request.page()-1, request.size());
+        var pageRequest = PageRequest.of(request.page() - 1, request.size());
 
         var query = jpaQueryFactory
-                .select(Projections.fields(MemberModel.MemberListResponse.class
-                        , memberEntity.id
-                        , memberInfoEntity.nickNm
-                        , memberInfoEntity.snsType
-                        , memberInfoEntity.email
-                        , teamEntity.id.as("teamId")
-                        , teamEntity.name.as("teamName")
-                        , teamEntity.sponsorNm
-                        , fileEntity.id.as("fileId")
-                        , fileEntity.path
-                        , fileEntity.saveName
-                        , fileEntity.ext
-                ))
-                .from(memberEntity)
-                .innerJoin(memberInfoEntity).on(memberInfoEntity.memberEntity.id.eq(memberEntity.id))
-                .leftJoin(teamEntity).on(memberInfoEntity.teamEntity.id.eq(teamEntity.id))
-                .leftJoin(fileRefEntity).on(fileRefEntity.refType.eq(RefType.PROFILE).and(fileRefEntity.refId.eq(memberEntity.id)).and(fileRefEntity.isUse.eq(true)))
-                .leftJoin(fileEntity).on(fileRefEntity.fileEntity.id.eq(fileEntity.id))
-                .orderBy(memberEntity.id.desc())
-                .where(this.likeKeyword(request.keyword())
-                        ,eqSnsType(request.snsType())
-                );
+            .select(Projections.fields(MemberModel.MemberListResponse.class, memberEntity.id, memberInfoEntity.nickNm,
+                    memberInfoEntity.snsType, memberInfoEntity.email, teamEntity.id.as("teamId"),
+                    teamEntity.name.as("teamName"), teamEntity.sponsorNm, fileEntity.id.as("fileId"), fileEntity.path,
+                    fileEntity.saveName, fileEntity.ext))
+            .from(memberEntity)
+            .innerJoin(memberInfoEntity)
+            .on(memberInfoEntity.memberEntity.id.eq(memberEntity.id))
+            .leftJoin(teamEntity)
+            .on(memberInfoEntity.teamEntity.id.eq(teamEntity.id))
+            .leftJoin(fileRefEntity)
+            .on(fileRefEntity.refType.eq(RefType.PROFILE)
+                .and(fileRefEntity.refId.eq(memberEntity.id))
+                .and(fileRefEntity.isUse.eq(true)))
+            .leftJoin(fileEntity)
+            .on(fileRefEntity.fileEntity.id.eq(fileEntity.id))
+            .orderBy(memberEntity.id.desc())
+            .where(this.likeKeyword(request.keyword()), eqSnsType(request.snsType()));
         return PageUtils.getPageResult(query, pageRequest);
     }
 
     @Override
     public List<MemberModel.MemberInfo> findFcmTokenByTeamId(Long awayId, Long homeId) {
         return jpaQueryFactory
-                .select(Projections.fields(MemberModel.MemberInfo.class
-                        , memberEntity.id
-                        , memberEntity.fcmToken
-                        , memberInfoEntity.nickNm
-                        , memberInfoEntity.snsType
-                        , teamEntity.id.as("teamId")
-                        , teamEntity.name.as("teamName")
-                        , teamEntity.sponsorNm
-                ))
-                .from(memberEntity)
-                .innerJoin(memberInfoEntity).on(memberInfoEntity.memberEntity.id.eq(memberEntity.id))
-                .leftJoin(teamEntity).on(memberInfoEntity.teamEntity.id.eq(teamEntity.id))
-                .where(memberInfoEntity.teamEntity.id.in(awayId, homeId))
-                .fetch();
+            .select(Projections.fields(MemberModel.MemberInfo.class, memberEntity.id, memberEntity.fcmToken,
+                    memberInfoEntity.nickNm, memberInfoEntity.snsType, teamEntity.id.as("teamId"),
+                    teamEntity.name.as("teamName"), teamEntity.sponsorNm))
+            .from(memberEntity)
+            .innerJoin(memberInfoEntity)
+            .on(memberInfoEntity.memberEntity.id.eq(memberEntity.id))
+            .leftJoin(teamEntity)
+            .on(memberInfoEntity.teamEntity.id.eq(teamEntity.id))
+            .where(memberInfoEntity.teamEntity.id.in(awayId, homeId))
+            .fetch();
     }
 
     private BooleanExpression likeKeyword(String keyword) {
-        return StringUtils.hasText(keyword) ? memberInfoEntity.nickNm.like(keyword).or(memberInfoEntity.email.like(keyword)) : null;
+        return StringUtils.hasText(keyword)
+                ? memberInfoEntity.nickNm.like(keyword).or(memberInfoEntity.email.like(keyword)) : null;
     }
 
     private BooleanExpression eqSnsType(MemberEnum.SnsType snsType) {
         return snsType != null ? memberInfoEntity.snsType.eq(snsType) : null;
     }
+
 }
