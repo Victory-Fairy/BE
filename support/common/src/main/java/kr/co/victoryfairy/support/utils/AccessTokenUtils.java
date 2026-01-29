@@ -7,6 +7,7 @@ import kr.co.victoryfairy.support.constant.StatusEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
 import kr.co.victoryfairy.support.model.oauth.MemberAccount;
 import kr.co.victoryfairy.support.properties.JwtProperties;
+import kr.co.victoryfairy.logging.util.LogMaskingUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +26,7 @@ public class AccessTokenUtils {
 
     public static String getAccessToken(HttpServletRequest request) {
         var accessToken = request.getHeader("Authorization");
-        log.info("accessToken : {}", accessToken);
+        log.debug("accessToken : {}", LogMaskingUtils.maskToken(accessToken));
         if (StringUtils.isNotEmpty(accessToken) && accessToken.startsWith("Bearer ")) {
             return accessToken.substring(7); // "Bearer " 접두사 제거
         }
@@ -34,7 +35,7 @@ public class AccessTokenUtils {
 
     public static Boolean checkToken(HttpServletRequest request, JwtProperties jwtProperties) {
         var accessToken = getAccessToken(request);
-        log.info("accessToken : {}", accessToken);
+        log.debug("accessToken : {}", LogMaskingUtils.maskToken(accessToken));
         // accessToken 유무 판단
         if (StringUtils.isEmpty(accessToken)) {
             return accessError(accessToken);
@@ -115,13 +116,13 @@ public class AccessTokenUtils {
 
         boolean isCertifiedToken = Boolean.parseBoolean(parseToken.get("isCertifiedToken").toString());
         if (!isCertifiedToken) {
-            log.warn("Refresh Token 서명 검증 실패: {}", refreshToken);
+            log.warn("Refresh Token 서명 검증 실패: {}", LogMaskingUtils.maskToken(refreshToken));
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
         }
 
         boolean isExpired = Boolean.parseBoolean(parseToken.get("isExpired").toString());
         if (isExpired) {
-            log.warn("Refresh Token 만료됨: {}", refreshToken);
+            log.warn("Refresh Token 만료됨: {}", LogMaskingUtils.maskToken(refreshToken));
             throw new CustomException(MessageEnum.Auth.FAIL_VALID_EXPIRED);
         }
 
@@ -138,22 +139,22 @@ public class AccessTokenUtils {
     }
 
     private static Boolean accessError(String accessToken) {
-        log.warn("accessToken is wrong : {}", accessToken);
+        log.warn("accessToken is wrong : {}", LogMaskingUtils.maskToken(accessToken));
         throw new CustomException(HttpStatus.UNAUTHORIZED, StatusEnum.STATUS_901);
     }
 
     private static Boolean accessExpiredError(String accessToken) {
-        log.warn("accessToken is expired : {}", accessToken);
+        log.warn("accessToken is expired : {}", LogMaskingUtils.maskToken(accessToken));
         throw new CustomException(MessageEnum.Auth.FAIL_VALID_EXPIRED);
     }
 
     private static Boolean accessOverlapError(String accessToken) {
-        log.warn("accessToken is overlapped : {}", accessToken);
+        log.warn("accessToken is overlapped : {}", LogMaskingUtils.maskToken(accessToken));
         throw new CustomException(MessageEnum.Auth.FAIL_OVERLAP);
     }
 
     private static Boolean needCheckRefreshTokenError(String accessToken) {
-        log.warn("accessToken is expired, need check refreshToken : {}", accessToken);
+        log.warn("accessToken is expired, need check refreshToken : {}", LogMaskingUtils.maskToken(accessToken));
         throw new CustomException(HttpStatus.FORBIDDEN, StatusEnum.STATUS_902);
     }
 

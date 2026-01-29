@@ -15,6 +15,7 @@ import kr.co.victoryfairy.support.exception.CustomException;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.support.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -22,6 +23,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MatchServiceImpl implements MatchService {
@@ -69,8 +71,7 @@ public class MatchServiceImpl implements MatchService {
 
         if (matchRedis.isEmpty()) {
             var matchEntities = gameMatchCustomRepository.findByMatchAt(date, league);
-            System.out.println("[DEBUG] findList - date: " + date + ", league: " + league + ", matchEntities size: "
-                    + matchEntities.size());
+            log.debug("findList - date: {}, league: {}, matchEntities size: {}", date, league, matchEntities.size());
             matchEntities = matchEntities
                 .stream()
                 .sorted(Comparator.comparing(entity -> entity.getMatchAt()))

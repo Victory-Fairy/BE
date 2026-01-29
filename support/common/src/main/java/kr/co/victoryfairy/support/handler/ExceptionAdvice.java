@@ -1,9 +1,11 @@
 package kr.co.victoryfairy.support.handler;
 
+import kr.co.victoryfairy.logging.sql.SqlLoggingHolder;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
 import kr.co.victoryfairy.support.model.CustomResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
@@ -70,13 +72,75 @@ public class ExceptionAdvice {
         return CustomResponse.failed(resultMessage, HttpStatus.BAD_REQUEST, MessageEnum.Common.REQUEST_PARAMETER);
     }
 
+    /**
+     * 데이터베이스 관련 예외 - SQL 쿼리 로깅
+     */
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<CustomResponse<String>> exception(DataAccessException e) {
+        logSqlOnError(e);
+        return CustomResponse.failed(HttpStatus.INTERNAL_SERVER_ERROR, e, MessageEnum.Common.REQUEST_FAIL.getDescKr());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CustomResponse<String>> exception(Exception e) {
-        log.error(e.getMessage(), e);
+        // DB 관련 예외인 경우 SQL 로깅
+        if (isDataAccessException(e)) {
+            logSqlOnError(e);
+        } else {
+            log.error(e.getMessage(), e);
+        }
         return CustomResponse.failed(e, MessageEnum.Common.REQUEST_FAIL);
     }
 
     ///////////////////////////////////////////
+
+    /**
+     * SQL 에러 발생 시 실행된 쿼리들을 포맷팅해서 로깅
+     */
+    private void logSqlOnError(Exception e) {
+        var sqlList = SqlLoggingHolder.getSqlList();
+        if (sqlList == null || sqlList.isEmpty()) {
+            log.error("[SQL ERROR] {}", e.getMessage(), e);
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n╔══════════════════════════════════════════════════════════════╗");
+        sb.append("\n║                    SQL ERROR OCCURRED                        ║");
+        sb.append("\n╠══════════════════════════════════════════════════════════════╣");
+        sb.append("\n║ Error: ").append(truncate(e.getMessage(), 55));
+        sb.append("\n╠══════════════════════════════════════════════════════════════╣");
+        sb.append("\n║ Executed Queries (").append(sqlList.size()).append("):").append(" ".repeat(40)).append("║");
+        sb.append("\n╟──────────────────────────────────────────────────────────────╢");
+
+        int idx = 1;
+        for (var sqlInfo : sqlList) {
+            sb.append("\n║ [").append(idx++).append("] ").append(sqlInfo.toFormattedString());
+        }
+
+        sb.append("\n╚══════════════════════════════════════════════════════════════╝");
+
+        log.error(sb.toString(), e);
+    }
+
+    private boolean isDataAccessException(Exception e) {
+        Throwable cause = e;
+        while (cause != null) {
+            if (cause instanceof DataAccessException ||
+                    cause.getClass().getName().contains("SQLException") ||
+                    cause.getClass().getName().contains("JpaException") ||
+                    cause.getClass().getName().contains("HibernateException")) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
+    private String truncate(String str, int maxLen) {
+        if (str == null) return "";
+        return str.length() > maxLen ? str.substring(0, maxLen) + "..." : str;
+    }
 
     private String getCustomErrorMessage(BindException ex) {
         StringBuilder errorMessage = new StringBuilder();

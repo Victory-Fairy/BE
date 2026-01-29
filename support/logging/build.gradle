@@ -1,4 +1,11 @@
 dependencies {
     implementation 'io.micrometer:micrometer-tracing-bridge-brave'
     implementation "io.sentry:sentry-logback:${property("sentryVersion")}"
+
+    // AOP for layer logging
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
 }
