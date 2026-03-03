@@ -1,11 +1,17 @@
 package kr.co.victoryfairy.support.config;
 
+import java.util.List;
+
 import kr.co.victoryfairy.support.interceptor.CurlCommandErrorInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.core.Ordered;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -15,40 +21,31 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final CurlCommandErrorInterceptor curlCommandErrorInterceptor;
+	private final CurlCommandErrorInterceptor curlCommandErrorInterceptor;
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/v2/api/**")
-            .allowedOrigins("http://localhost:8080", "http://localhost:3000", "https://victory-fairy.duckdns.org",
-                    "https://fe-next-sigma.vercel.app",
-                    "https://victoryfairy.shop", "https://seungyo.shop")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-            .allowedHeaders("*")
-            .allowCredentials(true);
+	@Bean
+	public FilterRegistrationBean<CorsFilter> corsFilterRegistration() {
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:3000",
+				"https://victory-fairy.duckdns.org", "https://fe-next-sigma.vercel.app",
+				"https://victoryfairy.shop", "https://seungyo.shop"));
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+		config.setAllowedHeaders(List.of("*"));
+		config.setAllowCredentials(true);
 
-        registry.addMapping("/v2/file/**")
-            .allowedOrigins("http://localhost:8080", "http://localhost:3000", "https://victory-fairy.duckdns.org",
-                    "https://fe-next-sigma.vercel.app",
-                    "https://victoryfairy.shop", "https://seungyo.shop")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-            .allowedHeaders("*")
-            .allowCredentials(true);
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/v2/api/**", config);
+		source.registerCorsConfiguration("/v2/file/**", config);
+		source.registerCorsConfiguration("/v2/admin/**", config);
 
-        registry.addMapping("/v2/admin/**")
-            .allowedOrigins("http://localhost:8080", "http://localhost:3000", "https://victory-fairy.duckdns.org",
-                    "https://fe-next-sigma.vercel.app",
-                    "https://victoryfairy.shop", "https://seungyo.shop")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-            .allowedHeaders("*")
-            .allowCredentials(true);
-    }
+		FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+		bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+		return bean;
+	}
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(curlCommandErrorInterceptor).addPathPatterns("/**"); // 모든
-                                                                                     // 요청에
-                                                                                     // 적용
-    }
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(curlCommandErrorInterceptor).addPathPatterns("/**");
+	}
 
 }
