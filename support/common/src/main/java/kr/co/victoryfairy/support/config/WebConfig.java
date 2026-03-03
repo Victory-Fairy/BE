@@ -42,7 +42,8 @@ public class WebConfig implements WebMvcConfigurer {
 				if (origin != null && ALLOWED_ORIGINS.contains(origin)) {
 					response.setHeader("Access-Control-Allow-Origin", origin);
 					response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-					response.setHeader("Access-Control-Allow-Headers", "*");
+					response.setHeader("Access-Control-Allow-Headers",
+							"Content-Type, Authorization, Accept, X-Requested-With, Origin, clientid");
 					response.setHeader("Access-Control-Allow-Credentials", "true");
 				}
 				if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
