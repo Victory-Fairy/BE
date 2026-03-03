@@ -120,7 +120,7 @@ public class MatchServiceImpl implements MatchService {
                         matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumName,
                         entity.getStatus(), entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)
                                 ? entity.getReason() : entity.getStatus().getDesc(),
-                        awayTeamDto, homeTeamDto, isWrited);
+                        awayTeamDto, homeTeamDto, isWrited, entity.getLeague());
             }).sorted(Comparator.comparing((MatchDomain.MatchListDto m) -> !isMyTeamMatch(m, teamEntity))).toList();
 
             return new MatchDomain.MatchListResponse(date, matchList);
@@ -173,9 +173,12 @@ public class MatchServiceImpl implements MatchService {
             var homeTeamDto = homeEntity != null
                     ? new MatchDomain.TeamDto(homeEntity.getId(), homeEntity.getName(), homeScore, homeResult) : null;
 
+            String matchLeague = (String) matchData.get("league");
+            MatchEnum.LeagueType leagueType = matchLeague != null ? MatchEnum.LeagueType.valueOf(matchLeague) : null;
+
             var matchDto = new MatchDomain.MatchListDto(id, date, time, stadium, status,
                     status.equals(MatchEnum.MatchStatus.CANCELED) ? reason : statusDetail, awayTeamDto, homeTeamDto,
-                    isWrited);
+                    isWrited, leagueType);
 
             matchList.add(matchDto);
         }
@@ -245,7 +248,7 @@ public class MatchServiceImpl implements MatchService {
 
             return new MatchDomain.MatchInfoResponse(matchEntity.getId(), matchAt.toLocalDate(),
                     matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumDto, matchEntity.getStatus(),
-                    statusDetail, awayTeamDto, homeTeamDto);
+                    statusDetail, awayTeamDto, homeTeamDto, matchEntity.getLeague());
         }
 
         var matchData = matchRedis.get(id);
@@ -287,7 +290,7 @@ public class MatchServiceImpl implements MatchService {
                 stadiumEntity.getShortName(), stadiumEntity.getFullName()) : null;
 
         return new MatchDomain.MatchInfoResponse(id, date, time, stadiumDto, status, statusDetail, awayTeamDto,
-                homeTeamDto);
+                homeTeamDto, matchEntity.getLeague());
     }
 
     @Override
@@ -617,7 +620,7 @@ public class MatchServiceImpl implements MatchService {
                         matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumName,
                         entity.getStatus(), entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)
                                 ? entity.getReason() : entity.getStatus().getDesc(),
-                        awayTeamDto, homeTeamDto, isWrited);
+                        awayTeamDto, homeTeamDto, isWrited, entity.getLeague());
             }).sorted(Comparator.comparing((MatchDomain.MatchListDto m) -> !isMyTeamMatch(m, teamEntity))).toList();
 
             return new MatchDomain.TodayMatchListResponse(matchList);
@@ -662,9 +665,13 @@ public class MatchServiceImpl implements MatchService {
             var homeTeamDto = homeEntity != null
                     ? new MatchDomain.TeamDto(homeEntity.getId(), homeEntity.getName(), homeScore, homeResult) : null;
 
+            String matchLeague = (String) matchData.get("league");
+            MatchEnum.LeagueType todayLeagueType = matchLeague != null ? MatchEnum.LeagueType.valueOf(matchLeague)
+                    : null;
+
             var matchDto = new MatchDomain.MatchListDto(id, date, time, stadium, status,
                     status.equals(MatchEnum.MatchStatus.CANCELED) ? reason : statusDetail, awayTeamDto, homeTeamDto,
-                    isWrited);
+                    isWrited, todayLeagueType);
 
             matchList.add(matchDto);
         }
@@ -726,7 +733,7 @@ public class MatchServiceImpl implements MatchService {
 
         return new MatchDomain.MatchInfoResponse(matchEntity.getId(), matchAt.toLocalDate(),
                 matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumDto, matchEntity.getStatus(),
-                statusDetail, awayTeamDto, homeTeamDto);
+                statusDetail, awayTeamDto, homeTeamDto, matchEntity.getLeague());
     }
 
 }

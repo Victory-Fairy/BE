@@ -63,7 +63,7 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                     awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
                     homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore, stadiumEntity,
                     gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
-                    gameMatchEntity.league))
+                    gameMatchEntity.league, gameMatchEntity.league))
             .from(gameMatchEntity)
             .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
             .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))

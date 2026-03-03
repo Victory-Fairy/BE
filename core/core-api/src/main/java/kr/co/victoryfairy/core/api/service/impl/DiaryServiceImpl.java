@@ -499,7 +499,8 @@ public class DiaryServiceImpl implements DiaryService {
         return new DiaryDomain.DiaryDetailResponse(diaryEntity.getTeamEntity().getId(), diaryEntity.getViewType(),
                 diaryEntity.getGameMatchEntity().getId(), fileDto, diaryEntity.getWeatherType(),
                 diaryEntity.getMoodType(), foodList, seatUseHistoryDto, diaryEntity.getContent(), partnerList, myResult,
-                diaryEntity.getCreatedAt(), diaryEntity.getUpdatedAt());
+                diaryEntity.getCreatedAt(), diaryEntity.getUpdatedAt(),
+                diaryEntity.getGameMatchEntity().getLeague());
     }
 
     /**

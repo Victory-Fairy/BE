@@ -130,7 +130,8 @@ public interface DiaryDomain {
             @Schema(description = "경기 결과") MatchEnum.ResultType result,
 
             @Schema(description = "등록 일자") LocalDateTime createdAt,
-            @Schema(description = "수정 일자") LocalDateTime updatedAt) {
+            @Schema(description = "수정 일자") LocalDateTime updatedAt,
+            @Schema(description = "리그 타입") MatchEnum.LeagueType leagueType) {
     }
 
 }

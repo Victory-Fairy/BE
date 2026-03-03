@@ -13,7 +13,7 @@ public interface MatchDomain {
     }
 
     record MatchListDto(String id, LocalDate date, String time, String stadium, MatchEnum.MatchStatus status,
-            String statusDetail, TeamDto awayTeam, TeamDto homeTeam, Boolean isWrited) {
+            String statusDetail, TeamDto awayTeam, TeamDto homeTeam, Boolean isWrited, MatchEnum.LeagueType leagueType) {
     }
 
     record TeamDto(Long id, String name, Short score, MatchEnum.ResultType result) {
@@ -24,7 +24,7 @@ public interface MatchDomain {
     }
 
     record MatchInfoResponse(String id, LocalDate date, String time, StadiumDto stadium, MatchEnum.MatchStatus status,
-            String statusDetail, TeamDto awayTeam, TeamDto homeTeam) {
+            String statusDetail, TeamDto awayTeam, TeamDto homeTeam, MatchEnum.LeagueType leagueType) {
     }
 
     record StadiumDto(Long id, String shortName, String fullName) {
