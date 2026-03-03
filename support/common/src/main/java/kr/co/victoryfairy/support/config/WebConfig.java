@@ -21,6 +21,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/v2/api/**")
             .allowedOrigins("http://localhost:8080", "http://localhost:3000", "https://victory-fairy.duckdns.org",
+                    "https://fe-next-sigma.vercel.app",
                     "https://victoryfairy.shop", "https://seungyo.shop")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             .allowedHeaders("*")
@@ -28,6 +29,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addMapping("/v2/file/**")
             .allowedOrigins("http://localhost:8080", "http://localhost:3000", "https://victory-fairy.duckdns.org",
+                    "https://fe-next-sigma.vercel.app",
                     "https://victoryfairy.shop", "https://seungyo.shop")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             .allowedHeaders("*")
@@ -35,6 +37,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addMapping("/v2/admin/**")
             .allowedOrigins("http://localhost:8080", "http://localhost:3000", "https://victory-fairy.duckdns.org",
+                    "https://fe-next-sigma.vercel.app",
                     "https://victoryfairy.shop", "https://seungyo.shop")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             .allowedHeaders("*")

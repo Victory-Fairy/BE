@@ -16,6 +16,17 @@ build/
 .deploy/
 .githooks/
 
+### Eclipse ###
+.classpath
+.project
+.factorypath
+.settings/
+bin/
+
+### Claude Code ###
+.claude/
+.playwright-mcp/
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
