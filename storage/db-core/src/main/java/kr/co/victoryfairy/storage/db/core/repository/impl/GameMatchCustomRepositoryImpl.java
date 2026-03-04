@@ -69,6 +69,7 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
             .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
             .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
             .where(this.eqMatchAt(matchAt), this.eqLeague(league))
+            .where(gameMatchEntity.isUse.eq(true))
             .fetch();
     }
 
