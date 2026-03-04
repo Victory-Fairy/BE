@@ -32,7 +32,7 @@ public class DiaryEntity extends BaseEntity {
     private String teamName; // 응원팀
 
     @Comment("응원 팀 id")
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private TeamEntity teamEntity;
 
