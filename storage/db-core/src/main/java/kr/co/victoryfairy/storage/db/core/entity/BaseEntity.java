@@ -33,6 +33,10 @@ public abstract class BaseEntity {
         return updatedAt;
     }
 
+    public Boolean getIsUse() {
+        return isUse;
+    }
+
     public void delete() {
         this.isUse = false;
     }

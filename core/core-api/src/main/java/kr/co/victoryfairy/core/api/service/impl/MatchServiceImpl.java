@@ -74,6 +74,7 @@ public class MatchServiceImpl implements MatchService {
             log.debug("findList - date: {}, league: {}, matchEntities size: {}", date, league, matchEntities.size());
             matchEntities = matchEntities
                 .stream()
+                    .filter(match -> match.getIsUse())
                 .sorted(Comparator.comparing(entity -> entity.getMatchAt()))
                 .toList();
 
