@@ -150,7 +150,7 @@ class MatchControllerE2ETest {
             var homeTeam = new MatchDomain.TeamDto(2L, "LG", (short) 2, MatchEnum.ResultType.LOSS);
 
             var match = new MatchDomain.MatchListDto("20250930SSLG0", localDate, "18:30", "잠실",
-                    MatchEnum.MatchStatus.END, "종료", awayTeam, homeTeam, false);
+                    MatchEnum.MatchStatus.END, "종료", awayTeam, homeTeam, false, null, null);
 
             var response = new MatchDomain.MatchListResponse(localDate, List.of(match));
             given(matchService.findList(eq(localDate), eq(null))).willReturn(response);

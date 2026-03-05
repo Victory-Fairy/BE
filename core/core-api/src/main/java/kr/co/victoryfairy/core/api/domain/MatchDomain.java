@@ -13,7 +13,8 @@ public interface MatchDomain {
     }
 
     record MatchListDto(String id, LocalDate date, String time, String stadium, MatchEnum.MatchStatus status,
-            String statusDetail, TeamDto awayTeam, TeamDto homeTeam, Boolean isWrited, MatchEnum.LeagueType leagueType) {
+            String statusDetail, TeamDto awayTeam, TeamDto homeTeam, Boolean isWrited, Long diaryId,
+            MatchEnum.LeagueType leagueType) {
     }
 
     record TeamDto(Long id, String name, Short score, MatchEnum.ResultType result) {

@@ -94,7 +94,9 @@ public class MatchServiceImpl implements MatchService {
                         ? stadiumRepository.findById(entity.getStadiumEntity().getId()).orElse(null)
                         : null;
 
-                var isWrited = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, entity.getId()).isPresent();
+                var diaryEntity = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, entity.getId());
+                var isWrited = diaryEntity.isPresent();
+                var diaryId = diaryEntity.map(d -> d.getId()).orElse(null);
 
                 var awayScore = entity.getAwayScore();
                 var homeScore = entity.getHomeScore();
@@ -120,7 +122,7 @@ public class MatchServiceImpl implements MatchService {
                         matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumName,
                         entity.getStatus(), entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)
                                 ? entity.getReason() : entity.getStatus().getDesc(),
-                        awayTeamDto, homeTeamDto, isWrited, entity.getLeague());
+                        awayTeamDto, homeTeamDto, isWrited, diaryId, entity.getLeague());
             }).sorted(Comparator.comparing((MatchDomain.MatchListDto m) -> !isMyTeamMatch(m, teamEntity))).toList();
 
             return new MatchDomain.MatchListResponse(date, matchList);
@@ -152,7 +154,9 @@ public class MatchServiceImpl implements MatchService {
 
             var awayEntity = teamRepository.findById(awayId).orElse(null);
             var homeEntity = teamRepository.findById(homeId).orElse(null);
-            var isWrited = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, id).isPresent();
+            var diaryEntity = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, id);
+            var isWrited = diaryEntity.isPresent();
+            var diaryId = diaryEntity.map(d -> d.getId()).orElse(null);
 
             var awayScore = awayScoreObj != null ? Short.valueOf(String.valueOf(awayScoreObj)) : null;
             var homeScore = homeScoreObj != null ? Short.valueOf(String.valueOf(homeScoreObj)) : null;
@@ -178,7 +182,7 @@ public class MatchServiceImpl implements MatchService {
 
             var matchDto = new MatchDomain.MatchListDto(id, date, time, stadium, status,
                     status.equals(MatchEnum.MatchStatus.CANCELED) ? reason : statusDetail, awayTeamDto, homeTeamDto,
-                    isWrited, leagueType);
+                    isWrited, diaryId, leagueType);
 
             matchList.add(matchDto);
         }
@@ -594,7 +598,9 @@ public class MatchServiceImpl implements MatchService {
                         ? stadiumRepository.findById(entity.getStadiumEntity().getId()).orElse(null)
                         : null;
 
-                var isWrited = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, entity.getId()).isPresent();
+                var diaryEntity = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, entity.getId());
+                var isWrited = diaryEntity.isPresent();
+                var diaryId = diaryEntity.map(d -> d.getId()).orElse(null);
 
                 var awayScore = entity.getAwayScore();
                 var homeScore = entity.getHomeScore();
@@ -620,7 +626,7 @@ public class MatchServiceImpl implements MatchService {
                         matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumName,
                         entity.getStatus(), entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)
                                 ? entity.getReason() : entity.getStatus().getDesc(),
-                        awayTeamDto, homeTeamDto, isWrited, entity.getLeague());
+                        awayTeamDto, homeTeamDto, isWrited, diaryId, entity.getLeague());
             }).sorted(Comparator.comparing((MatchDomain.MatchListDto m) -> !isMyTeamMatch(m, teamEntity))).toList();
 
             return new MatchDomain.TodayMatchListResponse(matchList);
@@ -644,7 +650,9 @@ public class MatchServiceImpl implements MatchService {
 
             var awayEntity = teamRepository.findById(awayId).orElse(null);
             var homeEntity = teamRepository.findById(homeId).orElse(null);
-            var isWrited = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, id).isPresent();
+            var diaryEntity = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, id);
+            var isWrited = diaryEntity.isPresent();
+            var diaryId = diaryEntity.map(d -> d.getId()).orElse(null);
 
             var awayScore = awayScoreObj != null ? Short.valueOf(String.valueOf(awayScoreObj)) : null;
             var homeScore = homeScoreObj != null ? Short.valueOf(String.valueOf(homeScoreObj)) : null;
@@ -671,7 +679,7 @@ public class MatchServiceImpl implements MatchService {
 
             var matchDto = new MatchDomain.MatchListDto(id, date, time, stadium, status,
                     status.equals(MatchEnum.MatchStatus.CANCELED) ? reason : statusDetail, awayTeamDto, homeTeamDto,
-                    isWrited, todayLeagueType);
+                    isWrited, diaryId, todayLeagueType);
 
             matchList.add(matchDto);
         }
