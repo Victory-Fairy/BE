@@ -486,7 +486,7 @@ public class DiaryServiceImpl implements DiaryService {
 
         MatchEnum.ResultType myResult = null;
 
-        if (awayScore != null && homeScore != null) {
+        if (matchEntity.getStatus() == MatchEnum.MatchStatus.END && awayScore != null && homeScore != null) {
             if (awayScore.equals(homeScore)) {
                 myResult = MatchEnum.ResultType.DRAW;
             }
