@@ -181,14 +181,15 @@ public class MatchServiceImpl implements MatchService {
             MatchEnum.LeagueType leagueType = matchLeague != null ? MatchEnum.LeagueType.valueOf(matchLeague) : null;
 
             var matchDto = new MatchDomain.MatchListDto(id, date, time, stadium, status,
-                    status.equals(MatchEnum.MatchStatus.CANCELED) ? reason : statusDetail, awayTeamDto, homeTeamDto,
+                    status.equals(MatchEnum.MatchStatus.CANCELED) ? reason : status.getDesc(), awayTeamDto, homeTeamDto,
                     isWrited, diaryId, leagueType);
 
             matchList.add(matchDto);
         }
 
         matchList = matchList.stream()
-            .sorted(Comparator.comparing((MatchDomain.MatchListDto m) -> !isMyTeamMatch(m, teamEntity)))
+            .sorted(Comparator.comparing((MatchDomain.MatchListDto m) -> m.time())
+                .thenComparing(m -> !isMyTeamMatch(m, teamEntity)))
             .toList();
 
         return new MatchDomain.MatchListResponse(date, matchList);
