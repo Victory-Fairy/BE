@@ -28,6 +28,7 @@ public class JwtUtils {
         }
         catch (ExpiredJwtException ex) {
             log.debug("The token is expired", ex);
+            claims = ex.getClaims();
             claims.put("isCertifiedToken", Boolean.TRUE);
             claims.put("isExpired", Boolean.TRUE);
         }
