@@ -1,6 +1,7 @@
 package kr.co.victoryfairy.support.service;
 
 import kr.co.victoryfairy.support.constant.MessageEnum;
+import kr.co.victoryfairy.support.constant.StatusEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
 import kr.co.victoryfairy.support.model.AccessTokenDto;
 import kr.co.victoryfairy.support.model.AuthModel;
@@ -11,6 +12,7 @@ import kr.co.victoryfairy.support.utils.AccessTokenUtils;
 import kr.co.victoryfairy.support.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -90,7 +92,7 @@ public class JwtService {
         boolean isValid = refreshTokenRepository.validate(memberAccount.getId(), refreshToken);
         if (!isValid) {
             log.warn("Refresh Token 불일치 또는 만료 - memberId: {}", memberAccount.getId());
-            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+            throw new CustomException(HttpStatus.UNAUTHORIZED, StatusEnum.STATUS_903);
         }
 
         // 새 토큰 발급 (Rotation)
