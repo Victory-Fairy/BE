@@ -117,13 +117,13 @@ public class AccessTokenUtils {
         boolean isCertifiedToken = Boolean.parseBoolean(parseToken.get("isCertifiedToken").toString());
         if (!isCertifiedToken) {
             log.warn("Refresh Token 서명 검증 실패: {}", LogMaskingUtils.maskToken(refreshToken));
-            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+            throw new CustomException(HttpStatus.UNAUTHORIZED, StatusEnum.STATUS_903);
         }
 
         boolean isExpired = Boolean.parseBoolean(parseToken.get("isExpired").toString());
         if (isExpired) {
             log.warn("Refresh Token 만료됨: {}", LogMaskingUtils.maskToken(refreshToken));
-            throw new CustomException(MessageEnum.Auth.FAIL_VALID_EXPIRED);
+            throw new CustomException(HttpStatus.UNAUTHORIZED, StatusEnum.STATUS_903);
         }
 
         // token에서 회원 정보 추출
