@@ -104,7 +104,11 @@ public class BatchServiceImpl implements BatchService {
         var formattedDate = "";
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.chromium().launch();
-            Page page = browser.newPage();
+            BrowserContext context = browser.newContext(new Browser.NewContextOptions()
+                .setUserAgent(
+                        "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1")
+                .setViewportSize(375, 812));
+            Page page = context.newPage();
             page.navigate("https://m.koreabaseball.com/Kbo/Schedule.aspx");
             // page.evaluate("getGameDateList('20250503')");
 

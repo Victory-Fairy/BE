@@ -11,5 +11,5 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    implementation 'com.microsoft.playwright:playwright:1.40.0'
+    implementation 'com.microsoft.playwright:playwright:1.60.0'
 }
