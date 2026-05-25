@@ -424,11 +424,27 @@ public class BatchServiceImpl implements BatchService {
                     var matchEntity = gameMatchRepository.findById(String.valueOf(body.get("gameId"))).orElse(null);
 
                     if (eventType.equals(EventType.DIARY)) {
-                        var memberEntity = memberRepository.findById(Long.parseLong((String) body.get("memberId")))
-                            .orElse(null);
+                        var memberIdStr = (String) body.get("memberId");
+                        var diaryIdStr = (String) body.get("diaryId");
 
-                        var diaryEntity = diaryRepository.findById(Long.parseLong((String) body.get("diaryId")))
-                            .orElse(null);
+                        if (memberIdStr == null || memberIdStr.isBlank() || diaryIdStr == null
+                                || diaryIdStr.isBlank()) {
+                            logger.warn("Invalid DIARY event, ack and skip: {}", body);
+                            redisOperator.ack(streamKey, groupName, recordMessage.getId().getValue());
+                            redisHandler.eventKnowEdge(streamKey, groupName, recordMessage.getId().getValue());
+                            return;
+                        }
+
+                        var memberEntity = memberRepository.findById(Long.parseLong(memberIdStr)).orElse(null);
+
+                        var diaryEntity = diaryRepository.findById(Long.parseLong(diaryIdStr)).orElse(null);
+
+                        if (diaryEntity == null) {
+                            logger.warn("Diary {} not found, ack and skip", diaryIdStr);
+                            redisOperator.ack(streamKey, groupName, recordMessage.getId().getValue());
+                            redisHandler.eventKnowEdge(streamKey, groupName, recordMessage.getId().getValue());
+                            return;
+                        }
 
                         if (diaryEntity.getIsRated()) {
                             logger.info("DiaryId {} already rated, skip.", diaryEntity.getId());
@@ -439,7 +455,10 @@ public class BatchServiceImpl implements BatchService {
 
                         var teamEntity = teamRepository.findById(diaryEntity.getTeamEntity().getId()).orElse(null);
 
-                        if (memberEntity == null || matchEntity == null || diaryEntity == null || teamEntity == null) {
+                        if (memberEntity == null || matchEntity == null || teamEntity == null) {
+                            logger.warn("Related entity missing for DIARY event, ack and skip: {}", body);
+                            redisOperator.ack(streamKey, groupName, recordMessage.getId().getValue());
+                            redisHandler.eventKnowEdge(streamKey, groupName, recordMessage.getId().getValue());
                             return;
                         }
 
@@ -486,9 +505,20 @@ public class BatchServiceImpl implements BatchService {
 
                     }
                     else {
+                        if (matchEntity == null) {
+                            logger.warn("Game match not found for BATCH event, ack and skip: gameId={}",
+                                    body.get("gameId"));
+                            redisOperator.ack(streamKey, groupName, recordMessage.getId().getValue());
+                            redisHandler.eventKnowEdge(streamKey, groupName, recordMessage.getId().getValue());
+                            return;
+                        }
+
                         var diaryEntities = diaryRepository.findByGameMatchEntityAndIsRatedFalse(matchEntity);
 
                         if (diaryEntities.isEmpty()) {
+                            logger.info("No unrated diaries for gameId={}, ack and skip", matchEntity.getId());
+                            redisOperator.ack(streamKey, groupName, recordMessage.getId().getValue());
+                            redisHandler.eventKnowEdge(streamKey, groupName, recordMessage.getId().getValue());
                             return;
                         }
 
