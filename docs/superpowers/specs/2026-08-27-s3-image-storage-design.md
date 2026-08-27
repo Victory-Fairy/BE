@@ -32,6 +32,8 @@ A CloudFront distribution uses the private S3 bucket as its origin with Origin A
 
 The frontend constructs image URLs from a deploy-time image base URL and the existing relative file fields. Existing `/image/...` service on EC2 remains available temporarily as rollback compatibility, but newly deployed clients request CloudFront directly and do not traverse EC2.
 
+The frontend image URL builder carries one deliberate follow-up comment: `// TODO: 이미지 접근 정책 확정 후 Presigned URL 방식으로 변경`.
+
 ### Configuration
 
 Production receives only these new settings:
