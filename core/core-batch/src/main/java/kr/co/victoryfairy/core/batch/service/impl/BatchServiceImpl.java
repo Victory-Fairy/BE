@@ -235,7 +235,7 @@ public class BatchServiceImpl implements BatchService {
                                     .homeScore(homeScore)
                                     .status(matchStatus)
                                     .build();
-                                // gameMatchRepository.save(matchEntity);
+                                gameMatchRepository.save(matchEntity);
 
                                 /*
                                  * TransactionSynchronizationManager.
