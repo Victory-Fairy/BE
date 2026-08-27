@@ -17,4 +17,10 @@ public class FileProperties {
 
     private Integer[] videoResizes;
 
+    private boolean s3Enabled;
+
+    private String s3Bucket;
+
+    private String s3Region;
+
 }
