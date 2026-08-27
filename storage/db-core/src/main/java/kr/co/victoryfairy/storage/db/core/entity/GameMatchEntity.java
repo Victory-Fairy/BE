@@ -95,4 +95,22 @@ public class GameMatchEntity extends BaseEntity {
     @Builder.Default
     private Boolean isSendPush = false;
 
+    public void syncSchedule(GameMatchEntity source) {
+        this.league = source.league;
+        this.type = source.type;
+        this.series = source.series;
+        this.season = source.season;
+        this.matchAt = source.matchAt;
+        this.awayTeamEntity = source.awayTeamEntity;
+        this.awayNm = source.awayNm;
+        this.awayScore = source.awayScore;
+        this.homeTeamEntity = source.homeTeamEntity;
+        this.homeNm = source.homeNm;
+        this.homeScore = source.homeScore;
+        this.stadiumEntity = source.stadiumEntity;
+        this.status = source.status;
+        this.reason = source.reason;
+        update();
+    }
+
 }
