@@ -2,6 +2,7 @@ package kr.co.victoryfairy.core.craw.runner;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import io.dodn.springboot.core.enums.MatchEnum;
@@ -26,6 +27,8 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
 
     private static final DateTimeFormatter CACHE_DATE = DateTimeFormatter.BASIC_ISO_DATE;
 
+    private static final ZoneId KOREA = ZoneId.of("Asia/Seoul");
+
     private final LocalDate from;
 
     private final LocalDate to;
@@ -40,14 +43,16 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
 
     private final RedisHandler redisHandler;
 
-    public GameDataRecoveryRunner(@Value("${game-recovery.from}") String from,
-            @Value("${game-recovery.to}") String to,
+    public GameDataRecoveryRunner(@Value("${game-recovery.from:}") String from,
+            @Value("${game-recovery.to:}") String to,
+            @Value("${game-recovery.days-ago:0}") int daysAgo,
             @Value("${game-recovery.dry-run:true}") boolean dryRun,
             @Qualifier("crawServiceImpl") CrawService crawService,
             GameMatchCustomRepository gameMatchCustomRepository,
             DiaryResultRecoveryService diaryResultRecoveryService, RedisHandler redisHandler) {
-        this.from = LocalDate.parse(from);
-        this.to = LocalDate.parse(to);
+        var range = resolveDateRange(from, to, daysAgo, LocalDate.now(KOREA));
+        this.from = range.from();
+        this.to = range.to();
         if (this.from.isAfter(this.to)) {
             throw new IllegalArgumentException("game-recovery.from must not be after game-recovery.to");
         }
@@ -56,6 +61,25 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
         this.gameMatchCustomRepository = gameMatchCustomRepository;
         this.diaryResultRecoveryService = diaryResultRecoveryService;
         this.redisHandler = redisHandler;
+    }
+
+    static DateRange resolveDateRange(String from, String to, int daysAgo, LocalDate today) {
+        boolean hasFrom = from != null && !from.isBlank();
+        boolean hasTo = to != null && !to.isBlank();
+        if (hasFrom != hasTo) {
+            throw new IllegalArgumentException("game-recovery.from and game-recovery.to must be supplied together");
+        }
+        if (hasFrom) {
+            return new DateRange(LocalDate.parse(from), LocalDate.parse(to));
+        }
+        if (daysAgo < 0) {
+            throw new IllegalArgumentException("game-recovery.days-ago must not be negative");
+        }
+        LocalDate date = today.minusDays(daysAgo);
+        return new DateRange(date, date);
+    }
+
+    record DateRange(LocalDate from, LocalDate to) {
     }
 
     @Override

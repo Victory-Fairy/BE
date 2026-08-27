@@ -3,6 +3,7 @@ package kr.co.victoryfairy.core.craw.runner;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +19,15 @@ import org.mockito.Mockito;
 import org.springframework.boot.ApplicationArguments;
 
 class GameDataRecoveryRunnerTest {
+
+    @Test
+    void resolvesRelativeRecoveryDateInKoreanCalendar() {
+        var range = GameDataRecoveryRunner.resolveDateRange("", "", 1,
+                LocalDate.of(2026, 8, 28));
+
+        assertThat(range.from()).isEqualTo(LocalDate.of(2026, 8, 27));
+        assertThat(range.to()).isEqualTo(LocalDate.of(2026, 8, 27));
+    }
 
     @Test
     void recoversOnlyMissingEndedMatchDetailsAndClearsDailyCache() throws Exception {
@@ -38,7 +48,7 @@ class GameDataRecoveryRunnerTest {
         LocalDate date = LocalDate.of(2026, 8, 19);
         when(customRepository.findByMatchAt(date, MatchEnum.LeagueType.KBO))
             .thenReturn(List.of(ended, canceled));
-        new GameDataRecoveryRunner("2026-08-19", "2026-08-19", false, crawService, customRepository,
+        new GameDataRecoveryRunner("2026-08-19", "2026-08-19", 0, false, crawService, customRepository,
                 diaryRecovery, redis).run(Mockito.mock(ApplicationArguments.class));
 
         verify(crawService).crawMatchListByMonth("2026", "08");
@@ -55,7 +65,7 @@ class GameDataRecoveryRunnerTest {
         DiaryResultRecoveryService diaryRecovery = Mockito.mock(DiaryResultRecoveryService.class);
         RedisHandler redis = Mockito.mock(RedisHandler.class);
 
-        new GameDataRecoveryRunner("2026-08-19", "2026-08-27", true, crawService, customRepository,
+        new GameDataRecoveryRunner("2026-08-19", "2026-08-27", 0, true, crawService, customRepository,
                 diaryRecovery, redis).run(Mockito.mock(ApplicationArguments.class));
 
         verify(crawService, never()).crawMatchListByMonth(Mockito.anyString(), Mockito.anyString());
