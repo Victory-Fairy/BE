@@ -15,7 +15,7 @@ public interface MyPageDomain {
             @Schema(description = "sns 타입") MemberEnum.SnsType snsType, @Schema(description = "응원 팀") TeamDto team) {
     }
 
-    record ImageDto(Long id, String path, String saveName, String ext) {
+    record ImageDto(Long id, String path, String saveName, String ext, String url) {
     }
 
     record TeamDto(Long id, String name, String sponsorNm) {

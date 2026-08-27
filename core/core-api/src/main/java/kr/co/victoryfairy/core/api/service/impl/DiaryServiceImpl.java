@@ -302,7 +302,7 @@ public class DiaryServiceImpl implements DiaryService {
                 diaries.stream()
                     .map(diary -> diaryFileMap.get(diary.getId()))
                     .filter(Objects::nonNull)
-                    .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
+                    .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext(), dto.url()))
                     .forEach(allImages::add);
             }
 
@@ -311,7 +311,7 @@ public class DiaryServiceImpl implements DiaryService {
                 freeDiaries.stream()
                     .map(fd -> freeDiaryFileMap.get(fd.getId()))
                     .filter(Objects::nonNull)
-                    .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
+                    .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext(), dto.url()))
                     .forEach(allImages::add);
             }
 
@@ -334,7 +334,7 @@ public class DiaryServiceImpl implements DiaryService {
                 var imageDto = diaryFileMap.get(latestDiary.getId());
                 if (imageDto != null) {
                     latestImage = new DiaryDomain.ImageDto(imageDto.id(), imageDto.path(), imageDto.saveName(),
-                            imageDto.ext());
+                            imageDto.ext(), imageDto.url());
                 }
             }
             else if (hasFreeDiary) {
@@ -349,7 +349,7 @@ public class DiaryServiceImpl implements DiaryService {
                 var imageDto = freeDiaryFileMap.get(latestFreeDiary.getId());
                 if (imageDto != null) {
                     latestImage = new DiaryDomain.ImageDto(imageDto.id(), imageDto.path(), imageDto.saveName(),
-                            imageDto.ext());
+                            imageDto.ext(), imageDto.url());
                 }
             }
 
@@ -389,7 +389,8 @@ public class DiaryServiceImpl implements DiaryService {
             DiaryDomain.ImageDto imageDto = null;
 
             if (image != null) {
-                imageDto = new DiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext());
+                imageDto = new DiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext(),
+                        image.url());
             }
 
             var myTeam = entity.getTeamId();
@@ -461,7 +462,7 @@ public class DiaryServiceImpl implements DiaryService {
 
         var fileDto = fileRefDomainService.findImagesByRefId(RefType.DIARY, diaryId)
             .stream()
-            .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
+            .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext(), dto.url()))
             .toList();
 
         DiaryDomain.SeatUseHistoryDto seatUseHistoryDto = null;

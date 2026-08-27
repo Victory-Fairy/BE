@@ -3,12 +3,14 @@ package kr.co.victoryfairy.core.file.service.impl;
 import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.core.file.domain.FileDomain;
 import kr.co.victoryfairy.core.file.service.FileService;
+import kr.co.victoryfairy.core.file.service.S3FileUploader;
 import kr.co.victoryfairy.storage.db.core.entity.FileEntity;
 import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
 import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
 import kr.co.victoryfairy.support.properties.FileProperties;
+import kr.co.victoryfairy.support.service.S3PresignedUrlService;
 import kr.co.victoryfairy.support.utils.DateUtils;
 import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFmpegExecutor;
@@ -17,6 +19,8 @@ import net.bramp.ffmpeg.builder.FFmpegBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -32,17 +36,26 @@ import java.util.List;
 @Service
 public class FileServiceImpl implements FileService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
+
     private final FileProperties fileProperties;
 
     private final FileRepository fileRepository;
 
     private final FileRefRepository fileRefRepository;
 
+    private final Optional<S3FileUploader> s3FileUploader;
+
+    private final S3PresignedUrlService s3PresignedUrlService;
+
     public FileServiceImpl(FileProperties fileProperties, FileRepository fileRepository,
-            FileRefRepository fileRefRepository) {
+            FileRefRepository fileRefRepository, Optional<S3FileUploader> s3FileUploader,
+            S3PresignedUrlService s3PresignedUrlService) {
         this.fileProperties = fileProperties;
         this.fileRepository = fileRepository;
         this.fileRefRepository = fileRefRepository;
+        this.s3FileUploader = s3FileUploader;
+        this.s3PresignedUrlService = s3PresignedUrlService;
     }
 
     @Override
@@ -71,7 +84,8 @@ public class FileServiceImpl implements FileService {
 
         return fileEntities.stream()
             .map(entity -> new FileDomain.Response(entity.getId(), entity.getName(), entity.getSaveName(),
-                    entity.getPath(), entity.getExt()))
+                    entity.getPath(), entity.getExt(),
+                    s3PresignedUrlService.create(entity.getPath(), entity.getSaveName(), entity.getExt())))
             .toList();
     }
 
@@ -85,7 +99,11 @@ public class FileServiceImpl implements FileService {
             String path = makePath(file, refType);
 
             // 만들어진 경로에 새로운 이름으로 저장
-            saveFile(saveName, path, file);
+            List<Path> savedFiles = saveFile(saveName, path, file);
+            s3FileUploader.ifPresent(uploader -> {
+                uploader.upload(Path.of(fileProperties.getStoragePath()), savedFiles);
+                deleteWorkspaceFiles(savedFiles);
+            });
 
             // 윈도우 시스템 기반 경로 rule 에 대한 대응 (저장 시 역슬래시 '\' 기호를 unix 시스템 호환을 위해 슬래시 '/' 로 변환)
             if (path.contains("\\")) {
@@ -170,7 +188,7 @@ public class FileServiceImpl implements FileService {
      * @param path
      * @param file
      */
-    private void saveFile(String saveName, String path, MultipartFile file) {
+    private List<Path> saveFile(String saveName, String path, MultipartFile file) {
 
         Path savedPath = Path.of(fileProperties.getStoragePath(), path, saveName + "." + getExtension(file));
 
@@ -179,21 +197,25 @@ public class FileServiceImpl implements FileService {
             // file.transferTo(savedFile);
             Files.copy(file.getInputStream(), savedPath, StandardCopyOption.REPLACE_EXISTING);
             File savedFile = savedPath.toFile();
+            List<Path> savedFiles = new ArrayList<>();
+            savedFiles.add(savedPath);
 
             Image image = ImageIO.read(savedFile);
 
             String fileType = getFileType(file);
 
-            if ("image".contains(fileType)) {
+            if ("image".equals(fileType)) {
                 Arrays.stream(fileProperties.getImageResizes()).forEach(size -> {
-                    resizeImage(file, savedFile, image, size);
+                    savedFiles.add(resizeImage(file, savedFile, image, size));
                 });
             }
-            if ("video".contains(fileType)) {
+            if ("video".equals(fileType)) {
                 Arrays.stream(fileProperties.getVideoResizes()).forEach(size -> {
-                    resizeVideo(file, savedFile, size);
+                    savedFiles.add(resizeVideo(file, savedFile, size));
                 });
             }
+
+            return savedFiles;
 
         }
         catch (IOException e) {
@@ -202,7 +224,7 @@ public class FileServiceImpl implements FileService {
 
     }
 
-    private void resizeImage(MultipartFile file, File orgFile, Image image, Integer size) {
+    private Path resizeImage(MultipartFile file, File orgFile, Image image, Integer size) {
         try {
             String ext = getExtension(file);
             String filePath = orgFile.getParent();
@@ -220,13 +242,14 @@ public class FileServiceImpl implements FileService {
 
             File savedFile = new File(filePath, newFileName);
             ImageIO.write(newImage, ext, savedFile);
+            return savedFile.toPath();
         }
         catch (Exception e) {
             throw new CustomException(MessageEnum.File.FAIL_UPLOAD);
         }
     }
 
-    private void resizeVideo(MultipartFile file, File orgFile, Integer size) {
+    private Path resizeVideo(MultipartFile file, File orgFile, Integer size) {
         try {
             int width = 0;
             int height = 0;
@@ -274,11 +297,23 @@ public class FileServiceImpl implements FileService {
                 .done();
             FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
             executor.createJob(builder).run();
+            return savedFile.toPath();
 
         }
         catch (Exception e) {
             throw new CustomException(MessageEnum.File.FAIL_UPLOAD);
         }
+    }
+
+    private void deleteWorkspaceFiles(List<Path> files) {
+        files.forEach(file -> {
+            try {
+                Files.deleteIfExists(file);
+            }
+            catch (IOException e) {
+                logger.warn("Failed to delete S3 upload workspace file: {}", file, e);
+            }
+        });
     }
 
 }

@@ -132,7 +132,7 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
         // 이미지 조회
         var images = fileRefDomainService.findImagesByRefId(RefType.FREE_DIARY, id)
             .stream()
-            .map(dto -> new FreeDiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
+            .map(dto -> new FreeDiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext(), dto.url()))
             .toList();
 
         // 음식 조회
@@ -202,14 +202,15 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
             var image = fileMap.get(latestDiary.getId());
             FreeDiaryDomain.ImageDto imageDto = null;
             if (image != null) {
-                imageDto = new FreeDiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext());
+                imageDto = new FreeDiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext(),
+                        image.url());
             }
 
             // 해당 날짜의 모든 일기 이미지 수집
             var images = diaries.stream()
                 .map(diary -> fileMap.get(diary.getId()))
                 .filter(Objects::nonNull)
-                .map(dto -> new FreeDiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext()))
+                .map(dto -> new FreeDiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext(), dto.url()))
                 .toList();
 
             return new FreeDiaryDomain.ListResponse(latestDiary.getId(), day, imageDto, images);
@@ -246,7 +247,8 @@ public class FreeDiaryServiceImpl implements FreeDiaryService {
             FreeDiaryDomain.ImageDto imageDto = null;
 
             if (image != null) {
-                imageDto = new FreeDiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext());
+                imageDto = new FreeDiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext(),
+                        image.url());
             }
 
             var homeTeam = new FreeDiaryDomain.TeamDto(entity.getHomeTeamName(), entity.getHomeScore());

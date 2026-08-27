@@ -11,6 +11,7 @@ import kr.co.victoryfairy.storage.db.core.repository.*;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
 import kr.co.victoryfairy.support.utils.RequestUtils;
+import kr.co.victoryfairy.support.service.S3PresignedUrlService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +47,8 @@ public class MyPageServiceImpl implements MyPageService {
 
     private final WithdrawalReasonRepository withdrawalRepository;
 
+    private final S3PresignedUrlService s3PresignedUrlService;
+
     @Override
     public MyPageDomain.MemberInfoForMyPageResponse findMemberInfoForMyPage() {
         var id = RequestUtils.getId();
@@ -60,7 +63,8 @@ public class MyPageServiceImpl implements MyPageService {
         var teamDto = member.getTeamId() != null
                 ? new MyPageDomain.TeamDto(member.getTeamId(), member.getTeamName(), member.getSponsorNm()) : null;
         var fileDto = member.getFileId() != null
-                ? new MyPageDomain.ImageDto(member.getFileId(), member.getPath(), member.getSaveName(), member.getExt())
+                ? new MyPageDomain.ImageDto(member.getFileId(), member.getPath(), member.getSaveName(), member.getExt(),
+                        s3PresignedUrlService.create(member.getPath(), member.getSaveName(), member.getExt()))
                 : null;
 
         return new MyPageDomain.MemberInfoForMyPageResponse(member.getId(), fileDto, member.getNickNm(),

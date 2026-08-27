@@ -5,6 +5,7 @@ import kr.co.victoryfairy.common.model.CommonDto;
 import kr.co.victoryfairy.storage.db.core.entity.FileRefEntity;
 import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
 import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
+import kr.co.victoryfairy.support.service.S3PresignedUrlService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,8 @@ public class FileRefDomainService {
     private final FileRepository fileRepository;
 
     private final FileRefRepository fileRefRepository;
+
+    private final S3PresignedUrlService s3PresignedUrlService;
 
     /**
      * 파일 참조 저장
@@ -79,7 +82,8 @@ public class FileRefDomainService {
     public List<CommonDto.ImageDto> findImagesByRefId(RefType refType, Long refId) {
         return fileRefRepository.findAllByRefTypeAndRefIdAndIsUseTrue(refType, refId).stream().map(ref -> {
             var file = ref.getFileEntity();
-            return new CommonDto.ImageDto(file.getId(), file.getPath(), file.getSaveName(), file.getExt());
+            return new CommonDto.ImageDto(file.getId(), file.getPath(), file.getSaveName(), file.getExt(),
+                    s3PresignedUrlService.create(file.getPath(), file.getSaveName(), file.getExt()));
         }).toList();
     }
 
@@ -98,7 +102,8 @@ public class FileRefDomainService {
             .stream()
             .collect(Collectors.toMap(FileRefEntity::getRefId, ref -> {
                 var file = ref.getFileEntity();
-                return new CommonDto.ImageDto(file.getId(), file.getPath(), file.getSaveName(), file.getExt());
+                return new CommonDto.ImageDto(file.getId(), file.getPath(), file.getSaveName(), file.getExt(),
+                        s3PresignedUrlService.create(file.getPath(), file.getSaveName(), file.getExt()));
             }, (existing, replacement) -> existing));
     }
 
