@@ -10,6 +10,7 @@ import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
 import kr.co.victoryfairy.support.properties.FileProperties;
+import kr.co.victoryfairy.support.service.S3PresignedUrlService;
 import kr.co.victoryfairy.support.utils.DateUtils;
 import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFmpegExecutor;
@@ -45,12 +46,16 @@ public class FileServiceImpl implements FileService {
 
     private final Optional<S3FileUploader> s3FileUploader;
 
+    private final S3PresignedUrlService s3PresignedUrlService;
+
     public FileServiceImpl(FileProperties fileProperties, FileRepository fileRepository,
-            FileRefRepository fileRefRepository, Optional<S3FileUploader> s3FileUploader) {
+            FileRefRepository fileRefRepository, Optional<S3FileUploader> s3FileUploader,
+            S3PresignedUrlService s3PresignedUrlService) {
         this.fileProperties = fileProperties;
         this.fileRepository = fileRepository;
         this.fileRefRepository = fileRefRepository;
         this.s3FileUploader = s3FileUploader;
+        this.s3PresignedUrlService = s3PresignedUrlService;
     }
 
     @Override
@@ -79,7 +84,8 @@ public class FileServiceImpl implements FileService {
 
         return fileEntities.stream()
             .map(entity -> new FileDomain.Response(entity.getId(), entity.getName(), entity.getSaveName(),
-                    entity.getPath(), entity.getExt()))
+                    entity.getPath(), entity.getExt(),
+                    s3PresignedUrlService.create(entity.getPath(), entity.getSaveName(), entity.getExt())))
             .toList();
     }
 

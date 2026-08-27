@@ -2,7 +2,7 @@
 
 ## Goal
 
-Move production image storage and delivery off the EC2 filesystem without changing the existing database file fields. Keep the S3 bucket private, serve images through the default CloudFront domain first, and leave authenticated Presigned URLs as a later privacy upgrade.
+Move production image storage and delivery off the EC2 filesystem without changing the existing database file fields. Keep the S3 bucket private and return short-lived S3 Presigned URLs from authenticated backend responses.
 
 ## Current State
 
@@ -28,11 +28,11 @@ The database write occurs only after S3 upload succeeds. A failed upload returns
 
 ### Image reads
 
-A CloudFront distribution uses the private S3 bucket as its origin with Origin Access Control and signed origin requests. Viewers use the distribution's default `d*.cloudfront.net` domain, so no new DNS record or ACM certificate is required.
+The backend signs each returned S3 object key for 15 minutes. Existing `path`, `saveName`, and `ext` fields remain in every response for backward compatibility, and a new nullable `url` field carries the Presigned URL. The frontend uses `url` first and falls back to the legacy fields only when the backend does not provide it.
 
-The frontend constructs image URLs from a deploy-time image base URL and the existing relative file fields. Existing `/image/...` service on EC2 remains available temporarily as rollback compatibility, but newly deployed clients request CloudFront directly and do not traverse EC2.
+S3 remains fully private and viewers access objects directly through the signed S3 URL. No CloudFront distribution, custom domain, or EC2 image proxy is required. Existing `/image/...` service on EC2 remains available temporarily only for rollback compatibility.
 
-The frontend image URL builder carries one deliberate follow-up comment: `// TODO: 이미지 접근 정책 확정 후 Presigned URL 방식으로 변경`.
+Authorization to receive a URL follows the API endpoint's existing access control. A later diary visibility policy can decide who receives a URL without moving the underlying S3 object.
 
 ### Configuration
 
@@ -44,18 +44,19 @@ victory-fairy:
     s3-enabled: true
     s3-bucket: victory-fairy-prod-files-411511125457-ap-northeast-2-an
     s3-region: ap-northeast-2
+    presigned-url-duration: 15m
 ```
 
 No access keys are stored. AWS SDK credential resolution uses the attached EC2 role.
 
 ## Verification and Rollback
 
-- Unit tests verify S3 object keys, successful upload behavior, failure propagation, and workspace cleanup timing.
+- Unit tests verify S3 object keys, successful upload behavior, failure propagation, workspace cleanup timing, and the Presigned URL expiry/key.
 - Build and existing core-file tests must pass before deployment.
-- A production smoke test uploads an image and confirms the original plus every configured resize through CloudFront.
+- A production smoke test uploads an image and confirms the original plus every configured resize through returned Presigned URLs.
 - EC2 image originals and the handover tar remain untouched until production reads and writes are verified.
 - Rollback restores the previous `core-file` JAR and frontend image base URL; the S3 copy remains harmless.
 
 ## Deferred Work
 
-Authenticated Presigned GET URLs are intentionally deferred. When diary images must be limited to authorized members, API responses will issue short-lived S3 Presigned URLs and the frontend will refresh expired URLs. This later change does not alter the S3 object-key layout introduced here.
+Fine-grained diary visibility is deferred. When community sharing is introduced, the API authorization policy will issue Presigned URLs to viewers allowed by each diary's visibility setting. This does not alter the S3 object-key layout.

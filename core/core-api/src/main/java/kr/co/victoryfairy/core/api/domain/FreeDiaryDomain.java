@@ -170,7 +170,7 @@ public interface FreeDiaryDomain {
             @Schema(description = "점수") Short score) {
     }
 
-    record ImageDto(Long id, String path, String saveName, String ext) {
+    record ImageDto(Long id, String path, String saveName, String ext, String url) {
     }
 
 }

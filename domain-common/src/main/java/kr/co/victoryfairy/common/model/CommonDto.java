@@ -12,7 +12,7 @@ public interface CommonDto {
     /**
      * 이미지 정보 DTO
      */
-    record ImageDto(Long id, String path, String saveName, String ext) {
+    record ImageDto(Long id, String path, String saveName, String ext, String url) {
     }
 
     /**

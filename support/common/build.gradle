@@ -23,6 +23,9 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    implementation platform('software.amazon.awssdk:bom:2.49.6')
+    implementation 'software.amazon.awssdk:s3'
+
     // mapstruct
     compileOnly 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'

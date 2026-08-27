@@ -100,7 +100,7 @@ public interface DiaryDomain {
             @Schema(description = "등록 일자") LocalDateTime createdAt) {
     }
 
-    record ImageDto(Long id, String path, String saveName, String ext) {
+    record ImageDto(Long id, String path, String saveName, String ext, String url) {
     }
 
     record DiaryDetailResponse(@Schema(description = "응원팀 id", requiredMode = Schema.RequiredMode.REQUIRED) Long teamId,

@@ -13,7 +13,7 @@ public interface FileDomain {
     @Schema(name = "File.Response")
     record Response(@Schema(description = "file id") Long id, @Schema(description = "원본 파일명") String name,
             @Schema(description = "저장된 파일명") String saveName, @Schema(description = "경로") String path,
-            @Schema(description = "확장자") String ext) {
+            @Schema(description = "확장자") String ext, @Schema(description = "조회 URL") String url) {
     }
 
     @Schema(name = "File.CreateRequest")
