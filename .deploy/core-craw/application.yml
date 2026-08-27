@@ -1,0 +1,22 @@
+spring.application.name: core-craw
+
+spring:
+  config:
+    import:
+      - logging.yml
+      - db-core.yml
+  web.resources.add-mappings: false
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 1
+      repositories:
+        enabled: false
+
+server:
+  port: 8085
+
+webhook:
+  slack:
+    url: http://127.0.0.1/disabled

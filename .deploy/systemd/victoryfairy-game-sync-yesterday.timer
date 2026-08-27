@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry yesterday's VictoryFairy game data sync
+
+[Timer]
+OnCalendar=*-*-* 00:30:00 Asia/Seoul
+Persistent=true
+Unit=victoryfairy-game-sync@1.service
+
+[Install]
+WantedBy=timers.target
