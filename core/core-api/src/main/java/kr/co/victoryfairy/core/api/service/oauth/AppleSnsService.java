@@ -134,7 +134,7 @@ public class AppleSnsService implements OauthService {
     public PrivateKey getPrivateKey() throws Exception {
         // appleKeyId에 담겨있는 정보 가져오기
         Resource resources = ResourcePatternUtils.getResourcePatternResolver(new DefaultResourceLoader())
-            .getResource("classpath:" + appleSecretPath);
+            .getResource(appleSecretPath); // no prefix → classpath (as before); "file:/..." → loads from disk
 
         InputStream inputStream = resources.getInputStream();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
