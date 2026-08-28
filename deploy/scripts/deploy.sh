@@ -45,7 +45,9 @@ install -o root -g root -m 0600 "$candidate_env" "$env_file"
 if ! docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api file admin nginx; then
   install -o root -g root -m 0600 "$previous_env" "$env_file"
   docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api file admin nginx || true
+  docker compose --env-file "$env_file" -f "$compose_file" restart nginx || true
   exit 1
 fi
 
+docker compose --env-file "$env_file" -f "$compose_file" restart nginx
 docker compose --env-file "$env_file" -f "$compose_file" ps
