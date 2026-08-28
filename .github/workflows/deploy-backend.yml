@@ -1,0 +1,150 @@
+name: Deploy backend
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: production-backend
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: victory-fairy/backend
+  EC2_INSTANCE_ID: i-01d540e5b0ed6e30d
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Test and build JARs
+        run: >-
+          ./gradlew unitTest
+          :core:core-api:bootJar
+          :core:core-file:bootJar
+          :core:core-admin:bootJar
+          :core:core-craw:bootJar
+          -Pci --parallel --build-cache
+
+      - name: Stage Docker contexts
+        run: bash deploy/scripts/stage-jars.sh
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::411511125457:role/victory-fairy-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+          allowed-account-ids: "411511125457"
+
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push API
+        uses: docker/build-push-action@v7
+        with:
+          context: build/docker/api
+          file: deploy/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:api-${{ github.sha }}
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:api-latest
+          cache-from: type=gha,scope=victory-fairy-api
+          cache-to: type=gha,mode=max,scope=victory-fairy-api
+
+      - name: Build and push file service
+        uses: docker/build-push-action@v7
+        with:
+          context: build/docker/file
+          file: deploy/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:file-${{ github.sha }}
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:file-latest
+          cache-from: type=gha,scope=victory-fairy-file
+          cache-to: type=gha,mode=max,scope=victory-fairy-file
+
+      - name: Build and push admin
+        uses: docker/build-push-action@v7
+        with:
+          context: build/docker/admin
+          file: deploy/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:admin-${{ github.sha }}
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:admin-latest
+          cache-from: type=gha,scope=victory-fairy-admin
+          cache-to: type=gha,mode=max,scope=victory-fairy-admin
+
+      - name: Build and push crawler
+        uses: docker/build-push-action@v7
+        with:
+          context: build/docker/craw
+          file: deploy/Dockerfile.craw
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:craw-${{ github.sha }}
+            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:craw-latest
+          cache-from: type=gha,scope=victory-fairy-craw
+          cache-to: type=gha,mode=max,scope=victory-fairy-craw
+
+      - name: Deploy through Systems Manager
+        shell: bash
+        run: |
+          set -euo pipefail
+          command_id="$(aws ssm send-command \
+            --instance-ids "$EC2_INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --timeout-seconds 900 \
+            --parameters commands="sudo /opt/victoryfairy/bin/deploy.sh $GITHUB_SHA" \
+            --query 'Command.CommandId' \
+            --output text)"
+
+          for _ in {1..180}; do
+            status="$(aws ssm get-command-invocation \
+              --command-id "$command_id" \
+              --instance-id "$EC2_INSTANCE_ID" \
+              --query 'Status' \
+              --output text 2>/dev/null || true)"
+
+            case "$status" in
+              Success)
+                aws ssm get-command-invocation --command-id "$command_id" --instance-id "$EC2_INSTANCE_ID" --query 'StandardOutputContent' --output text
+                exit 0
+                ;;
+              Pending|InProgress|Delayed|"") sleep 5 ;;
+              *)
+                aws ssm get-command-invocation --command-id "$command_id" --instance-id "$EC2_INSTANCE_ID" --query '[StandardOutputContent,StandardErrorContent]' --output text
+                exit 1
+                ;;
+            esac
+          done
+
+          echo "SSM deployment timed out" >&2
+          exit 1
