@@ -1,0 +1,13 @@
+[Unit]
+Description=VictoryFairy game sync (%i days ago)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/victoryfairy
+RuntimeDirectory=victoryfairy-game-sync
+RuntimeDirectoryPreserve=yes
+ExecStart=/usr/bin/flock --nonblock /run/victoryfairy-game-sync/job.lock /usr/bin/docker compose --env-file /opt/victoryfairy/.env -f /opt/victoryfairy/compose.yaml --profile jobs run --rm craw --spring.main.web-application-type=none --game-recovery.enabled=true --game-recovery.days-ago=%i --game-recovery.dry-run=false
+TimeoutStartSec=30min
