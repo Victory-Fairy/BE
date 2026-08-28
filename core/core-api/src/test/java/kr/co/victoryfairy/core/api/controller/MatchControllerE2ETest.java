@@ -207,7 +207,7 @@ class MatchControllerE2ETest {
             var stadium = new MatchDomain.StadiumDto(1L, "잠실", "잠실야구장");
 
             var response = new MatchDomain.MatchInfoResponse(matchId, date, "18:30", stadium, MatchEnum.MatchStatus.END,
-                    "종료", awayTeam, homeTeam);
+                    "종료", awayTeam, homeTeam, MatchEnum.LeagueType.KBO);
             given(matchService.findById(matchId)).willReturn(response);
 
             // when & then
@@ -216,7 +216,8 @@ class MatchControllerE2ETest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.data.id").value(matchId))
-                .andExpect(jsonPath("$.data.stadium.shortName").value("잠실"));
+                .andExpect(jsonPath("$.data.stadium.shortName").value("잠실"))
+                .andExpect(jsonPath("$.data.leagueType").value("KBO"));
 
             verify(matchService).findById(matchId);
         }

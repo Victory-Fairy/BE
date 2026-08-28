@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/playwright/java:v1.48.0-noble
+
+WORKDIR /app
+COPY --chown=pwuser:pwuser app.jar /app/app.jar
+
+USER pwuser
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
