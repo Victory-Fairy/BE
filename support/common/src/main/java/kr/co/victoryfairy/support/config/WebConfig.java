@@ -27,7 +27,8 @@ public class WebConfig implements WebMvcConfigurer {
 
 	private static final Set<String> ALLOWED_ORIGINS = Set.of("http://localhost:8080", "http://localhost:3000",
 			"https://victory-fairy.duckdns.org", "https://fe-next-sigma.vercel.app",
-			"https://victory-fairy.dfdf1245.workers.dev", "https://victoryfairy.shop", "https://seungyo.shop");
+			"https://victory-fairy.dfdf1245.workers.dev", "https://victoryfairy.shop", "https://seungyo.shop",
+			"http://seungyo-diary-admin.s3-website.ap-northeast-2.amazonaws.com");
 
 	private final CurlCommandErrorInterceptor curlCommandErrorInterceptor;
 
