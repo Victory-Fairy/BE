@@ -11,7 +11,8 @@ public class CoreCrawApplication {
 
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(CoreCrawApplication.class, args);
-        if (context.getEnvironment().getProperty("game-recovery.enabled", Boolean.class, false)) {
+        if (context.getEnvironment().getProperty("game-recovery.enabled", Boolean.class, false)
+                || context.getEnvironment().getProperty("live-game.enabled", Boolean.class, false)) {
             SpringApplication.exit(context);
         }
     }
