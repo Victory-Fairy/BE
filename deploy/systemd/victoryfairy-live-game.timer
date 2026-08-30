@@ -1,0 +1,10 @@
+[Unit]
+Description=Sync live KBO games every 10 minutes
+
+[Timer]
+OnCalendar=*:0/10
+Persistent=true
+Unit=victoryfairy-live-game.service
+
+[Install]
+WantedBy=timers.target

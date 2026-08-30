@@ -44,3 +44,6 @@ out/
 
 ###
 **/**/src/main/resources/cert/
+
+# Local handover package contains production data and uploaded files.
+/victoryfairy-handover/

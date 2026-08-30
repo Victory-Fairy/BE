@@ -39,7 +39,7 @@ awk -v tag="$image_tag" '
 ' "$env_file" > "$candidate_env"
 
 APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$compose_file" config --quiet
-APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$compose_file" pull api file admin
+APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$compose_file" pull api file admin craw
 install -o root -g root -m 0600 "$candidate_env" "$env_file"
 
 if ! docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api file admin nginx; then
