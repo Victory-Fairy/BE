@@ -5,12 +5,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.model.CustomResponse;
-import kr.co.victoryfairy.support.properties.JwtProperties;
-import kr.co.victoryfairy.support.utils.AccessTokenUtils;
-import kr.co.victoryfairy.support.webfilter.PathPatternWebFilter;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
+import kr.co.victoryfairy.web.response.CustomResponse;
+import kr.co.victoryfairy.member.infrastructure.security.JwtProperties;
+import kr.co.victoryfairy.member.infrastructure.security.AccessTokenCodec;
+import kr.co.victoryfairy.web.filter.PathPatternWebFilter;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -33,7 +33,7 @@ public class AccessTokenWebFilter extends PathPatternWebFilter {
     @Override
     public void filterMatched(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            AccessTokenUtils.checkToken(request, jwtProperties);
+            AccessTokenCodec.checkToken(request, jwtProperties);
         } catch (Exception e) {
             ObjectMapper objectMapper = new ObjectMapper();
             response.setContentType("application/json");

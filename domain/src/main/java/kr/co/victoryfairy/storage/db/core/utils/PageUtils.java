@@ -2,7 +2,7 @@ package kr.co.victoryfairy.storage.db.core.utils;
 
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
-import kr.co.victoryfairy.support.model.PageResult;
+import kr.co.victoryfairy.storage.db.core.model.PageResult;
 import org.springframework.data.domain.Pageable;
 
 /**

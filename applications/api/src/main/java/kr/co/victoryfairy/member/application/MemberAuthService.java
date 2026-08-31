@@ -9,11 +9,11 @@ import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
 import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
 import kr.co.victoryfairy.storage.db.core.repository.MemberInfoRepository;
 import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.model.AuthModel;
-import kr.co.victoryfairy.support.service.JwtService;
-import kr.co.victoryfairy.support.utils.RequestUtils;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
+import kr.co.victoryfairy.member.infrastructure.security.AuthModel;
+import kr.co.victoryfairy.member.infrastructure.security.JwtService;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +62,7 @@ public class MemberAuthService {
         if (memberInfoEntity == null) {
             MemberEntity memberEntity = MemberEntity.builder()
                 .status(MemberEnum.Status.NORMAL)
-                .lastConnectIp(RequestUtils.getRemoteIp())
+                .lastConnectIp(CurrentRequest.getRemoteIp())
                 .lastConnectAt(LocalDateTime.now())
                 .build();
             memberRepository.save(memberEntity);
@@ -76,7 +76,7 @@ public class MemberAuthService {
         }
 
         var memberEntity = memberInfoEntity.getMemberEntity();
-        memberEntity.updateLastLogin(RequestUtils.getRemoteIp(), LocalDateTime.now());
+        memberEntity.updateLastLogin(CurrentRequest.getRemoteIp(), LocalDateTime.now());
         memberRepository.save(memberEntity);
 
         var memberInfoDto = AuthModel.MemberInfoDto.builder()
@@ -98,7 +98,7 @@ public class MemberAuthService {
     }
 
     public void logout() {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
         if (id == null) {
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
         }

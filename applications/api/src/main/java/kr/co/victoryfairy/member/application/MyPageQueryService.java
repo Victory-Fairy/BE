@@ -5,10 +5,10 @@ import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.member.presentation.MyPageDomain;
 import kr.co.victoryfairy.storage.db.core.entity.GameRecordEntity;
 import kr.co.victoryfairy.storage.db.core.repository.*;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.utils.RequestUtils;
-import kr.co.victoryfairy.support.service.S3PresignedUrlService;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
+import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +34,7 @@ public class MyPageQueryService {
     private final S3PresignedUrlService s3PresignedUrlService;
 
     public MyPageDomain.MemberInfoForMyPageResponse findMemberInfoForMyPage() {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
 
         if (id == null) {
             return new MyPageDomain.MemberInfoForMyPageResponse(null, null, null, null, null);
@@ -55,7 +55,7 @@ public class MyPageQueryService {
     }
 
     public MyPageDomain.VictoryPowerResponse findVictoryPower(String season) {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
 
         if (id == null) {
             return new MyPageDomain.VictoryPowerResponse(null, null);
@@ -97,7 +97,7 @@ public class MyPageQueryService {
     }
 
     public MyPageDomain.ReportResponse findReport(String season) {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
         if (id == null)
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
 

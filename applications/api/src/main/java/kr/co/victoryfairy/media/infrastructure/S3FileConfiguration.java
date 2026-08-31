@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.media.infrastructure;
 
-import kr.co.victoryfairy.support.properties.FileProperties;
+import kr.co.victoryfairy.media.infrastructure.FileProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

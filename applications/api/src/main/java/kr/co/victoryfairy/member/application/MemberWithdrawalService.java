@@ -12,9 +12,9 @@ import kr.co.victoryfairy.storage.db.core.repository.PartnerRepository;
 import kr.co.victoryfairy.storage.db.core.repository.SeatReviewRepository;
 import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
 import kr.co.victoryfairy.storage.db.core.repository.WithdrawalReasonRepository;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.utils.RequestUtils;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +35,7 @@ public class MemberWithdrawalService {
 
     @Transactional
     public void deleteMember(MyPageDomain.DeleteAccountRequest request) {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
         if (id == null) {
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
         }

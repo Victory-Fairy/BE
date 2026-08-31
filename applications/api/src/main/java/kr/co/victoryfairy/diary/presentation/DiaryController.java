@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.diary.presentation.DiaryDomain;
 import kr.co.victoryfairy.diary.application.DiaryCommandService;
 import kr.co.victoryfairy.diary.application.DiaryQueryService;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.model.CustomResponse;
-import kr.co.victoryfairy.support.utils.RequestUtils;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.response.CustomResponse;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +34,7 @@ public class DiaryController {
     @Operation(summary = "일기 작성")
     @PostMapping()
     public CustomResponse<DiaryDomain.WriteResponse> writeDiary(@RequestBody DiaryDomain.WriteRequest request) {
-        Long memberId = RequestUtils.getId();
+        Long memberId = CurrentRequest.getId();
         var response = commandService.writeDiary(memberId, request);
         return CustomResponse.ok(response);
     }

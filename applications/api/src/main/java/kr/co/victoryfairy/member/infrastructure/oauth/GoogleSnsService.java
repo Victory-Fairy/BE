@@ -6,9 +6,9 @@ import kr.co.victoryfairy.member.presentation.MemberDomain;
 import kr.co.victoryfairy.member.infrastructure.oauth.model.AuthToken;
 import kr.co.victoryfairy.member.infrastructure.oauth.model.GoogleResponseWrapper;
 import kr.co.victoryfairy.member.infrastructure.oauth.model.KakaoResponseWrapper;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.utils.HttpClientUtils;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
+import kr.co.victoryfairy.member.infrastructure.oauth.OauthHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,7 +59,7 @@ public class GoogleSnsService implements OauthService {
         param.put("code", request.code());
 
         ObjectMapper mapper = new ObjectMapper();
-        var response = HttpClientUtils.doPost(url, param);
+        var response = OauthHttpClient.doPost(url, param);
 
         log.info("response : {}", response);
         AuthToken tokenResponse = null;
@@ -82,7 +82,7 @@ public class GoogleSnsService implements OauthService {
         var url = "https://www.googleapis.com/userinfo/v2/me";
 
         ObjectMapper mapper = new ObjectMapper();
-        String response = HttpClientUtils.doGet(url, null, Map.of("Authorization", "Bearer " + accessToken));
+        String response = OauthHttpClient.doGet(url, null, Map.of("Authorization", "Bearer " + accessToken));
         log.warn("response:*******" + response + "*******");
 
         try {

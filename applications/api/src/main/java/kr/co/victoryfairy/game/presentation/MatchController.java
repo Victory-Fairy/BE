@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.game.presentation.MatchDomain;
 import kr.co.victoryfairy.game.application.GameQueryService;
-import kr.co.victoryfairy.support.model.CustomResponse;
+import kr.co.victoryfairy.web.response.CustomResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;

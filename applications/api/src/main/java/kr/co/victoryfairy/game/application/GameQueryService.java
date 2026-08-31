@@ -9,10 +9,10 @@ import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
 import kr.co.victoryfairy.storage.db.core.entity.PitcherRecordEntity;
 import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
 import kr.co.victoryfairy.storage.db.core.repository.*;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.support.utils.RequestUtils;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,7 +52,7 @@ public class GameQueryService {
     }
 
     public MatchDomain.MatchListResponse findList(LocalDate date, MatchEnum.LeagueType league) {
-        var memberId = RequestUtils.getId();
+        var memberId = CurrentRequest.getId();
 
         var teamEntity = Optional.ofNullable(memberId)
             .flatMap(memberInfoRepository::findByMemberEntity_Id)
@@ -438,7 +438,7 @@ public class GameQueryService {
     }
 
     public List<MatchDomain.InterestTeamMatchInfoResponse> findByTeam() {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
 
         if (id == null) {
             return new ArrayList<>();
@@ -557,7 +557,7 @@ public class GameQueryService {
 
     public MatchDomain.TodayMatchListResponse findTodayMatch() {
         var date = LocalDate.now();
-        var memberId = RequestUtils.getId();
+        var memberId = CurrentRequest.getId();
         var formatDate = date.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         var teamEntity = Optional.ofNullable(memberId)

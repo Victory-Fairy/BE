@@ -8,9 +8,9 @@ import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
 import kr.co.victoryfairy.storage.db.core.repository.MemberInfoRepository;
 import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
 import kr.co.victoryfairy.storage.db.core.repository.TeamRepository;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.utils.RequestUtils;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,7 +77,7 @@ public class MemberCommandService {
     }
 
     private Long authenticatedMemberId() {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
         if (id == null) {
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
         }

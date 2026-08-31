@@ -4,7 +4,7 @@ import com.p6spy.engine.logging.Category;
 import com.p6spy.engine.spy.P6SpyOptions;
 import com.p6spy.engine.spy.appender.MessageFormattingStrategy;
 import jakarta.annotation.PostConstruct;
-import kr.co.victoryfairy.logging.sql.SqlLoggingHolder;
+import kr.co.victoryfairy.storage.db.core.logging.SqlLoggingHolder;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.springframework.context.annotation.Configuration;
 

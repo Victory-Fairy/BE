@@ -3,7 +3,7 @@ package kr.co.victoryfairy.diary.application;
 import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
-import kr.co.victoryfairy.common.service.FileRefDomainService;
+import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
 import kr.co.victoryfairy.diary.presentation.DiaryDomain;
 import kr.co.victoryfairy.game.presentation.MatchDomain;
@@ -12,9 +12,9 @@ import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
 import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.utils.RequestUtils;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +39,7 @@ public class DiaryQueryService {
 
     private final SeatUseHistoryRepository seatUseHistoryRepository;
 
-    private final FileRefDomainService fileRefDomainService;
+    private final FileReferenceService fileRefDomainService;
 
     private final DiaryFoodDomainService diaryFoodDomainService;
 
@@ -48,7 +48,7 @@ public class DiaryQueryService {
     private final RedisHandler redisHandler;
 
     public List<DiaryDomain.ListResponse> findList(YearMonth date) {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
 
         var startDate = date.atDay(1);
         var endDate = date.atEndOfMonth();
@@ -103,7 +103,7 @@ public class DiaryQueryService {
     }
 
     public List<DiaryDomain.DailyListResponse> findDailyList(LocalDate date) {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
 
         if (id == null) {
             return new ArrayList<>();
@@ -188,7 +188,7 @@ public class DiaryQueryService {
     }
 
     public DiaryDomain.DiaryDetailResponse findById(Long diaryId) {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
         if (id == null) {
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
         }

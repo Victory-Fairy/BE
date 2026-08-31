@@ -1,8 +1,6 @@
 package kr.co.victoryfairy.game.crawler.controller;
 
 import kr.co.victoryfairy.game.crawler.service.WbcGameCrawler;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.model.CustomResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,10 +17,10 @@ public class WbcCrawController {
     }
 
     @GetMapping("/match-list")
-    public CustomResponse<MessageEnum> getMatchList(@RequestParam(name = "sYear") String sYear,
+    public CrawlResponse getMatchList(@RequestParam(name = "sYear") String sYear,
             @RequestParam(name = "sMonth", required = false) String sMonth) {
         crawler.crawMatchList(sYear, sMonth);
-        return CustomResponse.ok(MessageEnum.Common.REQUEST);
+        return CrawlResponse.completed();
     }
 
 }

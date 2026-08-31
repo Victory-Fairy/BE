@@ -4,14 +4,14 @@ import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.common.model.CommonDto;
 import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
-import kr.co.victoryfairy.common.service.FileRefDomainService;
+import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
 import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
-import kr.co.victoryfairy.support.model.oauth.MemberAccount;
+import kr.co.victoryfairy.member.infrastructure.security.MemberAccount;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +42,7 @@ class DiaryListServiceTest {
     @Mock
     private SeatUseHistoryRepository seatUseHistoryRepository;
     @Mock
-    private FileRefDomainService fileRefDomainService;
+    private FileReferenceService fileRefDomainService;
     @Mock
     private DiaryFoodDomainService diaryFoodDomainService;
     @Mock

@@ -11,8 +11,6 @@ import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.TeamEnum;
 import kr.co.victoryfairy.storage.db.core.entity.*;
 import kr.co.victoryfairy.storage.db.core.repository.*;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -288,7 +286,7 @@ public class KboGameCrawler {
     @Transactional
     public void crawMatchDetailById(String id) {
         var match = gameMatchRepository.findById(id)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CrawlRequestException("해당 데이터가 존재하지 않습니다."));
 
         try {
             var away = fetchOfficialRecords(match, "T", false);

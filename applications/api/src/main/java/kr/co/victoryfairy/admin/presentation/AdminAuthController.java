@@ -3,7 +3,7 @@ package kr.co.victoryfairy.admin.presentation;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.admin.application.AdminAuthService;
-import kr.co.victoryfairy.support.model.CustomResponse;
+import kr.co.victoryfairy.web.response.CustomResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

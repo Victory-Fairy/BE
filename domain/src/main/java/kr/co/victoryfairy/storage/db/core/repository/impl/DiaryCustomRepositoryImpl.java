@@ -12,7 +12,7 @@ import kr.co.victoryfairy.storage.db.core.entity.QTeamEntity;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.storage.db.core.utils.PageUtils;
-import kr.co.victoryfairy.support.model.PageResult;
+import kr.co.victoryfairy.storage.db.core.model.PageResult;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;

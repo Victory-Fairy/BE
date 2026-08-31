@@ -3,13 +3,12 @@ jar.enabled = false
 
 dependencies {
     implementation project(":domain")
-    implementation project(":support:logging")
-    implementation project(":support:common")
-    implementation project(":support:redis")
+    implementation project(":infrastructure:redis")
 
     testImplementation project(":tests:api-docs")
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "io.sentry:sentry-logback:${property("sentryVersion")}"
 
     // craw
     implementation 'com.microsoft.playwright:playwright:1.48.0'

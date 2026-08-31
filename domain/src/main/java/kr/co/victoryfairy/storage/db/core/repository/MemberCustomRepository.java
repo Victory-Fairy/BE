@@ -1,7 +1,7 @@
 package kr.co.victoryfairy.storage.db.core.repository;
 
 import kr.co.victoryfairy.storage.db.core.model.MemberModel;
-import kr.co.victoryfairy.support.model.PageResult;
+import kr.co.victoryfairy.storage.db.core.model.PageResult;
 
 import java.util.Optional;
 

@@ -10,7 +10,7 @@ import java.util.Optional;
 import io.dodn.springboot.core.enums.DiaryEnum;
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
-import kr.co.victoryfairy.common.service.FileRefDomainService;
+import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.common.service.GameRecordDomainService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
 import kr.co.victoryfairy.diary.presentation.DiaryDomain;
@@ -48,7 +48,7 @@ class DiaryCommandServiceTest {
         var service = new DiaryCommandService(diaryRepository, mock(SeatRepository.class),
                 mock(SeatUseHistoryRepository.class), mock(SeatReviewRepository.class),
                 matchRepository, mock(GameRecordRepository.class), memberRepository, teamRepository,
-                mock(FileRefDomainService.class), mock(DiaryFoodDomainService.class), mock(PartnerDomainService.class),
+                mock(FileReferenceService.class), mock(DiaryFoodDomainService.class), mock(PartnerDomainService.class),
                 gameRecordService);
         var request = new DiaryDomain.WriteRequest(team.getId(), DiaryEnum.ViewType.HOME, match.getId(), List.of(),
                 null, null, List.of(), null, "응원 일기", List.of());

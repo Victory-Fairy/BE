@@ -57,7 +57,7 @@ awk -v tag="$image_tag" '
 ' "$env_file" > "$candidate_env"
 
 APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$candidate_compose" config --quiet
-APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$candidate_compose" pull api file admin craw
+APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$candidate_compose" pull api craw
 docker run --rm \
   -v "$candidate_nginx:/etc/nginx/conf.d/default.conf:ro" \
   -v "$runtime_dir/letsencrypt:/etc/letsencrypt:ro" \
@@ -69,14 +69,14 @@ if ! (
   install -o root -g root -m 0644 "$candidate_nginx" "$nginx_file"
   install -o root -g root -m 0755 "$candidate_script" "$installed_script"
   install -o root -g root -m 0600 "$candidate_env" "$env_file"
-  docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api file admin nginx
+  docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api nginx
   docker compose --env-file "$env_file" -f "$compose_file" restart nginx
 ); then
   install -o root -g root -m 0600 "$previous_env" "$env_file"
   install -o root -g root -m 0644 "$previous_compose" "$compose_file"
   install -o root -g root -m 0644 "$previous_nginx" "$nginx_file"
   install -o root -g root -m 0755 "$previous_script" "$installed_script"
-  docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api file admin nginx || true
+  docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api nginx || true
   docker compose --env-file "$env_file" -f "$compose_file" restart nginx || true
   exit 1
 fi

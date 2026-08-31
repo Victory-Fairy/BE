@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.member.presentation.MemberDomain;
 import kr.co.victoryfairy.member.application.MemberAuthService;
-import kr.co.victoryfairy.support.model.CustomResponse;
+import kr.co.victoryfairy.web.response.CustomResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
