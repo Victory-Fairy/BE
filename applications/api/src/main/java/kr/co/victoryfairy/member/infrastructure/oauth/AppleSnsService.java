@@ -70,8 +70,7 @@ public class AppleSnsService implements OauthService {
 
     @Override
     public MemberDomain.MemberSns parseSnsInfo(MemberDomain.MemberLoginRequest request) {
-        log.info("================appleCallback=============");
-        log.info("code: {}", request.code());
+        log.info("Apple OAuth callback received");
 
         JsonObject json = null;
         var idToken = "";
@@ -94,13 +93,11 @@ public class AppleSnsService implements OauthService {
 
         param.put("client_secret", client_secret);
 
-        log.warn("url:*******" + url + "*******");
         ObjectMapper mapper = new ObjectMapper();
         AppleResponseWrapper appleResponseWrapper = null;
         String response = OauthHttpClient.doPost(url, param);
         try {
             appleResponseWrapper = mapper.readValue(response, AppleResponseWrapper.class);
-            log.info("appleResponseWrapper :  {}", appleResponseWrapper);
             idToken = appleResponseWrapper.getIdToken();
             json = this.parserIdentityToken(idToken);
         }

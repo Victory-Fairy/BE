@@ -66,7 +66,7 @@ public class CurlCommandErrorInterceptor implements HandlerInterceptor {
         // Query parameters
         var queryString = request.getQueryString();
         if (queryString != null) {
-            curlCommand.append("?").append(queryString);
+            curlCommand.append("?[REDACTED]");
         }
         curlCommand.append("'");
 
@@ -75,12 +75,15 @@ public class CurlCommandErrorInterceptor implements HandlerInterceptor {
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
             String headerValue = request.getHeader(headerName);
+            if (headerName.equalsIgnoreCase("authorization") || headerName.equalsIgnoreCase("cookie")) {
+                headerValue = "[REDACTED]";
+            }
             curlCommand.append(" -H '").append(headerName).append(": ").append(headerValue).append("'");
         }
 
         // Body
         if (requestBody != null && !requestBody.isEmpty()) {
-            curlCommand.append(" --data '").append(requestBody.replace("'", "\\'")).append("'");
+            curlCommand.append(" --data '[REDACTED]'");
         }
 
         // Slack으로 전송

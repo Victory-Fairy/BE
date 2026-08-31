@@ -45,9 +45,7 @@ public class KakaoSnsService implements OauthService {
 
     @Override
     public MemberDomain.MemberSns parseSnsInfo(MemberDomain.MemberLoginRequest request) {
-        log.info("================kakaoCallback=============");
-        log.info("code: {}}", request.code());
-        log.info("orgCallbackUrl: {} , state: {}", kakaoCallbackUrl);
+        log.info("Kakao OAuth callback received");
 
         var url = "https://kauth.kakao.com/oauth/token";
 
@@ -61,7 +59,6 @@ public class KakaoSnsService implements OauthService {
         ObjectMapper mapper = new ObjectMapper();
         var response = OauthHttpClient.doPost(url, param);
 
-        log.info("response : {}", response);
         AuthToken tokenResponse = null;
 
         try {
@@ -85,14 +82,8 @@ public class KakaoSnsService implements OauthService {
 
         ObjectMapper mapper = new ObjectMapper();
         String response = OauthHttpClient.doGet(url, null, Map.of("Authorization", "Bearer " + accessToken));
-        log.warn("response:*******" + response + "*******");
-
         try {
-            // JSON 데이터를 NaverUserResponseWrapper 객체로 매핑
-            KakaoResponseWrapper wrapper = mapper.readValue(response, KakaoResponseWrapper.class);
-            log.warn("wrapper: " + wrapper);
-
-            return wrapper;
+            return mapper.readValue(response, KakaoResponseWrapper.class);
         }
         catch (Exception e) {
             log.error("Failed to parse KakaoUserInfoResponse", e);

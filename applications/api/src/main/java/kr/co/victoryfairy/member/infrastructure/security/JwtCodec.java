@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 
 import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
 import java.util.Date;
-import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,7 +21,7 @@ public final class JwtCodec {
         try {
 
             claims = Jwts.parserBuilder()
-                .setSigningKey(Base64.getDecoder().decode(secretKey))
+                .setSigningKey(DatatypeConverter.parseBase64Binary(secretKey))
                 // .requireAudience(getIp(request))
                 .build()
                 .parseClaimsJws(token)
@@ -63,7 +63,7 @@ public final class JwtCodec {
                 jwtBuilder.setExpiration(expireDate);
             }
 
-            byte[] secretKeyBytes = Base64.getDecoder().decode(secretKey);
+            byte[] secretKeyBytes = DatatypeConverter.parseBase64Binary(secretKey);
             jwtBuilder.signWith(new SecretKeySpec(secretKeyBytes, SignatureAlgorithm.HS256.getJcaName()),
                     SignatureAlgorithm.HS256);
             token = jwtBuilder.compact();

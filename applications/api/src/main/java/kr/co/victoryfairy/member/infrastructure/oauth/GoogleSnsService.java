@@ -46,8 +46,7 @@ public class GoogleSnsService implements OauthService {
 
     @Override
     public MemberDomain.MemberSns parseSnsInfo(MemberDomain.MemberLoginRequest request) {
-        log.info("================googleCallback=============");
-        log.info("code: {}", request.code());
+        log.info("Google OAuth callback received");
 
         var url = "https://oauth2.googleapis.com/token";
 
@@ -61,7 +60,6 @@ public class GoogleSnsService implements OauthService {
         ObjectMapper mapper = new ObjectMapper();
         var response = OauthHttpClient.doPost(url, param);
 
-        log.info("response : {}", response);
         AuthToken tokenResponse = null;
 
         try {
@@ -83,14 +81,8 @@ public class GoogleSnsService implements OauthService {
 
         ObjectMapper mapper = new ObjectMapper();
         String response = OauthHttpClient.doGet(url, null, Map.of("Authorization", "Bearer " + accessToken));
-        log.warn("response:*******" + response + "*******");
-
         try {
-            // JSON 데이터를 NaverUserResponseWrapper 객체로 매핑
-            GoogleResponseWrapper wrapper = mapper.readValue(response, GoogleResponseWrapper.class);
-            log.warn("wrapper: " + wrapper);
-
-            return wrapper;
+            return mapper.readValue(response, GoogleResponseWrapper.class);
         }
         catch (Exception e) {
             log.error("Failed to parse KakaoUserInfoResponse", e);
