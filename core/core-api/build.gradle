@@ -2,6 +2,8 @@ ext {
     SERVICE = "api"
 }
 
+apply plugin: 'info.solidsoft.pitest'
+
 bootJar {
     enabled = true
 
@@ -46,6 +48,7 @@ dependencies {
     implementation project(":storage:db-core")
 
     testImplementation project(":tests:api-docs")
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
@@ -60,4 +63,23 @@ dependencies {
     implementation 'org.bouncycastle:bcpkix-jdk18on:1.76'
 
     implementation 'com.google.code.gson:gson:2.9.0'
+}
+
+pitest {
+    targetClasses = ['kr.co.victoryfairy.core.api.service.impl.DiaryServiceImpl']
+    targetTests = ['kr.co.victoryfairy.core.api.service.DiaryListServiceTest']
+    excludedMethods = [
+        'writeDiary', 'lambda$writeDiary*',
+        'updateDiary', 'lambda$updateDiary*',
+        'deleteDiary', 'lambda$deleteDiary*',
+        'findDailyList', 'lambda$findDailyList*',
+        'findById', 'lambda$findById*',
+        'toPartnerSaveRequests', 'lambda$toPartnerSaveRequests*'
+    ]
+    junit5PluginVersion = '1.2.3'
+    mutationThreshold = 100
+    testStrengthThreshold = 100
+    outputFormats = ['HTML', 'XML']
+    timestampedReports = false
+    threads = 4
 }

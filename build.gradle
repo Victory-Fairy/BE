@@ -4,6 +4,7 @@ plugins {
     id 'io.spring.dependency-management'
     id 'io.spring.javaformat' apply(false)
     id 'org.asciidoctor.jvm.convert' apply(false)
+    id 'info.solidsoft.pitest' version '1.19.0' apply(false)
 }
 
 apply from: 'lint.gradle'
