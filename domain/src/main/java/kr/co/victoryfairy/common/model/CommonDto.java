@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * 공통 DTO 인터페이스
  * <p>
- * core-api, core-admin 등 여러 모듈에서 공통으로 사용하는 DTO 정의
+ * 여러 애플리케이션에서 공통으로 사용하는 DTO 정의
  */
 public interface CommonDto {
 

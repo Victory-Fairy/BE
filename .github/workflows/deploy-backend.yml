@@ -34,8 +34,8 @@ jobs:
       - name: Test and build JARs
         run: >-
           ./gradlew unitTest
-          :core:core-api:bootJar
-          :core:core-craw:bootJar
+          :applications:api:bootJar
+          :applications:crawler:bootJar
           -Pci --parallel --build-cache
 
       - name: Stage Docker contexts

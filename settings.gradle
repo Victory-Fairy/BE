@@ -14,8 +14,8 @@ rootProject.name = 'BE'
 
 include 'domain'
 
-include 'core:core-api'
-include 'core:core-craw'
+include 'applications:api'
+include 'applications:crawler'
 
 include 'tests:api-docs'
 include 'support:logging'
