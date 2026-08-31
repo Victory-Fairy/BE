@@ -14,7 +14,7 @@ import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
 import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
-import kr.co.victoryfairy.member.infrastructure.security.RequestUtils;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +48,7 @@ public class DiaryQueryService {
     private final RedisHandler redisHandler;
 
     public List<DiaryDomain.ListResponse> findList(YearMonth date) {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
 
         var startDate = date.atDay(1);
         var endDate = date.atEndOfMonth();
@@ -103,7 +103,7 @@ public class DiaryQueryService {
     }
 
     public List<DiaryDomain.DailyListResponse> findDailyList(LocalDate date) {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
 
         if (id == null) {
             return new ArrayList<>();
@@ -188,7 +188,7 @@ public class DiaryQueryService {
     }
 
     public DiaryDomain.DiaryDetailResponse findById(Long diaryId) {
-        var id = RequestUtils.getId();
+        var id = CurrentRequest.getId();
         if (id == null) {
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
         }

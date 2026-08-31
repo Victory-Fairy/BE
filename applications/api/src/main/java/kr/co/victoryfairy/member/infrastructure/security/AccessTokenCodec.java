@@ -5,13 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.response.StatusEnum;
 import kr.co.victoryfairy.web.error.CustomException;
-import kr.co.victoryfairy.member.infrastructure.security.MemberAccount;
-import kr.co.victoryfairy.member.infrastructure.security.JwtProperties;
-import kr.co.victoryfairy.logging.util.LogMaskingUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 
 import java.util.HashMap;
@@ -19,14 +14,14 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@RequiredArgsConstructor
-public class AccessTokenUtils {
+public final class AccessTokenCodec {
 
-    // private final JwtProperties jwtProperties;
+    private AccessTokenCodec() {
+    }
 
     public static String getAccessToken(HttpServletRequest request) {
         var accessToken = request.getHeader("Authorization");
-        log.debug("accessToken : {}", LogMaskingUtils.maskToken(accessToken));
+        log.debug("accessToken : {}", TokenMasker.maskToken(accessToken));
         if (StringUtils.isNotEmpty(accessToken) && accessToken.startsWith("Bearer ")) {
             return accessToken.substring(7); // "Bearer " 접두사 제거
         }
@@ -35,7 +30,7 @@ public class AccessTokenUtils {
 
     public static Boolean checkToken(HttpServletRequest request, JwtProperties jwtProperties) {
         var accessToken = getAccessToken(request);
-        log.debug("accessToken : {}", LogMaskingUtils.maskToken(accessToken));
+        log.debug("accessToken : {}", TokenMasker.maskToken(accessToken));
         // accessToken 유무 판단
         if (StringUtils.isEmpty(accessToken)) {
             return accessError(accessToken);
@@ -49,7 +44,7 @@ public class AccessTokenUtils {
     //토큰 체크
     public static Boolean checkAccessToken(String accessToken, JwtProperties jwtProperties, HttpServletRequest request) {
 
-        var parseToken = JwtUtils.parseToken(accessToken, jwtProperties.getSecretKey());
+        var parseToken = JwtCodec.parseToken(accessToken, jwtProperties.getSecretKey());
         boolean isCertifiedToken = Boolean.parseBoolean(parseToken.get("isCertifiedToken").toString());
         if (!isCertifiedToken) {
             // accessToken is wrong
@@ -96,12 +91,12 @@ public class AccessTokenUtils {
 
         // Access Token 생성 (분 단위)
         int accessTokenExpireMinutes = Integer.parseInt(account.getExpireMinutes());
-        String token = JwtUtils.generateToken(claims, accessTokenExpireMinutes, jwtProperties.getSecretKey());
+        String token = JwtCodec.generateToken(claims, accessTokenExpireMinutes, jwtProperties.getSecretKey());
         account.setAccessToken(token);
 
         // Refresh Token 생성 (일 단위 → 분 단위로 변환)
         int refreshTokenExpireMinutes = refreshTokenExpireDays * 24 * 60;
-        String refreshToken = JwtUtils.generateToken(claims, refreshTokenExpireMinutes, jwtProperties.getSecretKey());
+        String refreshToken = JwtCodec.generateToken(claims, refreshTokenExpireMinutes, jwtProperties.getSecretKey());
         account.setRefreshToken(refreshToken);
     }
 
@@ -112,17 +107,17 @@ public class AccessTokenUtils {
      * @return MemberAccount 정보
      */
     public static MemberAccount parseRefreshToken(String refreshToken, JwtProperties jwtProperties) {
-        var parseToken = JwtUtils.parseToken(refreshToken, jwtProperties.getSecretKey());
+        var parseToken = JwtCodec.parseToken(refreshToken, jwtProperties.getSecretKey());
 
         boolean isCertifiedToken = Boolean.parseBoolean(parseToken.get("isCertifiedToken").toString());
         if (!isCertifiedToken) {
-            log.warn("Refresh Token 서명 검증 실패: {}", LogMaskingUtils.maskToken(refreshToken));
+            log.warn("Refresh Token 서명 검증 실패: {}", TokenMasker.maskToken(refreshToken));
             throw new CustomException(HttpStatus.UNAUTHORIZED, StatusEnum.STATUS_903);
         }
 
         boolean isExpired = Boolean.parseBoolean(parseToken.get("isExpired").toString());
         if (isExpired) {
-            log.warn("Refresh Token 만료됨: {}", LogMaskingUtils.maskToken(refreshToken));
+            log.warn("Refresh Token 만료됨: {}", TokenMasker.maskToken(refreshToken));
             throw new CustomException(HttpStatus.UNAUTHORIZED, StatusEnum.STATUS_903);
         }
 
@@ -139,22 +134,22 @@ public class AccessTokenUtils {
     }
 
     private static Boolean accessError(String accessToken) {
-        log.warn("accessToken is wrong : {}", LogMaskingUtils.maskToken(accessToken));
+        log.warn("accessToken is wrong : {}", TokenMasker.maskToken(accessToken));
         throw new CustomException(HttpStatus.UNAUTHORIZED, StatusEnum.STATUS_901);
     }
 
     private static Boolean accessExpiredError(String accessToken) {
-        log.warn("accessToken is expired : {}", LogMaskingUtils.maskToken(accessToken));
+        log.warn("accessToken is expired : {}", TokenMasker.maskToken(accessToken));
         throw new CustomException(MessageEnum.Auth.FAIL_VALID_EXPIRED);
     }
 
     private static Boolean accessOverlapError(String accessToken) {
-        log.warn("accessToken is overlapped : {}", LogMaskingUtils.maskToken(accessToken));
+        log.warn("accessToken is overlapped : {}", TokenMasker.maskToken(accessToken));
         throw new CustomException(MessageEnum.Auth.FAIL_OVERLAP);
     }
 
     private static Boolean needCheckRefreshTokenError(String accessToken) {
-        log.warn("accessToken is expired, need check refreshToken : {}", LogMaskingUtils.maskToken(accessToken));
+        log.warn("accessToken is expired, need check refreshToken : {}", TokenMasker.maskToken(accessToken));
         throw new CustomException(HttpStatus.FORBIDDEN, StatusEnum.STATUS_902);
     }
 

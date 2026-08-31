@@ -6,7 +6,7 @@ import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.AuthModel;
 import kr.co.victoryfairy.member.infrastructure.security.JwtService;
-import kr.co.victoryfairy.member.infrastructure.security.RequestUtils;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -50,7 +50,7 @@ public class AdminAuthService {
 
         var accessTokenDto = jwtService.makeAccessToken(adminDto);
 
-        admin.updateLastLogin(RequestUtils.getRemoteIp(), LocalDateTime.now());
+        admin.updateLastLogin(CurrentRequest.getRemoteIp(), LocalDateTime.now());
         adminRepository.save(admin);
         return new AdminAuthDto.LoginResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
     }

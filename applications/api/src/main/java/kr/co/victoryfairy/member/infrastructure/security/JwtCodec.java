@@ -11,7 +11,10 @@ import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
-public class JwtUtils {
+public final class JwtCodec {
+
+    private JwtCodec() {
+    }
 
     public static Claims parseToken(String token, String secretKey) {
         Claims claims = Jwts.claims();

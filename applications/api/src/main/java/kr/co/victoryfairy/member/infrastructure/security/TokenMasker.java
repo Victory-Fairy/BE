@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.logging.util;
+package kr.co.victoryfairy.member.infrastructure.security;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 /**
  * 로그에서 민감정보를 마스킹하는 유틸리티
  */
-public final class LogMaskingUtils {
+public final class TokenMasker {
 
     private static final Set<String> SENSITIVE_PARAM_NAMES = new HashSet<>(Arrays.asList(
             "password", "pwd", "secret", "token", "accessToken", "refreshToken",
@@ -20,7 +20,7 @@ public final class LogMaskingUtils {
     private static final Pattern JWT_PATTERN = Pattern.compile("eyJ[A-Za-z0-9_-]*\\.eyJ[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*");
     private static final Pattern BEARER_PATTERN = Pattern.compile("Bearer\\s+([A-Za-z0-9_.-]+)");
 
-    private LogMaskingUtils() {
+    private TokenMasker() {
     }
 
     /**

@@ -23,7 +23,10 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class HttpClientUtils {
+public final class OauthHttpClient {
+
+    private OauthHttpClient() {
+    }
 
     public static String doGet(String url, Map<String, String> param, Map<String, String> headers) {
         var httpclient = HttpClients.createDefault();

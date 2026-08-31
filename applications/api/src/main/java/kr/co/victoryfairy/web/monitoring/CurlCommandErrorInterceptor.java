@@ -3,7 +3,7 @@ package kr.co.victoryfairy.web.monitoring;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kr.co.victoryfairy.web.monitoring.SlackUtils;
+import kr.co.victoryfairy.web.monitoring.SlackNotifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ import java.util.Map;
 @Slf4j
 public class CurlCommandErrorInterceptor implements HandlerInterceptor {
 
-    private final SlackUtils slackUtils;
+    private final SlackNotifier slackNotifier;
 
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
@@ -84,7 +84,7 @@ public class CurlCommandErrorInterceptor implements HandlerInterceptor {
         }
 
         // Slack으로 전송
-        slackUtils.sendSlackCurl(String.valueOf(request.getRequestURL()), String.valueOf(curlCommand), responseBody);
+        slackNotifier.sendSlackCurl(String.valueOf(request.getRequestURL()), String.valueOf(curlCommand), responseBody);
 
         log.info("Generated curl command: {}", curlCommand);
     }

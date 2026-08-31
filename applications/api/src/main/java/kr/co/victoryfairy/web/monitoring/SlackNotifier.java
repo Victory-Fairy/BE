@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class SlackUtils {
+public class SlackNotifier {
 
     @Value("${webhook.slack.url}")
     private String slackWebhookUrl;

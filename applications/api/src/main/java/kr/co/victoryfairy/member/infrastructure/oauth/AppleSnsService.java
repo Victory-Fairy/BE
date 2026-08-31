@@ -11,7 +11,7 @@ import kr.co.victoryfairy.member.presentation.MemberDomain;
 import kr.co.victoryfairy.member.infrastructure.oauth.model.AppleResponseWrapper;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
-import kr.co.victoryfairy.member.infrastructure.oauth.HttpClientUtils;
+import kr.co.victoryfairy.member.infrastructure.oauth.OauthHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -97,7 +97,7 @@ public class AppleSnsService implements OauthService {
         log.warn("url:*******" + url + "*******");
         ObjectMapper mapper = new ObjectMapper();
         AppleResponseWrapper appleResponseWrapper = null;
-        String response = HttpClientUtils.doPost(url, param);
+        String response = OauthHttpClient.doPost(url, param);
         try {
             appleResponseWrapper = mapper.readValue(response, AppleResponseWrapper.class);
             log.info("appleResponseWrapper :  {}", appleResponseWrapper);

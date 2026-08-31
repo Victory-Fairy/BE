@@ -9,7 +9,7 @@ import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.web.response.CustomResponse;
 import kr.co.victoryfairy.member.infrastructure.security.JwtProperties;
-import kr.co.victoryfairy.member.infrastructure.security.AccessTokenUtils;
+import kr.co.victoryfairy.member.infrastructure.security.AccessTokenCodec;
 import kr.co.victoryfairy.web.filter.PathPatternWebFilter;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +35,7 @@ public class AdminAccessTokenFilter extends PathPatternWebFilter {
     @Override
     public void filterMatched(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            AccessTokenUtils.checkToken(request, jwtProperties);
+            AccessTokenCodec.checkToken(request, jwtProperties);
         } catch (Exception e) {
             ObjectMapper objectMapper = new ObjectMapper();
             response.setContentType("application/json");

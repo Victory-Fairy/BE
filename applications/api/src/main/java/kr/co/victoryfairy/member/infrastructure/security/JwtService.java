@@ -8,8 +8,8 @@ import kr.co.victoryfairy.member.infrastructure.security.AuthModel;
 import kr.co.victoryfairy.member.infrastructure.security.MemberAccount;
 import kr.co.victoryfairy.member.infrastructure.security.JwtProperties;
 import kr.co.victoryfairy.member.infrastructure.security.RefreshTokenRepository;
-import kr.co.victoryfairy.member.infrastructure.security.AccessTokenUtils;
-import kr.co.victoryfairy.member.infrastructure.security.RequestUtils;
+import kr.co.victoryfairy.member.infrastructure.security.AccessTokenCodec;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,7 +29,7 @@ public class JwtService {
      * Refresh Token: jwtProperties.refreshTokenExpireDays 사용 + Redis 저장
      */
     public AccessTokenDto makeAccessToken(AuthModel.MemberDto member) {
-        String ip = RequestUtils.getRemoteIp();
+        String ip = CurrentRequest.getRemoteIp();
         int accessTokenExpireMinutes = jwtProperties.getAccessTokenExpireMinutes();
         int refreshTokenExpireDays = jwtProperties.getRefreshTokenExpireDays();
 
@@ -40,7 +40,7 @@ public class JwtService {
             .build();
 
         // Access Token, Refresh Token 생성
-        AccessTokenUtils.makeAuthToken(account, jwtProperties, refreshTokenExpireDays);
+        AccessTokenCodec.makeAuthToken(account, jwtProperties, refreshTokenExpireDays);
 
         // Refresh Token을 Redis에 저장
         refreshTokenRepository.save(member.getId(), account.getRefreshToken(), refreshTokenExpireDays);
@@ -57,7 +57,7 @@ public class JwtService {
      * JWT 토큰 생성 (Admin용)
      */
     public AccessTokenDto makeAccessToken(AuthModel.AdminDto admin) {
-        String ip = RequestUtils.getRemoteIp();
+        String ip = CurrentRequest.getRemoteIp();
         int accessTokenExpireMinutes = jwtProperties.getAccessTokenExpireMinutes();
         int refreshTokenExpireDays = jwtProperties.getRefreshTokenExpireDays();
 
@@ -68,7 +68,7 @@ public class JwtService {
             .build();
 
         // Access Token, Refresh Token 생성
-        AccessTokenUtils.makeAuthToken(account, jwtProperties, refreshTokenExpireDays);
+        AccessTokenCodec.makeAuthToken(account, jwtProperties, refreshTokenExpireDays);
 
         // Refresh Token을 Redis에 저장 (Admin용 prefix 사용)
         refreshTokenRepository.saveAdmin(admin.getId(), account.getRefreshToken(), refreshTokenExpireDays);
@@ -86,7 +86,7 @@ public class JwtService {
      */
     public AccessTokenDto checkMemberRefreshToken(String refreshToken) {
         // JWT 자체 검증 (서명, 만료 등)
-        MemberAccount memberAccount = AccessTokenUtils.parseRefreshToken(refreshToken, jwtProperties);
+        MemberAccount memberAccount = AccessTokenCodec.parseRefreshToken(refreshToken, jwtProperties);
 
         // Redis에 저장된 Refresh Token과 비교
         boolean isValid = refreshTokenRepository.validate(memberAccount.getId(), refreshToken);
@@ -100,7 +100,7 @@ public class JwtService {
         int refreshTokenExpireDays = jwtProperties.getRefreshTokenExpireDays();
 
         memberAccount.setExpireMinutes(String.valueOf(accessTokenExpireMinutes));
-        AccessTokenUtils.makeAuthToken(memberAccount, jwtProperties, refreshTokenExpireDays);
+        AccessTokenCodec.makeAuthToken(memberAccount, jwtProperties, refreshTokenExpireDays);
 
         // 새 Refresh Token을 Redis에 저장 (기존 토큰 대체)
         refreshTokenRepository.rotate(memberAccount.getId(), memberAccount.getRefreshToken(), refreshTokenExpireDays);
@@ -117,7 +117,7 @@ public class JwtService {
      */
     public AccessTokenDto checkAdminRefreshToken(String refreshToken) {
         // JWT 자체 검증 (서명, 만료 등)
-        MemberAccount adminAccount = AccessTokenUtils.parseRefreshToken(refreshToken, jwtProperties);
+        MemberAccount adminAccount = AccessTokenCodec.parseRefreshToken(refreshToken, jwtProperties);
 
         // Redis에 저장된 Admin Refresh Token과 비교
         boolean isValid = refreshTokenRepository.validateAdmin(adminAccount.getId(), refreshToken);
@@ -131,7 +131,7 @@ public class JwtService {
         int refreshTokenExpireDays = jwtProperties.getRefreshTokenExpireDays();
 
         adminAccount.setExpireMinutes(String.valueOf(accessTokenExpireMinutes));
-        AccessTokenUtils.makeAuthToken(adminAccount, jwtProperties, refreshTokenExpireDays);
+        AccessTokenCodec.makeAuthToken(adminAccount, jwtProperties, refreshTokenExpireDays);
 
         // 새 Refresh Token을 Redis에 저장 (기존 토큰 대체)
         refreshTokenRepository.rotateAdmin(adminAccount.getId(), adminAccount.getRefreshToken(),
