@@ -20,7 +20,6 @@ import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -50,7 +49,7 @@ public class LiveGameSyncService {
 
     private final RedisHandler redisHandler;
 
-    private final CrawService crawService;
+    private final KboGameCrawler gameCrawler;
 
     private final KboLiveGameCrawler crawler;
 
@@ -58,12 +57,12 @@ public class LiveGameSyncService {
 
     public LiveGameSyncService(GameMatchCustomRepository gameMatchCustomRepository,
             GameMatchRepository gameMatchRepository, RedisHandler redisHandler,
-            @Qualifier("crawServiceImpl") CrawService crawService, KboLiveGameCrawler crawler,
+            KboGameCrawler gameCrawler, KboLiveGameCrawler crawler,
             GameRecordDomainService gameRecordDomainService) {
         this.gameMatchCustomRepository = gameMatchCustomRepository;
         this.gameMatchRepository = gameMatchRepository;
         this.redisHandler = redisHandler;
-        this.crawService = crawService;
+        this.gameCrawler = gameCrawler;
         this.crawler = crawler;
         this.gameRecordDomainService = gameRecordDomainService;
     }
@@ -142,7 +141,7 @@ public class LiveGameSyncService {
             }
         }
         else if (snapshot.status() == MatchEnum.MatchStatus.END && !Boolean.TRUE.equals(match.getIsMatchInfoCraw())) {
-            crawService.crawMatchDetailById(match.getId());
+            gameCrawler.crawMatchDetailById(match.getId());
             clearLiveRecords(match.getId());
         }
     }

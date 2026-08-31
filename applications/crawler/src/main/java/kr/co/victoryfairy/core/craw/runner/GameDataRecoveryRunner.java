@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.common.service.GameRecordDomainService;
-import kr.co.victoryfairy.core.craw.service.CrawService;
+import kr.co.victoryfairy.core.craw.service.KboGameCrawler;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
 import org.slf4j.Logger;
@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,7 +34,7 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
 
     private final boolean dryRun;
 
-    private final CrawService crawService;
+    private final KboGameCrawler crawler;
 
     private final GameMatchCustomRepository gameMatchCustomRepository;
 
@@ -46,7 +45,7 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
     public GameDataRecoveryRunner(@Value("${game-recovery.from:}") String from,
             @Value("${game-recovery.to:}") String to, @Value("${game-recovery.days-ago:0}") int daysAgo,
             @Value("${game-recovery.dry-run:true}") boolean dryRun,
-            @Qualifier("crawServiceImpl") CrawService crawService, GameMatchCustomRepository gameMatchCustomRepository,
+            KboGameCrawler crawler, GameMatchCustomRepository gameMatchCustomRepository,
             GameRecordDomainService gameRecordDomainService, RedisHandler redisHandler) {
         var range = resolveDateRange(from, to, daysAgo, LocalDate.now(KOREA));
         this.from = range.from();
@@ -55,7 +54,7 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
             throw new IllegalArgumentException("game-recovery.from must not be after game-recovery.to");
         }
         this.dryRun = dryRun;
-        this.crawService = crawService;
+        this.crawler = crawler;
         this.gameMatchCustomRepository = gameMatchCustomRepository;
         this.gameRecordDomainService = gameRecordDomainService;
         this.redisHandler = redisHandler;
@@ -88,7 +87,7 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
         }
 
         for (YearMonth month = YearMonth.from(from); !month.isAfter(YearMonth.from(to)); month = month.plusMonths(1)) {
-            crawService.crawMatchListByMonth(String.valueOf(month.getYear()),
+            crawler.crawMatchListByMonth(String.valueOf(month.getYear()),
                     String.format("%02d", month.getMonthValue()));
         }
 
@@ -102,7 +101,7 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
                 }
                 if (match.getStatus() == MatchEnum.MatchStatus.END
                         && !Boolean.TRUE.equals(match.getIsMatchInfoCraw())) {
-                    crawService.crawMatchDetailById(match.getId());
+                    crawler.crawMatchDetailById(match.getId());
                     details++;
                 }
                 diaryRecords += gameRecordDomainService.recover(match);

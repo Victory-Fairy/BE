@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.core.craw.service.impl;
+package kr.co.victoryfairy.core.craw.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -9,7 +9,7 @@ import kr.co.victoryfairy.storage.db.core.entity.StadiumEntity;
 import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
 import org.junit.jupiter.api.Test;
 
-class CrawServiceImplTest {
+class KboGameCrawlerTest {
 
     @Test
     void recoversDetailsOnlyForFinishedMatchesWithoutExistingDetails() {
@@ -26,21 +26,21 @@ class CrawServiceImplTest {
             .isMatchInfoCraw(false)
             .build();
 
-        assertThat(CrawServiceImpl.needsDetailRecovery(missing)).isTrue();
-        assertThat(CrawServiceImpl.needsDetailRecovery(completed)).isFalse();
-        assertThat(CrawServiceImpl.needsDetailRecovery(canceled)).isFalse();
+        assertThat(KboGameCrawler.needsDetailRecovery(missing)).isTrue();
+        assertThat(KboGameCrawler.needsDetailRecovery(completed)).isFalse();
+        assertThat(KboGameCrawler.needsDetailRecovery(canceled)).isFalse();
     }
 
     @Test
     void excludesTeamsWithoutKboCodeFromScheduleLookup() {
-        assertThat(CrawServiceImpl.hasKboName(new TeamEntity(1L, "대한민국", null))).isFalse();
-        assertThat(CrawServiceImpl.hasKboName(new TeamEntity(2L, "LG", "LG"))).isTrue();
+        assertThat(KboGameCrawler.hasKboName(new TeamEntity(1L, "대한민국", null))).isFalse();
+        assertThat(KboGameCrawler.hasKboName(new TeamEntity(2L, "LG", "LG"))).isTrue();
     }
 
     @Test
     void excludesWbcStadiumsFromKboScheduleLookup() {
-        assertThat(CrawServiceImpl.isKboStadium(StadiumEntity.builder().externalId(4169).build())).isFalse();
-        assertThat(CrawServiceImpl.isKboStadium(StadiumEntity.builder().region("잠실").build())).isTrue();
+        assertThat(KboGameCrawler.isKboStadium(StadiumEntity.builder().externalId(4169).build())).isFalse();
+        assertThat(KboGameCrawler.isKboStadium(StadiumEntity.builder().region("잠실").build())).isTrue();
     }
 
     @Test
@@ -56,7 +56,7 @@ class CrawServiceImplTest {
                 "{\"rows\":[{\"row\":[{\"Text\":\"6\"},{\"Text\":\"92\"},{\"Text\":\"30\"},{\"Text\":\"62\"},{\"Text\":\"5\"},{\"Text\":\"0\"},{\"Text\":\"2\"},{\"Text\":\"7\"},{\"Text\":\"1\"}]}]}");
         GameMatchEntity match = GameMatchEntity.builder().season("2026").build();
 
-        var records = CrawServiceImpl.parseOfficialRecords(mapper, response.toString(), match, false);
+        var records = KboGameCrawler.parseOfficialRecords(mapper, response.toString(), match, false);
 
         assertThat(records.hitters()).singleElement().satisfies(hitter -> {
             assertThat(hitter.getName()).isEqualTo("김도영");

@@ -10,7 +10,7 @@ import java.util.List;
 
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.common.service.GameRecordDomainService;
-import kr.co.victoryfairy.core.craw.service.CrawService;
+import kr.co.victoryfairy.core.craw.service.KboGameCrawler;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
 import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
@@ -30,7 +30,7 @@ class GameDataRecoveryRunnerTest {
 
     @Test
     void recoversOnlyMissingEndedMatchDetailsAndClearsDailyCache() throws Exception {
-        CrawService crawService = Mockito.mock(CrawService.class);
+        KboGameCrawler crawler = Mockito.mock(KboGameCrawler.class);
         GameMatchCustomRepository customRepository = Mockito.mock(GameMatchCustomRepository.class);
         GameRecordDomainService diaryRecovery = Mockito.mock(GameRecordDomainService.class);
         RedisHandler redis = Mockito.mock(RedisHandler.class);
@@ -46,13 +46,13 @@ class GameDataRecoveryRunnerTest {
             .build();
         LocalDate date = LocalDate.of(2026, 8, 19);
         when(customRepository.findByMatchAt(date, MatchEnum.LeagueType.KBO)).thenReturn(List.of(ended, canceled));
-        new GameDataRecoveryRunner("2026-08-19", "2026-08-19", 0, false, crawService, customRepository, diaryRecovery,
+        new GameDataRecoveryRunner("2026-08-19", "2026-08-19", 0, false, crawler, customRepository, diaryRecovery,
                 redis)
             .run(Mockito.mock(ApplicationArguments.class));
 
-        verify(crawService).crawMatchListByMonth("2026", "08");
-        verify(crawService).crawMatchDetailById(ended.getId());
-        verify(crawService, never()).crawMatchDetailById(canceled.getId());
+        verify(crawler).crawMatchListByMonth("2026", "08");
+        verify(crawler).crawMatchDetailById(ended.getId());
+        verify(crawler, never()).crawMatchDetailById(canceled.getId());
         verify(diaryRecovery).recover(ended);
         verify(diaryRecovery).recover(canceled);
         verify(redis).deleteHash("20260819_match_list");
@@ -60,16 +60,16 @@ class GameDataRecoveryRunnerTest {
 
     @Test
     void dryRunDoesNotChangeAnything() throws Exception {
-        CrawService crawService = Mockito.mock(CrawService.class);
+        KboGameCrawler crawler = Mockito.mock(KboGameCrawler.class);
         GameMatchCustomRepository customRepository = Mockito.mock(GameMatchCustomRepository.class);
         GameRecordDomainService diaryRecovery = Mockito.mock(GameRecordDomainService.class);
         RedisHandler redis = Mockito.mock(RedisHandler.class);
 
-        new GameDataRecoveryRunner("2026-08-19", "2026-08-27", 0, true, crawService, customRepository, diaryRecovery,
+        new GameDataRecoveryRunner("2026-08-19", "2026-08-27", 0, true, crawler, customRepository, diaryRecovery,
                 redis)
             .run(Mockito.mock(ApplicationArguments.class));
 
-        verify(crawService, never()).crawMatchListByMonth(Mockito.anyString(), Mockito.anyString());
+        verify(crawler, never()).crawMatchListByMonth(Mockito.anyString(), Mockito.anyString());
         verify(redis, never()).deleteHash(Mockito.anyString());
     }
 

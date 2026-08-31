@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.core.craw.service.impl;
+package kr.co.victoryfairy.core.craw.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,8 +9,6 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.TeamEnum;
-import kr.co.victoryfairy.core.craw.service.CrawService;
-import kr.co.victoryfairy.core.craw.service.MatchScheduleSyncService;
 import kr.co.victoryfairy.storage.db.core.entity.*;
 import kr.co.victoryfairy.storage.db.core.repository.*;
 import kr.co.victoryfairy.support.constant.MessageEnum;
@@ -33,7 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class CrawServiceImpl implements CrawService {
+public class KboGameCrawler {
 
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
@@ -51,7 +49,7 @@ public class CrawServiceImpl implements CrawService {
 
     private final ObjectMapper objectMapper;
 
-    public CrawServiceImpl(TeamRepository teamRepository, StadiumRepository stadiumRepository,
+    public KboGameCrawler(TeamRepository teamRepository, StadiumRepository stadiumRepository,
             GameMatchRepository gameMatchRepository, HitterRecordRepository hitterRecordRepository,
             PitcherRecordRepository pitcherRecordRepository, MatchScheduleSyncService matchScheduleSyncService,
             ObjectMapper objectMapper) {
@@ -64,7 +62,6 @@ public class CrawServiceImpl implements CrawService {
         this.objectMapper = objectMapper;
     }
 
-    @Override
     @Transactional
     public void crawMatchList(String sYear, String sMonth) {
         try (Playwright playwright = Playwright.create()) {
@@ -79,12 +76,12 @@ public class CrawServiceImpl implements CrawService {
 
             var teamEntities = teamRepository.findAll()
                 .stream()
-                .filter(CrawServiceImpl::hasKboName)
+                .filter(KboGameCrawler::hasKboName)
                 .collect(Collectors.toMap(TeamEntity::getKboNm, entity -> entity));
 
             var stadiumEntities = stadiumRepository.findAll()
                 .stream()
-                .filter(CrawServiceImpl::isKboStadium)
+                .filter(KboGameCrawler::isKboStadium)
                 .collect(Collectors.toMap(StadiumEntity::getRegion, entity -> entity));
 
             List<GameMatchEntity> gameEntities = new ArrayList<>();
@@ -266,12 +263,11 @@ public class CrawServiceImpl implements CrawService {
         }
     }
 
-    @Override
     public void crawMatchDetail(String sYear) {
         var matches = gameMatchRepository.findBySeason(sYear)
             .stream()
             .sorted(Comparator.comparing(GameMatchEntity::getMatchAt))
-            .filter(CrawServiceImpl::needsDetailRecovery)
+            .filter(KboGameCrawler::needsDetailRecovery)
             .toList();
         matches.forEach(match -> crawMatchDetailById(match.getId()));
     }
@@ -289,7 +285,6 @@ public class CrawServiceImpl implements CrawService {
         return stadium.getExternalId() == null;
     }
 
-    @Override
     @Transactional
     public void crawMatchDetailById(String id) {
         var match = gameMatchRepository.findById(id)
@@ -317,7 +312,6 @@ public class CrawServiceImpl implements CrawService {
         }
     }
 
-    @Override
     public void crawMatchListByMonth(String sYear, String sMonth) {
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.chromium().launch();
@@ -329,12 +323,12 @@ public class CrawServiceImpl implements CrawService {
 
             var teamEntities = teamRepository.findAll()
                 .stream()
-                .filter(CrawServiceImpl::hasKboName)
+                .filter(KboGameCrawler::hasKboName)
                 .collect(Collectors.toMap(TeamEntity::getKboNm, entity -> entity));
 
             var stadiumEntities = stadiumRepository.findAll()
                 .stream()
-                .filter(CrawServiceImpl::isKboStadium)
+                .filter(KboGameCrawler::isKboStadium)
                 .collect(Collectors.toMap(StadiumEntity::getRegion, entity -> entity));
 
             List<GameMatchEntity> gameEntities = new ArrayList<>();

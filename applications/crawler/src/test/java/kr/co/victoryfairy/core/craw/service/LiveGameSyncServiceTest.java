@@ -104,19 +104,19 @@ class LiveGameSyncServiceTest {
         var customRepository = mock(GameMatchCustomRepository.class);
         var gameMatchRepository = mock(GameMatchRepository.class);
         var redisHandler = mock(RedisHandler.class);
-        var crawService = mock(CrawService.class);
-        var crawler = mock(KboLiveGameCrawler.class);
+        var gameCrawler = mock(KboGameCrawler.class);
+        var liveCrawler = mock(KboLiveGameCrawler.class);
         var first = match("first");
         var second = match("second");
         var records = new Records(List.of(), List.of(), List.of(), List.of());
 
         when(customRepository.findByMatchAt(any(), eq(MatchEnum.LeagueType.KBO))).thenReturn(List.of(first, second));
-        when(crawler.crawl(any(), any()))
+        when(liveCrawler.crawl(any(), any()))
             .thenReturn(List.of(new Snapshot("first", MatchEnum.MatchStatus.READY, "경기예정", "-", null, null, records),
                     new Snapshot("second", MatchEnum.MatchStatus.READY, "경기예정", "-", null, null, records)));
         doThrow(new IllegalStateException("redis unavailable")).when(redisHandler).pushHash(any(), eq("first"), any());
 
-        new LiveGameSyncService(customRepository, gameMatchRepository, redisHandler, crawService, crawler,
+        new LiveGameSyncService(customRepository, gameMatchRepository, redisHandler, gameCrawler, liveCrawler,
                 mock(GameRecordDomainService.class))
             .sync();
 
@@ -128,7 +128,7 @@ class LiveGameSyncServiceTest {
         var customRepository = mock(GameMatchCustomRepository.class);
         var gameMatchRepository = mock(GameMatchRepository.class);
         var redisHandler = mock(RedisHandler.class);
-        var crawService = mock(CrawService.class);
+        var gameCrawler = mock(KboGameCrawler.class);
         var crawler = mock(KboLiveGameCrawler.class);
         var gameRecordService = mock(GameRecordDomainService.class);
         var away = new TeamEntity(1L, "KT", "KT");
@@ -150,7 +150,7 @@ class LiveGameSyncServiceTest {
                 List.of(new Snapshot("ended", MatchEnum.MatchStatus.END, "경기종료", "-", (short) 6, (short) 13, records)));
         when(gameMatchRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        new LiveGameSyncService(customRepository, gameMatchRepository, redisHandler, crawService, crawler,
+        new LiveGameSyncService(customRepository, gameMatchRepository, redisHandler, gameCrawler, crawler,
                 gameRecordService)
             .sync();
 
@@ -182,7 +182,7 @@ class LiveGameSyncServiceTest {
 
     private static LiveGameSyncService service(GameMatchCustomRepository customRepository) {
         return new LiveGameSyncService(customRepository, mock(GameMatchRepository.class), mock(RedisHandler.class),
-                mock(CrawService.class), mock(KboLiveGameCrawler.class), mock(GameRecordDomainService.class));
+                mock(KboGameCrawler.class), mock(KboLiveGameCrawler.class), mock(GameRecordDomainService.class));
     }
 
 }

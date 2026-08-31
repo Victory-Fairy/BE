@@ -1,10 +1,9 @@
-package kr.co.victoryfairy.core.craw.service.impl;
+package kr.co.victoryfairy.core.craw.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.WbcEnum;
-import kr.co.victoryfairy.core.craw.service.CrawService;
 import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
 import kr.co.victoryfairy.storage.db.core.entity.StadiumEntity;
 import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
@@ -20,8 +19,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service("wbcCrawService")
-public class WbcCrawServiceImpl implements CrawService {
+@Service
+public class WbcGameCrawler {
 
     private static final String MLB_STATS_API = "https://statsapi.mlb.com/api/v1/schedule";
 
@@ -37,7 +36,7 @@ public class WbcCrawServiceImpl implements CrawService {
 
     private final ObjectMapper objectMapper;
 
-    public WbcCrawServiceImpl(TeamRepository teamRepository, GameMatchRepository gameMatchRepository,
+    public WbcGameCrawler(TeamRepository teamRepository, GameMatchRepository gameMatchRepository,
             StadiumRepository stadiumRepository) {
         this.teamRepository = teamRepository;
         this.gameMatchRepository = gameMatchRepository;
@@ -46,7 +45,6 @@ public class WbcCrawServiceImpl implements CrawService {
         this.objectMapper = new ObjectMapper();
     }
 
-    @Override
     @Transactional
     public void crawMatchList(String sYear, String sMonth) {
         // 연도 유효성 검사
@@ -211,21 +209,6 @@ public class WbcCrawServiceImpl implements CrawService {
 
     private String getTextOrNull(JsonNode node, String field) {
         return node.has(field) && !node.get(field).isNull() ? node.get(field).asText() : null;
-    }
-
-    @Override
-    public void crawMatchDetail(String sYear) {
-        // WBC는 상세 기록 크롤링 미지원
-    }
-
-    @Override
-    public void crawMatchDetailById(String id) {
-        // WBC는 상세 기록 크롤링 미지원
-    }
-
-    @Override
-    public void crawMatchListByMonth(String sYear, String sMonth) {
-        crawMatchList(sYear, sMonth);
     }
 
 }
