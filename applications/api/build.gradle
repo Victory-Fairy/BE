@@ -6,28 +6,12 @@ apply plugin: 'info.solidsoft.pitest'
 
 bootJar {
     enabled = true
-
-    /*doLast {
-        // JAR 파일을 .deploy 디렉토리로 복사
+    doLast {
         copy {
             from "${buildDir}/libs/${project.name}.jar"
             into "${rootDir}/.deploy"
         }
 
-        // deploy.sh 실행
-        exec {
-            workingDir "${rootDir}/.deploy"
-            commandLine "sh", "deploy.sh", "${SERVICE}"
-        }
-    }*/
-    doLast {
-        // JAR -> .deploy 로 복사 (이건 유지)
-        copy {
-            from "${buildDir}/libs/core-${SERVICE}.jar"
-            into "${rootDir}/.deploy"
-        }
-
-        // ❌ Jenkins에서 이미 Docker 빌드/푸시 하므로, 로컬에서만 실행되도록 가드
         if (!project.hasProperty('ci')) {
             exec {
                 workingDir "${rootDir}/.deploy"
@@ -75,8 +59,8 @@ dependencies {
 }
 
 pitest {
-    targetClasses = ['kr.co.victoryfairy.core.api.service.DiaryQueryService']
-    targetTests = ['kr.co.victoryfairy.core.api.service.DiaryListServiceTest']
+    targetClasses = ['kr.co.victoryfairy.diary.application.DiaryQueryService']
+    targetTests = ['kr.co.victoryfairy.diary.application.DiaryListServiceTest']
     excludedMethods = [
         'writeDiary', 'lambda$writeDiary*',
         'updateDiary', 'lambda$updateDiary*',
