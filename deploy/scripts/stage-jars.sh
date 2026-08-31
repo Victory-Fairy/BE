@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 
-for service in api admin craw; do
+for service in api craw; do
   jar_file="core/core-${service}/build/libs/core-${service}.jar"
   test -f "$jar_file"
   mkdir -p "build/docker/${service}"
