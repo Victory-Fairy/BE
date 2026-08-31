@@ -59,6 +59,7 @@ awk -v tag="$image_tag" '
 APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$candidate_compose" config --quiet
 APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$candidate_compose" pull api craw
 docker run --rm \
+  --add-host api:127.0.0.1 \
   -v "$candidate_nginx:/etc/nginx/conf.d/default.conf:ro" \
   -v "$runtime_dir/letsencrypt:/etc/letsencrypt:ro" \
   nginx:1.27-alpine nginx -t
