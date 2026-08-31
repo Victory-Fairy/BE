@@ -10,7 +10,7 @@ APP_ENV_FILE="$repo_root/deploy/env.example" docker compose \
   config --quiet
 
 grep -q 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf"
-grep -q 'proxy_pass http://file:8082' "$repo_root/deploy/nginx/victoryfairy.conf"
+test "$(grep -c 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf")" -eq 2
 grep -q 'proxy_pass http://admin:8084' "$repo_root/deploy/nginx/victoryfairy.conf"
 
 live_service="$repo_root/deploy/systemd/victoryfairy-live-game.service"
@@ -24,6 +24,7 @@ test -x "$schedule_script"
 grep -q 'schedule-live-game.sh sync' "$live_service"
 grep -q 'schedule-live-game.sh plan' "$planner_service"
 grep -q 'pull api file admin craw' "$repo_root/deploy/scripts/deploy.sh"
+grep -q 'file-latest' "$repo_root/deploy/compose.yaml"
 
 runtime_dir="$(mktemp -d)"
 trap 'rm -rf "$runtime_dir"' EXIT

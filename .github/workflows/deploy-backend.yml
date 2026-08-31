@@ -35,7 +35,6 @@ jobs:
         run: >-
           ./gradlew unitTest
           :core:core-api:bootJar
-          :core:core-file:bootJar
           :core:core-admin:bootJar
           :core:core-craw:bootJar
           -Pci --parallel --build-cache
@@ -74,19 +73,6 @@ jobs:
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:api-latest
           cache-from: type=gha,scope=victory-fairy-api
           cache-to: type=gha,mode=max,scope=victory-fairy-api
-
-      - name: Build and push file service
-        uses: docker/build-push-action@v7
-        with:
-          context: build/docker/file
-          file: deploy/Dockerfile
-          platforms: linux/arm64
-          push: true
-          tags: |
-            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:file-${{ github.sha }}
-            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:file-latest
-          cache-from: type=gha,scope=victory-fairy-file
-          cache-to: type=gha,mode=max,scope=victory-fairy-file
 
       - name: Build and push admin
         uses: docker/build-push-action@v7
