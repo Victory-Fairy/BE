@@ -18,7 +18,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @RestController
-@RequestMapping()
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class RedirectController {
 

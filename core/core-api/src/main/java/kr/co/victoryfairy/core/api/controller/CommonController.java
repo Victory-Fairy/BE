@@ -14,7 +14,7 @@ import java.util.List;
 
 @Tag(name = "Common", description = "공통")
 @RestController
-@RequestMapping("/common")
+@RequestMapping("/api/common")
 @RequiredArgsConstructor
 public class CommonController {
 

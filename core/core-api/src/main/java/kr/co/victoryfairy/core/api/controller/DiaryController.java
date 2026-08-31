@@ -17,7 +17,7 @@ import java.util.List;
 
 @Tag(name = "Diary", description = "일기")
 @RestController
-@RequestMapping("/diary")
+@RequestMapping("/api/diary")
 public class DiaryController {
 
     private final DiaryService diaryService;

@@ -63,7 +63,7 @@ class CommonControllerE2ETest {
             given(commonService.findAll(eq(null))).willReturn(response);
 
             // when & then
-            mockMvc.perform(get("/common/team").contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/common/team").contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -84,7 +84,7 @@ class CommonControllerE2ETest {
             given(commonService.findAll(eq(MatchEnum.LeagueType.KBO))).willReturn(response);
 
             // when & then
-            mockMvc.perform(get("/common/team").param("league", "KBO").contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/common/team").param("league", "KBO").contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -106,7 +106,7 @@ class CommonControllerE2ETest {
             given(commonService.findAll(eq(MatchEnum.LeagueType.WBC))).willReturn(response);
 
             // when & then
-            mockMvc.perform(get("/common/team").param("league", "WBC").contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/common/team").param("league", "WBC").contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -128,7 +128,7 @@ class CommonControllerE2ETest {
             given(commonService.findAll(eq(MatchEnum.LeagueType.MLB))).willReturn(response);
 
             // when & then
-            mockMvc.perform(get("/common/team").param("league", "MLB").contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/common/team").param("league", "MLB").contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -147,7 +147,7 @@ class CommonControllerE2ETest {
             given(commonService.findAll(eq(null))).willReturn(response);
 
             // when & then
-            mockMvc.perform(get("/common/team").contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/common/team").contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -167,7 +167,7 @@ class CommonControllerE2ETest {
         @DisplayName("헬스체크 정상 응답")
         void healthCheck_shouldReturnTrue() throws Exception {
             // when & then
-            mockMvc.perform(get("/common/health").contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/common/health").contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))

@@ -64,7 +64,7 @@ class MatchControllerE2ETest {
             given(matchService.findList(eq(localDate), eq(null))).willReturn(response);
 
             // when & then
-            mockMvc.perform(get("/match/list").param("date", date).contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/match/list").param("date", date).contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -85,7 +85,7 @@ class MatchControllerE2ETest {
 
             // when & then
             mockMvc
-                .perform(get("/match/list").param("date", date)
+                .perform(get("/api/match/list").param("date", date)
                     .param("league", "KBO")
                     .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -107,7 +107,7 @@ class MatchControllerE2ETest {
 
             // when & then
             mockMvc
-                .perform(get("/match/list").param("date", date)
+                .perform(get("/api/match/list").param("date", date)
                     .param("league", "WBC")
                     .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -129,7 +129,7 @@ class MatchControllerE2ETest {
 
             // when & then
             mockMvc
-                .perform(get("/match/list").param("date", date)
+                .perform(get("/api/match/list").param("date", date)
                     .param("league", "MLB")
                     .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
@@ -156,7 +156,7 @@ class MatchControllerE2ETest {
             given(matchService.findList(eq(localDate), eq(null))).willReturn(response);
 
             // when & then
-            mockMvc.perform(get("/match/list").param("date", date).contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/match/list").param("date", date).contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -180,7 +180,7 @@ class MatchControllerE2ETest {
             given(matchService.findTodayMatch()).willReturn(response);
 
             // when & then
-            mockMvc.perform(get("/match/today").contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/match/today").contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -211,7 +211,7 @@ class MatchControllerE2ETest {
             given(matchService.findById(matchId)).willReturn(response);
 
             // when & then
-            mockMvc.perform(get("/match/{id}", matchId).contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(get("/api/match/{id}", matchId).contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))

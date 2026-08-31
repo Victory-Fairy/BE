@@ -15,7 +15,7 @@ import java.time.LocalDate;
 
 @Tag(name = "My Page", description = "미이 페이지")
 @RestController
-@RequestMapping("/my-page")
+@RequestMapping("/api/my-page")
 @RequiredArgsConstructor
 public class MyPageController {
 
