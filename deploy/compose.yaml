@@ -55,26 +55,6 @@ services:
       - /opt/victoryfairy/config/admin:/config/admin:ro
       - /opt/victoryfairy/config/file:/config/file:ro
 
-  file:
-    <<: *app-common
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:file-latest
-    environment:
-      <<: *app-environment
-      SERVER_PORT: "8082"
-      JAVA_TOOL_OPTIONS: -Xms128m -Xmx512m
-    volumes:
-      - /opt/victoryfairy/config/file:/config:ro
-
-  admin:
-    <<: *app-common
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:admin-latest
-    environment:
-      <<: *app-environment
-      SERVER_PORT: "8084"
-      JAVA_TOOL_OPTIONS: -Xms64m -Xmx384m
-    volumes:
-      - /opt/victoryfairy/config/admin:/config:ro
-
   craw:
     image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:craw-${IMAGE_TAG}
     profiles: [jobs]
