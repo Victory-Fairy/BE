@@ -29,6 +29,11 @@ grep -q 'schedule-live-game.sh sync' "$live_service"
 grep -q 'schedule-live-game.sh plan' "$planner_service"
 grep -q 'pull api file admin craw' "$repo_root/deploy/scripts/deploy.sh"
 grep -q 'file-latest' "$repo_root/deploy/compose.yaml"
+test -x "$repo_root/deploy/scripts/release-via-ssm.sh"
+grep -q 'release-via-ssm.sh' "$repo_root/.github/workflows/deploy-backend.yml"
+grep -q 'compose.next.yaml' "$repo_root/deploy/scripts/deploy.sh"
+grep -q 'victoryfairy.next.conf' "$repo_root/deploy/scripts/deploy.sh"
+
 runtime_dir="$(mktemp -d)"
 trap 'rm -rf "$runtime_dir"' EXIT
 printf '%s\n' 'LIVE_GAME_NEXT_AT=2026-09-04 18:20:00 Asia/Seoul' \

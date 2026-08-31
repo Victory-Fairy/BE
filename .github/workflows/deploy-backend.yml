@@ -101,36 +101,4 @@ jobs:
           cache-to: type=gha,mode=max,scope=victory-fairy-craw
 
       - name: Deploy through Systems Manager
-        shell: bash
-        run: |
-          set -euo pipefail
-          command_id="$(aws ssm send-command \
-            --instance-ids "$EC2_INSTANCE_ID" \
-            --document-name AWS-RunShellScript \
-            --timeout-seconds 900 \
-            --parameters commands="sudo /opt/victoryfairy/bin/deploy.sh $GITHUB_SHA" \
-            --query 'Command.CommandId' \
-            --output text)"
-
-          for _ in {1..180}; do
-            status="$(aws ssm get-command-invocation \
-              --command-id "$command_id" \
-              --instance-id "$EC2_INSTANCE_ID" \
-              --query 'Status' \
-              --output text 2>/dev/null || true)"
-
-            case "$status" in
-              Success)
-                aws ssm get-command-invocation --command-id "$command_id" --instance-id "$EC2_INSTANCE_ID" --query 'StandardOutputContent' --output text
-                exit 0
-                ;;
-              Pending|InProgress|Delayed|"") sleep 5 ;;
-              *)
-                aws ssm get-command-invocation --command-id "$command_id" --instance-id "$EC2_INSTANCE_ID" --query '[StandardOutputContent,StandardErrorContent]' --output text
-                exit 1
-                ;;
-            esac
-          done
-
-          echo "SSM deployment timed out" >&2
-          exit 1
+        run: bash deploy/scripts/release-via-ssm.sh "$EC2_INSTANCE_ID" "$GITHUB_SHA"
