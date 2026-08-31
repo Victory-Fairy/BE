@@ -1,8 +1,8 @@
-package kr.co.victoryfairy.core.admin.domain;
+package kr.co.victoryfairy.core.api.admin.presentation;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public interface AuthDomain {
+public interface AdminAuthDto {
 
     @Schema(name = "Auth.LoginRequest")
     record LoginRequest(@Schema(description = "id", requiredMode = Schema.RequiredMode.REQUIRED) String id,

@@ -35,7 +35,6 @@ jobs:
         run: >-
           ./gradlew unitTest
           :core:core-api:bootJar
-          :core:core-admin:bootJar
           :core:core-craw:bootJar
           -Pci --parallel --build-cache
 
@@ -73,19 +72,6 @@ jobs:
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:api-latest
           cache-from: type=gha,scope=victory-fairy-api
           cache-to: type=gha,mode=max,scope=victory-fairy-api
-
-      - name: Build and push admin
-        uses: docker/build-push-action@v7
-        with:
-          context: build/docker/admin
-          file: deploy/Dockerfile
-          platforms: linux/arm64
-          push: true
-          tags: |
-            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:admin-${{ github.sha }}
-            ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:admin-latest
-          cache-from: type=gha,scope=victory-fairy-admin
-          cache-to: type=gha,mode=max,scope=victory-fairy-admin
 
       - name: Build and push crawler
         uses: docker/build-push-action@v7

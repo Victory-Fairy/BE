@@ -1,8 +1,7 @@
-package kr.co.victoryfairy.core.admin.service.impl;
+package kr.co.victoryfairy.core.api.admin.application;
 
 import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.core.admin.domain.DiaryDomain;
-import kr.co.victoryfairy.core.admin.service.DiaryService;
+import kr.co.victoryfairy.core.api.admin.presentation.AdminDiaryDto;
 import kr.co.victoryfairy.storage.db.core.entity.DiaryFoodEntity;
 import kr.co.victoryfairy.storage.db.core.entity.PartnerEntity;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
@@ -16,15 +15,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.*;
-
 import static java.util.stream.Collectors.*;
 
 @Service
 @RequiredArgsConstructor
-public class DiaryServiceImpl implements DiaryService {
+public class AdminDiaryQueryService {
 
     private final Mapper mapper;
 
@@ -36,8 +31,7 @@ public class DiaryServiceImpl implements DiaryService {
 
     private final SeatUseHistoryRepository seatUseHistoryRepository;
 
-    @Override
-    public PageResult<DiaryDomain.DiaryListResponse> findAll(DiaryDomain.DiaryListRequest request) {
+    public PageResult<AdminDiaryDto.DiaryListResponse> findAll(AdminDiaryDto.DiaryListRequest request) {
         var result = diaryCustomRepository.findAll(mapper.toRequest(request));
 
         var diaryIds = result.getContents().stream().map(DiaryModel.DiaryListResponse::getId).toList();
@@ -70,11 +64,11 @@ public class DiaryServiceImpl implements DiaryService {
     @org.mapstruct.Mapper(config = MapStructConfig.class)
     public interface Mapper {
 
-        DiaryModel.DiaryListRequest toRequest(DiaryDomain.DiaryListRequest request);
+        DiaryModel.DiaryListRequest toRequest(AdminDiaryDto.DiaryListRequest request);
 
-        List<DiaryDomain.DiaryListResponse> toDiaryListResponse(List<DiaryModel.DiaryListResponse> diaryList);
+        List<AdminDiaryDto.DiaryListResponse> toDiaryListResponse(List<DiaryModel.DiaryListResponse> diaryList);
 
-        default PageResult<DiaryDomain.DiaryListResponse> toPageResult(
+        default PageResult<AdminDiaryDto.DiaryListResponse> toPageResult(
                 PageResult<DiaryModel.DiaryListResponse> pageResult) {
             var response = toDiaryListResponse(pageResult.getContents());
             return new PageResult<>(response, pageResult.getTotal());

@@ -1,10 +1,10 @@
-package kr.co.victoryfairy.core.admin.domain;
+package kr.co.victoryfairy.core.api.admin.presentation;
 
 import io.dodn.springboot.core.enums.MemberEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springdoc.core.annotations.ParameterObject;
 
-public interface MemberDomain {
+public interface AdminMemberDto {
 
     @ParameterObject
     @Schema(name = "Member.MemberListRequest")

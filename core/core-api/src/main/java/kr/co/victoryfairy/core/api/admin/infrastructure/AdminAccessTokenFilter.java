@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.core.admin.webfilter;
+package kr.co.victoryfairy.core.api.admin.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -16,22 +16,19 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
-public class AccessTokenWebFilter extends PathPatternWebFilter {
+public class AdminAccessTokenFilter extends PathPatternWebFilter {
     private final JwtProperties jwtProperties;
 
-    public AccessTokenWebFilter(JwtProperties jwtProperties) {
+    public AdminAccessTokenFilter(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
 
         this.addIncludePathPatterns("/v2/admin/member/**");
         this.addIncludePathPatterns("/v2/admin/diary/**");
-        this.addIncludePathPatterns("/member/**");
-        this.addIncludePathPatterns("/diary/**");
         this.addExcludePathPatterns(
                 "/",
                 "/swagger-ui/**",
                 "/swagger/**",
-                "/v2/admin/auth/login",
-                "/auth/login"
+                "/v2/admin/auth/login"
         );
     }
 

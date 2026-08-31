@@ -1,7 +1,6 @@
-package kr.co.victoryfairy.core.admin.service.impl;
+package kr.co.victoryfairy.core.api.admin.application;
 
-import kr.co.victoryfairy.core.admin.domain.AuthDomain;
-import kr.co.victoryfairy.core.admin.service.AuthService;
+import kr.co.victoryfairy.core.api.admin.presentation.AdminAuthDto;
 import kr.co.victoryfairy.storage.db.core.repository.AdminRepository;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
@@ -16,7 +15,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 
 @Service
-public class AuthServiceImpl implements AuthService {
+public class AdminAuthService {
 
     private final JwtService jwtService;
 
@@ -24,14 +23,13 @@ public class AuthServiceImpl implements AuthService {
 
     private final AdminRepository adminRepository;
 
-    public AuthServiceImpl(JwtService jwtService, PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
+    public AdminAuthService(JwtService jwtService, PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.adminRepository = adminRepository;
     }
 
-    @Override
-    public AuthDomain.LoginResponse login(AuthDomain.LoginRequest request) {
+    public AdminAuthDto.LoginResponse login(AdminAuthDto.LoginRequest request) {
 
         String adminId = request.id();
         String adminPwd = request.pwd();
@@ -54,13 +52,12 @@ public class AuthServiceImpl implements AuthService {
 
         admin.updateLastLogin(RequestUtils.getRemoteIp(), LocalDateTime.now());
         adminRepository.save(admin);
-        return new AuthDomain.LoginResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
+        return new AdminAuthDto.LoginResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
     }
 
-    @Override
-    public AuthDomain.RefreshTokenResponse refreshToken(String refreshToken) {
+    public AdminAuthDto.RefreshTokenResponse refreshToken(String refreshToken) {
         var accessTokenDto = jwtService.checkAdminRefreshToken(refreshToken);
-        return new AuthDomain.RefreshTokenResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
+        return new AdminAuthDto.RefreshTokenResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
     }
 
 }
