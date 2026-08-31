@@ -1,10 +1,12 @@
 package kr.co.victoryfairy.core.craw.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -51,7 +53,15 @@ public class LiveGameSyncService {
 
     public int sync() {
         LocalDateTime now = LocalDateTime.now(KOREA);
-        var matches = gameMatchCustomRepository.findByMatchAt(now.toLocalDate(), MatchEnum.LeagueType.KBO)
+        return sync(now.toLocalDate(), now);
+    }
+
+    public int sync(LocalDate gameDate) {
+        return sync(gameDate, LocalDateTime.now(KOREA));
+    }
+
+    private int sync(LocalDate gameDate, LocalDateTime now) {
+        var matches = gameMatchCustomRepository.findByMatchAt(gameDate, MatchEnum.LeagueType.KBO)
             .stream()
             .filter(match -> shouldPoll(now, match.getMatchAt(), match.getStatus(), match.getIsMatchInfoCraw()))
             .collect(Collectors.toMap(GameMatchEntity::getId, Function.identity()));
@@ -64,7 +74,7 @@ public class LiveGameSyncService {
             .stream()
             .map(match -> new Target(match.getId(), match.getSeries().getValue()))
             .toList();
-        var snapshots = crawler.crawl(now.toLocalDate(), targets);
+        var snapshots = crawler.crawl(gameDate, targets);
         for (Snapshot snapshot : snapshots) {
             try {
                 apply(matches.get(snapshot.id()), snapshot);
@@ -74,6 +84,20 @@ public class LiveGameSyncService {
             }
         }
         return snapshots.size();
+    }
+
+    public Optional<LocalDateTime> nextExecutionAt(LocalDate gameDate, LocalDateTime now,
+            LocalDateTime notBefore) {
+        return gameMatchCustomRepository.findByMatchAt(gameDate, MatchEnum.LeagueType.KBO)
+            .stream()
+            .filter(match -> match.getStatus() != MatchEnum.MatchStatus.CANCELED)
+            .filter(match -> match.getStatus() != MatchEnum.MatchStatus.END
+                    || !Boolean.TRUE.equals(match.getIsMatchInfoCraw()))
+            .map(match -> {
+                var pollingStartsAt = match.getMatchAt().minusMinutes(10);
+                return pollingStartsAt.isAfter(now) ? pollingStartsAt : notBefore;
+            })
+            .min(LocalDateTime::compareTo);
     }
 
     static boolean shouldPoll(LocalDateTime now, LocalDateTime matchAt, MatchEnum.MatchStatus status,

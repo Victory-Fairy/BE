@@ -14,10 +14,23 @@ grep -q 'proxy_pass http://file:8082' "$repo_root/deploy/nginx/victoryfairy.conf
 grep -q 'proxy_pass http://admin:8084' "$repo_root/deploy/nginx/victoryfairy.conf"
 
 live_service="$repo_root/deploy/systemd/victoryfairy-live-game.service"
-live_timer="$repo_root/deploy/systemd/victoryfairy-live-game.timer"
+planner_service="$repo_root/deploy/systemd/victoryfairy-live-game-planner.service"
+planner_timer="$repo_root/deploy/systemd/victoryfairy-live-game-planner.timer"
+schedule_script="$repo_root/deploy/scripts/schedule-live-game.sh"
 test -f "$live_service"
-test -f "$live_timer"
-grep -q -- '--live-game.enabled=true' "$live_service"
-grep -q '/run/victoryfairy-game-sync/job.lock' "$live_service"
-grep -q 'OnCalendar=\*:0/10' "$live_timer"
+test -f "$planner_service"
+test -f "$planner_timer"
+test -x "$schedule_script"
+grep -q 'schedule-live-game.sh sync' "$live_service"
+grep -q 'schedule-live-game.sh plan' "$planner_service"
 grep -q 'pull api file admin craw' "$repo_root/deploy/scripts/deploy.sh"
+
+runtime_dir="$(mktemp -d)"
+trap 'rm -rf "$runtime_dir"' EXIT
+printf '%s\n' 'LIVE_GAME_NEXT_AT=2026-09-04 18:20:00 Asia/Seoul' \
+    | SYSTEMD_RUNTIME_DIR="$runtime_dir" LIVE_GAME_DRY_RUN=1 "$schedule_script" schedule
+grep -q 'OnCalendar=2026-09-04 18:20:00 Asia/Seoul' "$runtime_dir/victoryfairy-live-game.timer"
+
+printf '%s\n' 'LIVE_GAME_NEXT_AT=NONE' \
+    | SYSTEMD_RUNTIME_DIR="$runtime_dir" LIVE_GAME_DRY_RUN=1 "$schedule_script" schedule
+test ! -e "$runtime_dir/victoryfairy-live-game.timer"

@@ -1,0 +1,11 @@
+[Unit]
+Description=Plan today's live KBO game sync after schedule recovery
+
+[Timer]
+OnCalendar=*-*-* 06:30:00 Asia/Seoul
+OnBootSec=2min
+Persistent=true
+Unit=victoryfairy-live-game-planner.service
+
+[Install]
+WantedBy=timers.target

@@ -1,5 +1,5 @@
 [Unit]
-Description=Sync live KBO games
+Description=Plan today's live KBO game sync
 Requires=docker.service
 After=docker.service network-online.target
 Wants=network-online.target
@@ -9,7 +9,7 @@ Type=oneshot
 WorkingDirectory=/opt/victoryfairy
 RuntimeDirectory=victoryfairy-game-sync
 RuntimeDirectoryPreserve=yes
-ExecStart=/opt/victoryfairy/bin/schedule-live-game.sh sync
+ExecStart=/opt/victoryfairy/bin/schedule-live-game.sh plan
 TimeoutStartSec=40min
 Restart=on-failure
 RestartSec=1min
