@@ -1,12 +1,9 @@
-package kr.co.victoryfairy.core.api.service.impl;
+package kr.co.victoryfairy.core.api.service;
 
 import io.dodn.springboot.core.enums.DiaryEnum;
 import io.dodn.springboot.core.enums.MatchEnum;
-import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.core.api.domain.MyPageDomain;
-import kr.co.victoryfairy.core.api.service.MyPageService;
 import kr.co.victoryfairy.storage.db.core.entity.GameRecordEntity;
-import kr.co.victoryfairy.storage.db.core.entity.WithdrawalReasonEntity;
 import kr.co.victoryfairy.storage.db.core.repository.*;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
@@ -25,31 +22,17 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class MyPageServiceImpl implements MyPageService {
+@Transactional(readOnly = true)
+public class MyPageQueryService {
 
     private final MemberRepository memberRepository;
-
-    private final MemberInfoRepository memberInfoRepository;
 
     private final MemberCustomRepository memberCustomRepository;
 
     private final GameRecordRepository gameRecordRepository;
 
-    private final DiaryRepository diaryRepository;
-
-    private final DiaryFoodRepository diaryFoodRepository;
-
-    private final PartnerRepository partnerRepository;
-
-    private final SeatUseHistoryRepository seatUseHistoryRepository;
-
-    private final SeatReviewRepository seatReviewRepository;
-
-    private final WithdrawalReasonRepository withdrawalRepository;
-
     private final S3PresignedUrlService s3PresignedUrlService;
 
-    @Override
     public MyPageDomain.MemberInfoForMyPageResponse findMemberInfoForMyPage() {
         var id = RequestUtils.getId();
 
@@ -71,7 +54,6 @@ public class MyPageServiceImpl implements MyPageService {
                 member.getSnsType(), teamDto);
     }
 
-    @Override
     public MyPageDomain.VictoryPowerResponse findVictoryPower(String season) {
         var id = RequestUtils.getId();
 
@@ -114,7 +96,6 @@ public class MyPageServiceImpl implements MyPageService {
         return new MyPageDomain.VictoryPowerResponse(level, power);
     }
 
-    @Override
     public MyPageDomain.ReportResponse findReport(String season) {
         var id = RequestUtils.getId();
         if (id == null)
@@ -318,51 +299,6 @@ public class MyPageServiceImpl implements MyPageService {
         var visitStatisticsDto = new MyPageDomain.ViewStatisticsDto(maxWinTeam, maxLoseTeam, maxVisitedStadium,
                 maxStreak, homeWinRate, stadiumWinRate);
         return new MyPageDomain.ReportResponse(stadiumViewDto, homeViewDto, visitStatisticsDto);
-    }
-
-    @Override
-    @Transactional
-    public void deleteMember(MyPageDomain.DeleteAccountRequest request) {
-        var id = RequestUtils.getId();
-        if (id == null)
-            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
-
-        var memberEntity = memberRepository.findById(id)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var memberInfoEntity = memberInfoRepository.findByMemberEntity(memberEntity)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var diaryEntities = diaryRepository.findByMemberId(memberEntity.getId());
-        var recordEntities = gameRecordRepository.findByMemberId(id);
-
-        var diaryIds = diaryEntities.stream().map(entity -> entity.getId()).toList();
-
-        var diaryFoodEntities = diaryFoodRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds);
-        var partnerEntities = partnerRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds);
-        var seatUserEntities = seatUseHistoryRepository.findAllByDiaryEntityIdIn(diaryIds);
-        var seatReviewEntities = seatReviewRepository
-            .findAllBySeatUseHistoryEntityIdIn(seatUserEntities.stream().map(entity -> entity.getId()).toList());
-
-        // 회원 정보 삭제
-        memberInfoRepository.delete(memberInfoEntity);
-        // 직관 음식 삭제
-        diaryFoodRepository.deleteAll(diaryFoodEntities);
-        // 직관 파트너 삭제
-        partnerRepository.deleteAll(partnerEntities);
-        // 응원 기록 삭제
-        gameRecordRepository.deleteAll(recordEntities);
-        // 멤버 삭제
-        memberRepository.delete(memberEntity);
-        // 좌석 후기 삭제
-        seatReviewRepository.deleteAll(seatReviewEntities);
-        // 좌석 이용 내역 삭제
-        seatUseHistoryRepository.deleteAll(seatUserEntities);
-        // 일기 삭제
-        diaryRepository.deleteAll(diaryEntities);
-
-        var entity = WithdrawalReasonEntity.builder().reason(request.reason()).build();
-        withdrawalRepository.save(entity);
     }
 
     private Short getPower(List<GameRecordEntity> stadiumRecord, List<GameRecordEntity> homeRecord) {

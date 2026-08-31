@@ -4,7 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.api.domain.MyPageDomain;
-import kr.co.victoryfairy.core.api.service.MyPageService;
+import kr.co.victoryfairy.core.api.service.MemberWithdrawalService;
+import kr.co.victoryfairy.core.api.service.MyPageQueryService;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.model.CustomResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +19,14 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class MyPageController {
 
-    private final MyPageService myPageService;
+    private final MyPageQueryService queryService;
+
+    private final MemberWithdrawalService withdrawalService;
 
     @Operation(summary = "유저 정보")
     @GetMapping("/member")
     public CustomResponse<MyPageDomain.MemberInfoForMyPageResponse> findMemberInfo() {
-        var response = myPageService.findMemberInfoForMyPage();
+        var response = queryService.findMemberInfoForMyPage();
         return CustomResponse.ok(response);
     }
 
@@ -31,7 +34,7 @@ public class MyPageController {
     @GetMapping("/victory-power")
     public CustomResponse<MyPageDomain.VictoryPowerResponse> findVictoryPower(
             @RequestParam(required = false) String season) {
-        var response = myPageService.findVictoryPower(season);
+        var response = queryService.findVictoryPower(season);
         return CustomResponse.ok(response);
     }
 
@@ -39,7 +42,7 @@ public class MyPageController {
     @Operation(summary = "관람 분석")
     @GetMapping("/report")
     public CustomResponse<MyPageDomain.ReportResponse> findReport(@RequestParam(required = false) String season) {
-        var response = myPageService.findReport(season);
+        var response = queryService.findReport(season);
         return CustomResponse.ok(response);
     }
 
@@ -47,7 +50,7 @@ public class MyPageController {
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/delete-account")
     public CustomResponse<MessageEnum> deleteMember(@RequestBody MyPageDomain.DeleteAccountRequest request) {
-        myPageService.deleteMember(request);
+        withdrawalService.deleteMember(request);
         return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
 
