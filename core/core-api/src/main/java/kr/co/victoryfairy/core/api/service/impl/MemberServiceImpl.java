@@ -107,7 +107,6 @@ public class MemberServiceImpl implements MemberService {
 
         var teamEntity = memberInfoEntity.getTeamEntity();
         var memberInfoDto = AuthModel.MemberInfoDto.builder()
-            .snsType(snsType)
             .isNickNmAdded(StringUtils.hasText(memberInfoEntity.getNickNm()))
             .isTeamAdded(teamEntity != null)
             .build();

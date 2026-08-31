@@ -1,6 +1,5 @@
 package kr.co.victoryfairy.support.model;
 
-import io.dodn.springboot.core.enums.MemberEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,9 +23,6 @@ public interface AuthModel {
     @Getter
     @Schema(name = "Auth.MemberInfoDto")
     class MemberInfoDto {
-
-        @Schema(description = "sns 타입", example = "KAKAO", implementation = MemberEnum.SnsType.class)
-        private MemberEnum.SnsType snsType;
 
         @Schema(description = "닉네임 등록 여부")
         private Boolean isNickNmAdded;
