@@ -17,7 +17,6 @@ include 'domain-common'
 include 'core:core-enum'
 include 'core:core-api'
 include 'core:core-craw'
-include 'core:core-admin'
 
 include 'storage:db-core'
 include 'tests:api-docs'
