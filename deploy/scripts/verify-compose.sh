@@ -12,6 +12,8 @@ APP_ENV_FILE="$repo_root/deploy/env.example" docker compose \
 grep -q 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf"
 test "$(grep -c 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf")" -eq 2
 grep -q 'proxy_pass http://admin:8084' "$repo_root/deploy/nginx/victoryfairy.conf"
+grep -q 'SERVER_SERVLET_CONTEXT_PATH: /v2' "$repo_root/deploy/compose.yaml"
+grep -q 'file:/config/file/,file:/config/api/' "$repo_root/deploy/compose.yaml"
 
 live_service="$repo_root/deploy/systemd/victoryfairy-live-game.service"
 planner_service="$repo_root/deploy/systemd/victoryfairy-live-game-planner.service"
