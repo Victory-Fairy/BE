@@ -286,7 +286,7 @@ public class KboGameCrawler {
     @Transactional
     public void crawMatchDetailById(String id) {
         var match = gameMatchRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("해당 데이터가 존재하지 않습니다."));
+            .orElseThrow(() -> new CrawlRequestException("해당 데이터가 존재하지 않습니다."));
 
         try {
             var away = fetchOfficialRecords(match, "T", false);

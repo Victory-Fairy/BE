@@ -11,6 +11,7 @@ class CrawlResponseTest {
         CrawlResponse response = CrawlResponse.completed();
 
         assertThat(response.status()).isEqualTo(200);
+        assertThat(response.errorMsg()).isNull();
         assertThat(response.message()).isEqualTo("요청이 완료되었습니다.");
     }
 }
