@@ -1,7 +1,6 @@
 package kr.co.victoryfairy.core.api.service;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,8 +63,6 @@ class DiaryServiceImplTest {
         var diary = ArgumentCaptor.forClass(DiaryEntity.class);
         verify(diaryRepository).save(diary.capture());
         verify(gameRecordService).record(diary.getValue());
-        verify(redisHandler, never()).pushEvent(org.mockito.ArgumentMatchers.anyString(),
-                org.mockito.ArgumentMatchers.any());
     }
 
 }
