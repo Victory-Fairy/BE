@@ -57,6 +57,46 @@ class LiveGameSyncServiceTest {
     }
 
     @Test
+    void schedulesFirstRunTenMinutesBeforeEarliestMatch() {
+        var customRepository = mock(GameMatchCustomRepository.class);
+        var date = matchAt.toLocalDate();
+        var late = match("late", matchAt, MatchEnum.MatchStatus.READY, false);
+        var early = match("early", matchAt.minusMinutes(90), MatchEnum.MatchStatus.READY, false);
+        when(customRepository.findByMatchAt(date, MatchEnum.LeagueType.KBO)).thenReturn(List.of(late, early));
+
+        var now = matchAt.minusHours(8);
+        var next = service(customRepository).nextExecutionAt(date, now, now);
+
+        assertThat(next).contains(LocalDateTime.of(2026, 8, 30, 16, 50));
+    }
+
+    @Test
+    void schedulesAnActiveMatchAtTheNextPollingTime() {
+        var customRepository = mock(GameMatchCustomRepository.class);
+        var date = matchAt.toLocalDate();
+        var active = match("active", matchAt, MatchEnum.MatchStatus.PROGRESS, false);
+        when(customRepository.findByMatchAt(date, MatchEnum.LeagueType.KBO)).thenReturn(List.of(active));
+
+        var nextPollingTime = LocalDateTime.of(2026, 8, 30, 18, 40);
+        var next = service(customRepository).nextExecutionAt(date, matchAt.plusMinutes(1), nextPollingTime);
+
+        assertThat(next).contains(nextPollingTime);
+    }
+
+    @Test
+    void stopsSchedulingWhenEveryMatchIsComplete() {
+        var customRepository = mock(GameMatchCustomRepository.class);
+        var date = matchAt.toLocalDate();
+        var ended = match("ended", matchAt, MatchEnum.MatchStatus.END, true);
+        var canceled = match("canceled", matchAt, MatchEnum.MatchStatus.CANCELED, false);
+        when(customRepository.findByMatchAt(date, MatchEnum.LeagueType.KBO)).thenReturn(List.of(ended, canceled));
+
+        var now = matchAt.plusHours(4);
+
+        assertThat(service(customRepository).nextExecutionAt(date, now, now)).isEmpty();
+    }
+
+    @Test
     void continuesWhenOneMatchCannotBeStored() {
         var customRepository = mock(GameMatchCustomRepository.class);
         var gameMatchRepository = mock(GameMatchRepository.class);
@@ -81,19 +121,29 @@ class LiveGameSyncServiceTest {
     }
 
     private static GameMatchEntity match(String id) {
+        return match(id, LocalDateTime.now().minusHours(1), MatchEnum.MatchStatus.PROGRESS, false);
+    }
+
+    private static GameMatchEntity match(String id, LocalDateTime matchAt, MatchEnum.MatchStatus status,
+            boolean detailCrawled) {
         var match = mock(GameMatchEntity.class);
         var team = mock(TeamEntity.class);
         var stadium = mock(StadiumEntity.class);
         when(match.getId()).thenReturn(id);
-        when(match.getMatchAt()).thenReturn(LocalDateTime.now().minusHours(1));
-        when(match.getStatus()).thenReturn(MatchEnum.MatchStatus.PROGRESS);
-        when(match.getIsMatchInfoCraw()).thenReturn(false);
+        when(match.getMatchAt()).thenReturn(matchAt);
+        when(match.getStatus()).thenReturn(status);
+        when(match.getIsMatchInfoCraw()).thenReturn(detailCrawled);
         when(match.getSeries()).thenReturn(MatchEnum.SeriesType.REGULAR);
         when(match.getAwayTeamEntity()).thenReturn(team);
         when(match.getHomeTeamEntity()).thenReturn(team);
         when(match.getStadiumEntity()).thenReturn(stadium);
         when(match.getLeague()).thenReturn(MatchEnum.LeagueType.KBO);
         return match;
+    }
+
+    private static LiveGameSyncService service(GameMatchCustomRepository customRepository) {
+        return new LiveGameSyncService(customRepository, mock(GameMatchRepository.class), mock(RedisHandler.class),
+                mock(CrawService.class), mock(KboLiveGameCrawler.class));
     }
 
 }
