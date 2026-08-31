@@ -10,7 +10,7 @@ bootJar {
     /*doLast {
         // JAR 파일을 .deploy 디렉토리로 복사
         copy {
-            from "${buildDir}/libs/core-${SERVICE}.jar"
+            from "${buildDir}/libs/${project.name}.jar"
             into "${rootDir}/.deploy"
         }
 
