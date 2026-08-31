@@ -2,12 +2,10 @@ bootJar.enabled = true
 jar.enabled = false
 
 dependencies {
-    implementation project(":domain-common")
-    implementation project(":core:core-enum")
+    implementation project(":domain")
     implementation project(":support:logging")
     implementation project(":support:common")
     implementation project(":support:redis")
-    implementation project(":storage:db-core")
 
     testImplementation project(":tests:api-docs")
 
