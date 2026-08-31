@@ -31,7 +31,7 @@ public class FileRefDomainService {
 
     /**
      * 파일 참조 저장
-     * @param refType 참조 타입 (DIARY, FREE_DIARY, PROFILE 등)
+     * @param refType 참조 타입
      * @param refId 참조 ID
      * @param fileIds 파일 ID 목록
      */

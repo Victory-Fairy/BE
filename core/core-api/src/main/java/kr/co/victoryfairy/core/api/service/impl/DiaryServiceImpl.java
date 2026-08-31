@@ -54,8 +54,6 @@ public class DiaryServiceImpl implements DiaryService {
 
     private final TeamRepository teamRepository;
 
-    private final FreeDiaryRepository freeDiaryRepository;
-
     private final FileRefDomainService fileRefDomainService;
 
     private final DiaryFoodDomainService diaryFoodDomainService;
@@ -245,105 +243,44 @@ public class DiaryServiceImpl implements DiaryService {
                 .toList();
         }
 
-        // 일반 일기 조회
         var diaryList = diaryCustomRepository.findList(new DiaryModel.ListRequest(id, startDate, endDate));
 
-        // 자유 일기 조회
-        var startDateTime = startDate.atStartOfDay();
-        var endDateTime = endDate.atTime(java.time.LocalTime.MAX);
-        var freeDiaryList = freeDiaryRepository.findByMemberIdAndMatchAtBetween(id, startDateTime, endDateTime);
-
-        // 둘 다 비어있으면 빈 캘린더 반환
-        if (diaryList.isEmpty() && freeDiaryList.isEmpty()) {
+        if (diaryList.isEmpty()) {
             return monthOfDays.stream()
                 .map(day -> new DiaryDomain.ListResponse(null, null, day, null, List.of(), null))
                 .toList();
         }
 
-        // 일반 일기 파일 맵
         var diaryIds = diaryList.stream().map(DiaryModel.DiaryDto::getId).toList();
         var diaryFileMap = fileRefDomainService.findImageMapByRefIds(RefType.DIARY, diaryIds);
-
-        // 자유 일기 파일 맵
-        var freeDiaryIds = freeDiaryList.stream().map(FreeDiaryEntity::getId).toList();
-        var freeDiaryFileMap = fileRefDomainService.findImageMapByRefIds(RefType.FREE_DIARY, freeDiaryIds);
-
-        // 날짜별로 일기 그룹핑
         var diaryMap = diaryList.stream().collect(Collectors.groupingBy(dto -> dto.getMatchAt().toLocalDate()));
-        var freeDiaryMap = freeDiaryList.stream()
-            .collect(Collectors.groupingBy(entity -> entity.getMatchAt().toLocalDate()));
 
         return monthOfDays.stream().map(day -> {
-            var diaries = diaryMap.get(day);
-            var freeDiaries = freeDiaryMap.get(day);
-
-            boolean hasDiary = diaries != null && !diaries.isEmpty();
-            boolean hasFreeDiary = freeDiaries != null && !freeDiaries.isEmpty();
-
-            if (!hasDiary && !hasFreeDiary) {
+            var diaries = diaryMap.getOrDefault(day, List.of());
+            if (diaries.isEmpty()) {
                 return new DiaryDomain.ListResponse(null, null, day, null, List.of(), null);
             }
 
-            // 모든 일기의 이미지 수집
-            List<DiaryDomain.ImageDto> allImages = new ArrayList<>();
+            var images = diaries.stream()
+                .map(diary -> diaryFileMap.get(diary.getId()))
+                .filter(Objects::nonNull)
+                .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext(), dto.url()))
+                .toList();
 
-            // 일반 일기 이미지
-            if (hasDiary) {
-                diaries.stream()
-                    .map(diary -> diaryFileMap.get(diary.getId()))
-                    .filter(Objects::nonNull)
-                    .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext(), dto.url()))
-                    .forEach(allImages::add);
-            }
-
-            // 자유 일기 이미지
-            if (hasFreeDiary) {
-                freeDiaries.stream()
-                    .map(fd -> freeDiaryFileMap.get(fd.getId()))
-                    .filter(Objects::nonNull)
-                    .map(dto -> new DiaryDomain.ImageDto(dto.id(), dto.path(), dto.saveName(), dto.ext(), dto.url()))
-                    .forEach(allImages::add);
-            }
-
-            // 최신 일기 찾기 (일반 일기 우선, 없으면 자유 일기)
-            Long latestId = null;
-            Long latestTeamId = null;
-            MatchEnum.ResultType latestResultType = null;
-            DiaryDomain.ImageDto latestImage = null;
-
-            if (hasDiary) {
-                var latestDiary = diaries.stream().max((d1, d2) -> {
+            var latestDiary = diaries.stream()
+                .max((d1, d2) -> {
                     var time1 = d1.getUpdatedAt() != null ? d1.getUpdatedAt() : d1.getCreatedAt();
                     var time2 = d2.getUpdatedAt() != null ? d2.getUpdatedAt() : d2.getCreatedAt();
                     return time1.compareTo(time2);
-                }).orElse(diaries.get(0));
-                latestId = latestDiary.getId();
-                latestTeamId = latestDiary.getTeamId();
-                latestResultType = latestDiary.getResultType();
+                })
+                .orElseThrow();
 
-                var imageDto = diaryFileMap.get(latestDiary.getId());
-                if (imageDto != null) {
-                    latestImage = new DiaryDomain.ImageDto(imageDto.id(), imageDto.path(), imageDto.saveName(),
-                            imageDto.ext(), imageDto.url());
-                }
-            }
-            else if (hasFreeDiary) {
-                var latestFreeDiary = freeDiaries.stream().max((d1, d2) -> {
-                    var time1 = d1.getUpdatedAt() != null ? d1.getUpdatedAt() : d1.getCreatedAt();
-                    var time2 = d2.getUpdatedAt() != null ? d2.getUpdatedAt() : d2.getCreatedAt();
-                    return time1.compareTo(time2);
-                }).orElse(freeDiaries.get(0));
-                latestId = latestFreeDiary.getId();
-                // 자유 일기는 teamId, resultType 없음
+            var image = diaryFileMap.get(latestDiary.getId());
+            var latestImage = image == null ? null
+                    : new DiaryDomain.ImageDto(image.id(), image.path(), image.saveName(), image.ext(), image.url());
 
-                var imageDto = freeDiaryFileMap.get(latestFreeDiary.getId());
-                if (imageDto != null) {
-                    latestImage = new DiaryDomain.ImageDto(imageDto.id(), imageDto.path(), imageDto.saveName(),
-                            imageDto.ext(), imageDto.url());
-                }
-            }
-
-            return new DiaryDomain.ListResponse(latestId, latestTeamId, day, latestImage, allImages, latestResultType);
+            return new DiaryDomain.ListResponse(latestDiary.getId(), latestDiary.getTeamId(), day, latestImage,
+                    images, latestDiary.getResultType());
         }).toList();
     }
 

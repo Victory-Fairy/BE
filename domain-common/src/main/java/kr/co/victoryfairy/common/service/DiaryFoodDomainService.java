@@ -24,7 +24,7 @@ public class DiaryFoodDomainService {
 
     /**
      * 음식 목록 저장
-     * @param refType 참조 타입 (DIARY, FREE_DIARY)
+     * @param refType 참조 타입
      * @param refId 참조 ID
      * @param foodNameList 음식 이름 목록
      */
