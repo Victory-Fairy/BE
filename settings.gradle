@@ -18,6 +18,4 @@ include 'applications:api'
 include 'applications:crawler'
 
 include 'tests:api-docs'
-include 'support:logging'
-include 'support:common'
 include 'infrastructure:redis'
