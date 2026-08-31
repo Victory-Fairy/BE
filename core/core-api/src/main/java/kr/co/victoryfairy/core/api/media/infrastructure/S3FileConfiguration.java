@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.core.file.config;
+package kr.co.victoryfairy.core.api.media.infrastructure;
 
 import kr.co.victoryfairy.support.properties.FileProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

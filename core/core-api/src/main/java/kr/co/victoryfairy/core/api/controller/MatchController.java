@@ -15,7 +15,7 @@ import java.time.LocalDate;
 
 @Tag(name = "Match", description = "경기")
 @RestController
-@RequestMapping("/match")
+@RequestMapping("/api/match")
 @RequiredArgsConstructor
 public class MatchController {
 

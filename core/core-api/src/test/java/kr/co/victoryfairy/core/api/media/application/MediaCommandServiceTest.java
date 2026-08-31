@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.core.file.service.impl;
+package kr.co.victoryfairy.core.api.media.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -15,9 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.core.file.domain.FileDomain;
-import kr.co.victoryfairy.core.file.service.S3FileUploader;
-import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
+import kr.co.victoryfairy.core.api.media.domain.FileDomain;
+import kr.co.victoryfairy.core.api.media.infrastructure.S3FileUploader;
 import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
@@ -27,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
 
-class FileServiceImplTest {
+class MediaCommandServiceTest {
 
     @Test
     void uploadsBeforeSavingAndDeletesWorkspaceFile(@TempDir Path storageRoot) throws Exception {
@@ -36,7 +35,7 @@ class FileServiceImplTest {
         S3PresignedUrlService urlService = mock(S3PresignedUrlService.class);
         when(urlService.create(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyString())).thenReturn("https://signed.example/image.jpg");
-        FileServiceImpl service = service(storageRoot, fileRepository, Optional.of(uploader), urlService);
+        MediaCommandService service = service(storageRoot, fileRepository, Optional.of(uploader), urlService);
 
         var response = service.createFile(request());
 
@@ -52,7 +51,7 @@ class FileServiceImplTest {
         S3FileUploader uploader = mock(S3FileUploader.class);
         doThrow(new CustomException(MessageEnum.File.FAIL_UPLOAD)).when(uploader)
             .upload(org.mockito.ArgumentMatchers.eq(storageRoot), anyList());
-        FileServiceImpl service = service(storageRoot, fileRepository, Optional.of(uploader),
+        MediaCommandService service = service(storageRoot, fileRepository, Optional.of(uploader),
                 mock(S3PresignedUrlService.class));
 
         assertThatThrownBy(() -> service.createFile(request())).isInstanceOf(CustomException.class);
@@ -62,7 +61,7 @@ class FileServiceImplTest {
     @Test
     void keepsWorkspaceFileWhenS3IsDisabled(@TempDir Path storageRoot) throws Exception {
         FileRepository fileRepository = mock(FileRepository.class);
-        FileServiceImpl service = service(storageRoot, fileRepository, Optional.empty(),
+        MediaCommandService service = service(storageRoot, fileRepository, Optional.empty(),
                 mock(S3PresignedUrlService.class));
 
         service.createFile(request());
@@ -70,13 +69,13 @@ class FileServiceImplTest {
         assertThat(fileCount(storageRoot)).isEqualTo(1);
     }
 
-    private FileServiceImpl service(Path storageRoot, FileRepository fileRepository,
+    private MediaCommandService service(Path storageRoot, FileRepository fileRepository,
             Optional<S3FileUploader> uploader, S3PresignedUrlService urlService) {
         FileProperties properties = new FileProperties();
         properties.setStoragePath(storageRoot.toString());
         properties.setImageResizes(new Integer[0]);
         properties.setVideoResizes(new Integer[0]);
-        return new FileServiceImpl(properties, fileRepository, mock(FileRefRepository.class), uploader, urlService);
+        return new MediaCommandService(properties, fileRepository, uploader, urlService);
     }
 
     private FileDomain.CreateRequest request() {

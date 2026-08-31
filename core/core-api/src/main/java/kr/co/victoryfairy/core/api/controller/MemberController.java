@@ -19,7 +19,7 @@ import java.util.List;
 
 @Tag(name = "Member", description = "회원")
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/api/member")
 @RequiredArgsConstructor
 public class MemberController {
 

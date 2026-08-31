@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.core.file.service;
+package kr.co.victoryfairy.core.api.media.infrastructure;
 
 import java.net.URLConnection;
 import java.nio.file.Path;

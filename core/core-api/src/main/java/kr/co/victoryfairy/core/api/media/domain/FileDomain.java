@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.core.file.domain;
+package kr.co.victoryfairy.core.api.media.domain;
 
 import io.dodn.springboot.core.enums.RefType;
 import io.swagger.v3.oas.annotations.media.Schema;

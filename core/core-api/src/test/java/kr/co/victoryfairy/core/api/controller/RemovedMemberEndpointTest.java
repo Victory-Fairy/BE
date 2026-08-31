@@ -32,7 +32,7 @@ class RemovedMemberEndpointTest {
 
     @Test
     void doesNotExposeTheRetiredFcmTokenEndpoint() throws Exception {
-        mockMvc.perform(patch("/member/check-fcm").param("fcmToken", "retired-token"))
+        mockMvc.perform(patch("/api/member/check-fcm").param("fcmToken", "retired-token"))
             .andExpect(status().isNotFound());
 
         verifyNoInteractions(memberService);

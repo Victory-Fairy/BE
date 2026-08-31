@@ -1,11 +1,9 @@
-package kr.co.victoryfairy.core.file.service.impl;
+package kr.co.victoryfairy.core.api.media.application;
 
 import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.core.file.domain.FileDomain;
-import kr.co.victoryfairy.core.file.service.FileService;
-import kr.co.victoryfairy.core.file.service.S3FileUploader;
+import kr.co.victoryfairy.core.api.media.domain.FileDomain;
+import kr.co.victoryfairy.core.api.media.infrastructure.S3FileUploader;
 import kr.co.victoryfairy.storage.db.core.entity.FileEntity;
-import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
 import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
@@ -34,31 +32,26 @@ import java.util.*;
 import java.util.List;
 
 @Service
-public class FileServiceImpl implements FileService {
+public class MediaCommandService {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(MediaCommandService.class);
 
     private final FileProperties fileProperties;
 
     private final FileRepository fileRepository;
 
-    private final FileRefRepository fileRefRepository;
-
     private final Optional<S3FileUploader> s3FileUploader;
 
     private final S3PresignedUrlService s3PresignedUrlService;
 
-    public FileServiceImpl(FileProperties fileProperties, FileRepository fileRepository,
-            FileRefRepository fileRefRepository, Optional<S3FileUploader> s3FileUploader,
-            S3PresignedUrlService s3PresignedUrlService) {
+    public MediaCommandService(FileProperties fileProperties, FileRepository fileRepository,
+            Optional<S3FileUploader> s3FileUploader, S3PresignedUrlService s3PresignedUrlService) {
         this.fileProperties = fileProperties;
         this.fileRepository = fileRepository;
-        this.fileRefRepository = fileRefRepository;
         this.s3FileUploader = s3FileUploader;
         this.s3PresignedUrlService = s3PresignedUrlService;
     }
 
-    @Override
     @Transactional
     public List<FileDomain.Response> createFile(FileDomain.CreateRequest request) {
         if (request.file().isEmpty())
@@ -79,8 +72,6 @@ public class FileServiceImpl implements FileService {
                 .build())
             .toList();
         fileRepository.saveAll(fileEntities);
-
-        List<FileDomain.Response> response = new ArrayList<>();
 
         return fileEntities.stream()
             .map(entity -> new FileDomain.Response(entity.getId(), entity.getName(), entity.getSaveName(),

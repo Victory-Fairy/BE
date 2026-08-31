@@ -21,7 +21,6 @@ services:
     restart: unless-stopped
     depends_on:
       - api
-      - file
       - admin
     ports:
       - "80:80"
@@ -48,13 +47,17 @@ services:
     environment:
       <<: *app-environment
       SERVER_PORT: "8081"
-      JAVA_TOOL_OPTIONS: -Xms128m -Xmx768m
+      SERVER_SERVLET_CONTEXT_PATH: /v2
+      SPRINGDOC_API_DOCS_PATH: /api/v3/api-docs
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/config/file/,file:/config/api/
+      JAVA_TOOL_OPTIONS: -Xms128m -Xmx1024m
     volumes:
-      - /opt/victoryfairy/config/api:/config:ro
+      - /opt/victoryfairy/config/api:/config/api:ro
+      - /opt/victoryfairy/config/file:/config/file:ro
 
   file:
     <<: *app-common
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:file-${IMAGE_TAG}
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:file-latest
     environment:
       <<: *app-environment
       SERVER_PORT: "8082"
