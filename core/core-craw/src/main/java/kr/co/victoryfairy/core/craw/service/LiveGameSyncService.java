@@ -11,6 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.common.service.GameRecordDomainService;
 import kr.co.victoryfairy.core.craw.service.KboLiveGameCrawler.Snapshot;
 import kr.co.victoryfairy.core.craw.service.KboLiveGameCrawler.Target;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
@@ -26,29 +27,45 @@ import org.springframework.stereotype.Service;
 public class LiveGameSyncService {
 
     private static final Logger log = LoggerFactory.getLogger(LiveGameSyncService.class);
+
     private static final ZoneId KOREA = ZoneId.of("Asia/Seoul");
+
     private static final DateTimeFormatter DATE = DateTimeFormatter.BASIC_ISO_DATE;
+
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm");
+
     private static final String MATCH_CACHE_SUFFIX = "_match_list";
+
     private static final String AWAY_HITTER = "away_hitter";
+
     private static final String AWAY_PITCHER = "away_pitcher";
+
     private static final String HOME_HITTER = "home_hitter";
+
     private static final String HOME_PITCHER = "home_pitcher";
 
     private final GameMatchCustomRepository gameMatchCustomRepository;
+
     private final GameMatchRepository gameMatchRepository;
+
     private final RedisHandler redisHandler;
+
     private final CrawService crawService;
+
     private final KboLiveGameCrawler crawler;
+
+    private final GameRecordDomainService gameRecordDomainService;
 
     public LiveGameSyncService(GameMatchCustomRepository gameMatchCustomRepository,
             GameMatchRepository gameMatchRepository, RedisHandler redisHandler,
-            @Qualifier("crawServiceImpl") CrawService crawService, KboLiveGameCrawler crawler) {
+            @Qualifier("crawServiceImpl") CrawService crawService, KboLiveGameCrawler crawler,
+            GameRecordDomainService gameRecordDomainService) {
         this.gameMatchCustomRepository = gameMatchCustomRepository;
         this.gameMatchRepository = gameMatchRepository;
         this.redisHandler = redisHandler;
         this.crawService = crawService;
         this.crawler = crawler;
+        this.gameRecordDomainService = gameRecordDomainService;
     }
 
     public int sync() {
@@ -86,8 +103,7 @@ public class LiveGameSyncService {
         return snapshots.size();
     }
 
-    public Optional<LocalDateTime> nextExecutionAt(LocalDate gameDate, LocalDateTime now,
-            LocalDateTime notBefore) {
+    public Optional<LocalDateTime> nextExecutionAt(LocalDate gameDate, LocalDateTime now, LocalDateTime notBefore) {
         return gameMatchCustomRepository.findByMatchAt(gameDate, MatchEnum.LeagueType.KBO)
             .stream()
             .filter(match -> match.getStatus() != MatchEnum.MatchStatus.CANCELED)
@@ -114,25 +130,28 @@ public class LiveGameSyncService {
     private void apply(GameMatchEntity match, Snapshot snapshot) {
         redisHandler.pushHash(match.getMatchAt().toLocalDate().format(DATE) + MATCH_CACHE_SUFFIX, match.getId(),
                 matchCache(match, snapshot));
-        saveStatus(match, snapshot);
+        GameMatchEntity savedMatch = saveStatus(match, snapshot);
+
+        if (snapshot.status() == MatchEnum.MatchStatus.END || snapshot.status() == MatchEnum.MatchStatus.CANCELED) {
+            gameRecordDomainService.recover(savedMatch);
+        }
 
         if (snapshot.status() == MatchEnum.MatchStatus.PROGRESS) {
             if (snapshot.records().hasData()) {
                 cacheLiveRecords(snapshot);
             }
         }
-        else if (snapshot.status() == MatchEnum.MatchStatus.END
-                && !Boolean.TRUE.equals(match.getIsMatchInfoCraw())) {
+        else if (snapshot.status() == MatchEnum.MatchStatus.END && !Boolean.TRUE.equals(match.getIsMatchInfoCraw())) {
             crawService.crawMatchDetailById(match.getId());
             clearLiveRecords(match.getId());
         }
     }
 
-    private void saveStatus(GameMatchEntity match, Snapshot snapshot) {
+    private GameMatchEntity saveStatus(GameMatchEntity match, Snapshot snapshot) {
         if (snapshot.status() == MatchEnum.MatchStatus.READY) {
-            return;
+            return match;
         }
-        gameMatchRepository.save(match.toBuilder()
+        return gameMatchRepository.save(match.toBuilder()
             .status(snapshot.status())
             .reason(snapshot.reason())
             .awayScore(snapshot.awayScore())
