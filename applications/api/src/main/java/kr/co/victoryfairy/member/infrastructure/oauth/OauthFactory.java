@@ -1,8 +1,8 @@
 package kr.co.victoryfairy.member.infrastructure.oauth;
 
 import io.dodn.springboot.core.enums.MemberEnum;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

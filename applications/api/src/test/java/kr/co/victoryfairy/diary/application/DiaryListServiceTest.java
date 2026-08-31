@@ -11,7 +11,7 @@ import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
 import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
-import kr.co.victoryfairy.support.model.oauth.MemberAccount;
+import kr.co.victoryfairy.member.infrastructure.security.MemberAccount;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

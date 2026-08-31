@@ -45,7 +45,7 @@ class MatchControllerE2ETest {
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(matchController)
             .setMessageConverters(new MappingJackson2HttpMessageConverter())
-            .setControllerAdvice(new kr.co.victoryfairy.support.handler.ExceptionAdvice())
+            .setControllerAdvice(new kr.co.victoryfairy.web.error.ExceptionAdvice())
             .build();
     }
 

@@ -4,11 +4,13 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
-import kr.co.victoryfairy.support.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @SecurityScheme(name = "accessToken", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 @Configuration
@@ -22,7 +24,8 @@ public class SwaggerConfig {
 
     private static final String TITLE = "VictoryFairy API Docs";
 
-    private static final String APP_START_TIME = DateUtils.now(DateUtils.Format.DATETIME_FORMAT_HYPEN.getPattern());
+    private static final String APP_START_TIME = LocalDateTime.now()
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
     @Bean
     public OpenAPI openAPI() {

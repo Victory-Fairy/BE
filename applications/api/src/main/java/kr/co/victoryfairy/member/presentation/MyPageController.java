@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.member.presentation.MyPageDomain;
 import kr.co.victoryfairy.member.application.MemberWithdrawalService;
 import kr.co.victoryfairy.member.application.MyPageQueryService;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.model.CustomResponse;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.response.CustomResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

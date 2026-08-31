@@ -11,7 +11,7 @@ import kr.co.victoryfairy.storage.db.core.entity.FileEntity;
 import kr.co.victoryfairy.storage.db.core.entity.FileRefEntity;
 import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
 import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
-import kr.co.victoryfairy.support.service.S3PresignedUrlService;
+import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
 import org.junit.jupiter.api.Test;
 
 class FileReferenceServiceTest {

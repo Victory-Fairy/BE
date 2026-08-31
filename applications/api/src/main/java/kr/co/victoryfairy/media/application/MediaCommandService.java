@@ -5,11 +5,10 @@ import kr.co.victoryfairy.media.domain.FileDomain;
 import kr.co.victoryfairy.media.infrastructure.S3FileUploader;
 import kr.co.victoryfairy.storage.db.core.entity.FileEntity;
 import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
-import kr.co.victoryfairy.support.properties.FileProperties;
-import kr.co.victoryfairy.support.service.S3PresignedUrlService;
-import kr.co.victoryfairy.support.utils.DateUtils;
+import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.web.error.CustomException;
+import kr.co.victoryfairy.media.infrastructure.FileProperties;
+import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
 import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFmpegExecutor;
 import net.bramp.ffmpeg.FFprobe;
@@ -28,6 +27,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 
@@ -140,7 +141,7 @@ public class MediaCommandService {
      * @return path
      */
     private String makePath(MultipartFile file, RefType type) {
-        String yearMonth = DateUtils.now(DateUtils.Format.DATETIME_FORMAT_MONTH_TRIM.getPattern());
+        String yearMonth = YearMonth.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
         String fileType = getFileType(file);
         String path = Path.of(fileType, type.name().toLowerCase(), yearMonth).toString();
         if (!new File(fileProperties.getStoragePath(), path).exists()) {

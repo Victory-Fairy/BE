@@ -5,7 +5,7 @@ import kr.co.victoryfairy.common.model.CommonDto;
 import kr.co.victoryfairy.storage.db.core.entity.FileRefEntity;
 import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
 import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
-import kr.co.victoryfairy.support.service.S3PresignedUrlService;
+import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

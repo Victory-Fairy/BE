@@ -3,7 +3,7 @@ package kr.co.victoryfairy.admin.application;
 import kr.co.victoryfairy.admin.presentation.AdminMemberDto;
 import kr.co.victoryfairy.storage.db.core.model.MemberModel;
 import kr.co.victoryfairy.storage.db.core.repository.MemberCustomRepository;
-import kr.co.victoryfairy.support.config.MapStructConfig;
+import kr.co.victoryfairy.configuration.MapStructConfig;
 import kr.co.victoryfairy.storage.db.core.model.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
