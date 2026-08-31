@@ -48,6 +48,7 @@ services:
       <<: *app-environment
       SERVER_PORT: "8081"
       SERVER_SERVLET_CONTEXT_PATH: /v2
+      SPRINGDOC_API_DOCS_PATH: /api/v3/api-docs
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/config/file/,file:/config/api/
       JAVA_TOOL_OPTIONS: -Xms128m -Xmx1024m
     volumes:

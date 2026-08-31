@@ -10,10 +10,12 @@ APP_ENV_FILE="$repo_root/deploy/env.example" docker compose \
   config --quiet
 
 grep -q 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf"
-test "$(grep -c 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf")" -eq 2
+test "$(grep -c 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf")" -eq 3
 grep -q 'proxy_pass http://admin:8084' "$repo_root/deploy/nginx/victoryfairy.conf"
 grep -q 'SERVER_SERVLET_CONTEXT_PATH: /v2' "$repo_root/deploy/compose.yaml"
 grep -q 'file:/config/file/,file:/config/api/' "$repo_root/deploy/compose.yaml"
+grep -q 'SPRINGDOC_API_DOCS_PATH: /api/v3/api-docs' "$repo_root/deploy/compose.yaml"
+grep -q 'location /v2/api/swagger-ui/' "$repo_root/deploy/nginx/victoryfairy.conf"
 
 live_service="$repo_root/deploy/systemd/victoryfairy-live-game.service"
 planner_service="$repo_root/deploy/systemd/victoryfairy-live-game-planner.service"
@@ -27,7 +29,6 @@ grep -q 'schedule-live-game.sh sync' "$live_service"
 grep -q 'schedule-live-game.sh plan' "$planner_service"
 grep -q 'pull api file admin craw' "$repo_root/deploy/scripts/deploy.sh"
 grep -q 'file-latest' "$repo_root/deploy/compose.yaml"
-
 runtime_dir="$(mktemp -d)"
 trap 'rm -rf "$runtime_dir"' EXIT
 printf '%s\n' 'LIVE_GAME_NEXT_AT=2026-09-04 18:20:00 Asia/Seoul' \
