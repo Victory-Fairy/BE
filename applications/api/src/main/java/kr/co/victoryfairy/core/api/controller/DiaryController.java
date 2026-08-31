@@ -4,7 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.api.domain.DiaryDomain;
-import kr.co.victoryfairy.core.api.service.DiaryService;
+import kr.co.victoryfairy.core.api.service.DiaryCommandService;
+import kr.co.victoryfairy.core.api.service.DiaryQueryService;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.model.CustomResponse;
 import kr.co.victoryfairy.support.utils.RequestUtils;
@@ -20,10 +21,13 @@ import java.util.List;
 @RequestMapping("/api/diary")
 public class DiaryController {
 
-    private final DiaryService diaryService;
+    private final DiaryCommandService commandService;
 
-    public DiaryController(DiaryService diaryService) {
-        this.diaryService = diaryService;
+    private final DiaryQueryService queryService;
+
+    public DiaryController(DiaryCommandService commandService, DiaryQueryService queryService) {
+        this.commandService = commandService;
+        this.queryService = queryService;
     }
 
     @SecurityRequirement(name = "accessToken")
@@ -31,7 +35,7 @@ public class DiaryController {
     @PostMapping()
     public CustomResponse<DiaryDomain.WriteResponse> writeDiary(@RequestBody DiaryDomain.WriteRequest request) {
         Long memberId = RequestUtils.getId();
-        var response = diaryService.writeDiary(memberId, request);
+        var response = commandService.writeDiary(memberId, request);
         return CustomResponse.ok(response);
     }
 
@@ -40,7 +44,7 @@ public class DiaryController {
     @PatchMapping("/{id}")
     public CustomResponse<MessageEnum> updateDiary(@PathVariable Long id,
             @RequestBody DiaryDomain.UpdateRequest request) {
-        diaryService.updateDiary(id, request);
+        commandService.updateDiary(id, request);
         return CustomResponse.ok(MessageEnum.Common.UPDATE);
     }
 
@@ -48,7 +52,7 @@ public class DiaryController {
     @Operation(summary = "일기 삭제")
     @DeleteMapping("/{id}")
     public CustomResponse<MessageEnum> deleteDiary(@PathVariable Long id) {
-        diaryService.deleteDiary(id);
+        commandService.deleteDiary(id);
         return CustomResponse.ok(MessageEnum.Common.DELETE);
     }
 
@@ -56,7 +60,7 @@ public class DiaryController {
     @GetMapping("/list")
     public CustomResponse<List<DiaryDomain.ListResponse>> findList(
             @RequestParam @DateTimeFormat(pattern = "yyyyMM") YearMonth date) {
-        var response = diaryService.findList(date);
+        var response = queryService.findList(date);
         return CustomResponse.ok(response);
     }
 
@@ -64,7 +68,7 @@ public class DiaryController {
     @GetMapping("/daily-list")
     public CustomResponse<List<DiaryDomain.DailyListResponse>> findDailyList(
             @RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate date) {
-        var response = diaryService.findDailyList(date);
+        var response = queryService.findDailyList(date);
         return CustomResponse.ok(response);
     }
 
@@ -72,7 +76,7 @@ public class DiaryController {
     @Operation(summary = "일기 상세")
     @GetMapping("/{id}")
     public CustomResponse<DiaryDomain.DiaryDetailResponse> findById(@PathVariable Long id) {
-        var response = diaryService.findById(id);
+        var response = queryService.findById(id);
         return CustomResponse.ok(response);
     }
 

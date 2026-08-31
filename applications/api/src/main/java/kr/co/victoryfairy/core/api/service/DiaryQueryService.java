@@ -1,58 +1,43 @@
-package kr.co.victoryfairy.core.api.service.impl;
+package kr.co.victoryfairy.core.api.service;
 
 import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.core.api.domain.DiaryDomain;
-import kr.co.victoryfairy.core.api.domain.MatchDomain;
-import kr.co.victoryfairy.core.api.service.DiaryService;
-import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.redis.lock.DistributedLock;
-import kr.co.victoryfairy.redis.lock.LockName;
-import kr.co.victoryfairy.common.model.CommonDto;
 import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
 import kr.co.victoryfairy.common.service.FileRefDomainService;
-import kr.co.victoryfairy.common.service.GameRecordDomainService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
-import kr.co.victoryfairy.storage.db.core.entity.*;
+import kr.co.victoryfairy.core.api.domain.DiaryDomain;
+import kr.co.victoryfairy.core.api.domain.MatchDomain;
+import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
-import kr.co.victoryfairy.storage.db.core.repository.*;
+import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
+import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
+import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.exception.CustomException;
-
 import kr.co.victoryfairy.support.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
-public class DiaryServiceImpl implements DiaryService {
+@Transactional(readOnly = true)
+public class DiaryQueryService {
 
     private final DiaryRepository diaryRepository;
 
     private final DiaryCustomRepository diaryCustomRepository;
 
-    private final SeatRepository seatRepository;
-
     private final SeatUseHistoryRepository seatUseHistoryRepository;
-
-    private final SeatReviewRepository seatReviewRepository;
-
-    private final GameMatchRepository gameMatchRepository;
-
-    private final GameRecordRepository gameRecordRepository;
-
-    private final MemberRepository memberRepository;
-
-    private final TeamRepository teamRepository;
 
     private final FileRefDomainService fileRefDomainService;
 
@@ -60,175 +45,8 @@ public class DiaryServiceImpl implements DiaryService {
 
     private final PartnerDomainService partnerDomainService;
 
-    private final GameRecordDomainService gameRecordDomainService;
-
     private final RedisHandler redisHandler;
 
-    @Override
-    @Transactional
-    @DistributedLock(value = LockName.DIARY_WRITE, key = "#memberId + '_' + #diaryDto.gameMatchId()")
-    public DiaryDomain.WriteResponse writeDiary(Long memberId, DiaryDomain.WriteRequest diaryDto) {
-        MemberEntity member = memberRepository.findById(Objects.requireNonNull(memberId))
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        // 일기를 작성할 경기 조회
-        GameMatchEntity gameMatchEntity = gameMatchRepository.findById(diaryDto.gameMatchId())
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var teamEntity = teamRepository.findById(diaryDto.teamId())
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        if (diaryRepository.findByMemberAndGameMatchEntity(member, gameMatchEntity) != null) {
-            throw new CustomException(HttpStatus.CONFLICT, MessageEnum.Data.FAIL_DUPLICATE);
-        }
-
-        DiaryEntity diaryEntity = DiaryEntity.builder()
-            .member(member)
-            .teamName(teamEntity.getName())
-            .teamEntity(teamEntity)
-            .viewType(diaryDto.viewType())
-            .gameMatchEntity(gameMatchEntity)
-            .weatherType(diaryDto.weather())
-            .moodType(diaryDto.mood())
-            .content(diaryDto.content())
-            .build();
-        diaryRepository.save(diaryEntity);
-
-        // 도메인 서비스를 통한 연관 데이터 저장
-        fileRefDomainService.saveFileRefs(RefType.DIARY, diaryEntity.getId(), diaryDto.fileId());
-        diaryFoodDomainService.saveFoods(RefType.DIARY, diaryEntity.getId(), diaryDto.foodNameList());
-        partnerDomainService.savePartners(RefType.DIARY, diaryEntity.getId(),
-                toPartnerSaveRequests(diaryDto.partnerList()));
-
-        //
-        DiaryDomain.SeatUseHistoryDto diaryDtoSeat = diaryDto.seat();
-        if (diaryDtoSeat != null) {
-            // 좌석 조회
-
-            SeatEntity seatEntity = null;
-            if (diaryDtoSeat.id() != null) {
-                seatEntity = seatRepository.findById(diaryDtoSeat.id()).orElse(null);
-            }
-
-            // 좌석 이용 내역 저장
-            SeatUseHistoryEntity seatUseHistoryEntity = SeatUseHistoryEntity.builder()
-                .diaryEntity(diaryEntity)
-                .seatEntity(seatEntity)
-                .seatName(diaryDtoSeat.name())
-                .build();
-            seatUseHistoryRepository.save(seatUseHistoryEntity);
-        }
-
-        gameRecordDomainService.record(diaryEntity);
-
-        return new DiaryDomain.WriteResponse(diaryEntity.getId());
-    }
-
-    @Override
-    @Transactional
-    public void updateDiary(Long diaryId, DiaryDomain.UpdateRequest request) {
-        var id = RequestUtils.getId();
-        if (id == null) {
-            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
-        }
-
-        MemberEntity member = memberRepository.findById(Objects.requireNonNull(id))
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var teamEntity = teamRepository.findById(request.teamId())
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var diaryEntity = diaryRepository.findByMemberIdAndId(id, diaryId)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var gameRecordEntity = gameRecordRepository.findByMemberAndDiaryEntityId(member, diaryId);
-
-        diaryEntity.updateDiary(teamEntity.getName(), teamEntity, request.viewType(), request.mood(), request.weather(),
-                request.content());
-        diaryRepository.save(diaryEntity);
-
-        // 도메인 서비스를 통한 연관 데이터 교체 (기존 삭제 후 새로 저장)
-        fileRefDomainService.replaceFileRefs(RefType.DIARY, diaryId, request.fileId());
-        diaryFoodDomainService.replaceFoods(RefType.DIARY, diaryId, request.foodNameList());
-        partnerDomainService.replacePartners(RefType.DIARY, diaryId, toPartnerSaveRequests(request.partnerList()));
-
-        //
-        DiaryDomain.SeatUseHistoryDto diaryDtoSeat = request.seat();
-        if (diaryDtoSeat != null) {
-            // 기존 데이터 삭제 처리
-            var bfSeatUseHistoryEntity = seatUseHistoryRepository.findByDiaryEntityId(diaryId);
-            var bfSeatReviewEntities = seatReviewRepository.findBySeatUseHistoryEntity(bfSeatUseHistoryEntity);
-
-            if (!bfSeatReviewEntities.isEmpty()) {
-                seatReviewRepository.deleteAll(bfSeatReviewEntities);
-            }
-            if (bfSeatUseHistoryEntity != null) {
-                seatUseHistoryRepository.delete(bfSeatUseHistoryEntity);
-            }
-
-            // 좌석 조회
-            SeatEntity seatEntity = null;
-            if (diaryDtoSeat.id() != null) {
-                seatEntity = seatRepository.findById(diaryDtoSeat.id()).orElse(null);
-            }
-
-            // 좌석 이용 내역 저장
-            SeatUseHistoryEntity seatUseHistoryEntity = SeatUseHistoryEntity.builder()
-                .diaryEntity(diaryEntity)
-                .seatEntity(seatEntity)
-                .seatName(diaryDtoSeat.name())
-                .build();
-            seatUseHistoryRepository.save(seatUseHistoryEntity);
-        }
-
-        // 경기 결과 수정 반영
-        if (gameRecordEntity != null && !gameRecordEntity.getTeamEntity().getId().equals(teamEntity.getId())) {
-            var bfMyTeamEntity = gameRecordEntity.getTeamEntity();
-            var bfResult = gameRecordEntity.getResultType();
-            gameRecordEntity.updateRecord(teamEntity, bfMyTeamEntity,
-                    bfResult.equals(MatchEnum.ResultType.WIN) ? MatchEnum.ResultType.LOSS
-                            : bfResult.equals(MatchEnum.ResultType.LOSS) ? MatchEnum.ResultType.WIN : bfResult);
-            gameRecordRepository.save(gameRecordEntity);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void deleteDiary(Long diaryId) {
-        var id = RequestUtils.getId();
-        if (id == null) {
-            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
-        }
-        MemberEntity member = memberRepository.findById(Objects.requireNonNull(id))
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var diaryEntity = diaryRepository.findByMemberIdAndId(id, diaryId)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var gameRecordEntity = gameRecordRepository.findByMemberAndDiaryEntityId(member, diaryId);
-        if (gameRecordEntity != null) {
-            gameRecordRepository.delete(gameRecordEntity);
-        }
-
-        // 도메인 서비스를 통한 연관 데이터 삭제
-        fileRefDomainService.deleteFileRefs(RefType.DIARY, diaryId);
-        diaryFoodDomainService.deleteFoods(RefType.DIARY, diaryId);
-        partnerDomainService.deletePartners(RefType.DIARY, diaryId);
-
-        var bfSeatUseHistoryEntity = seatUseHistoryRepository.findByDiaryEntityId(diaryId);
-        if (bfSeatUseHistoryEntity != null) {
-            seatUseHistoryRepository.delete(bfSeatUseHistoryEntity);
-        }
-
-        var bfSeatReviewEntities = seatReviewRepository.findBySeatUseHistoryEntity(bfSeatUseHistoryEntity);
-        if (!bfSeatReviewEntities.isEmpty()) {
-            seatReviewRepository.deleteAll(bfSeatReviewEntities);
-        }
-
-        diaryRepository.delete(diaryEntity);
-    }
-
-    @Override
     public List<DiaryDomain.ListResponse> findList(YearMonth date) {
         var id = RequestUtils.getId();
 
@@ -284,7 +102,6 @@ public class DiaryServiceImpl implements DiaryService {
         }).toList();
     }
 
-    @Override
     public List<DiaryDomain.DailyListResponse> findDailyList(LocalDate date) {
         var id = RequestUtils.getId();
 
@@ -298,19 +115,16 @@ public class DiaryServiceImpl implements DiaryService {
             return new ArrayList<>();
         }
 
-        // Redis에서 해당 날짜 경기 정보 조회
         var formatDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         var matchRedis = redisHandler.getHashMap(formatDate + "_match_list");
 
         var diaryIds = diaryEntities.stream().map(DiaryModel.DiaryDto::getId).toList();
-
         var fileMap = fileRefDomainService.findImageMapByRefIds(RefType.DIARY, diaryIds);
 
         return diaryEntities.stream().sorted((e1, e2) -> {
-            // updatedAt 우선, 없으면 createdAt 으로 비교
             var t1 = e1.getUpdatedAt() != null ? e1.getUpdatedAt() : e1.getCreatedAt();
             var t2 = e2.getUpdatedAt() != null ? e2.getUpdatedAt() : e2.getCreatedAt();
-            return t2.compareTo(t1); // 최신순 (내림차순)
+            return t2.compareTo(t1);
         }).map(entity -> {
             var image = fileMap.get(entity.getId());
             DiaryDomain.ImageDto imageDto = null;
@@ -355,7 +169,6 @@ public class DiaryServiceImpl implements DiaryService {
             var homeTeamDto = new MatchDomain.TeamDto(entity.getHomeTeamId(), entity.getHomeTeamName(), homeScore,
                     homeResult);
 
-            // Redis에 데이터가 있으면 status 우선 적용
             var status = entity.getStatus();
             if (!matchRedis.isEmpty() && entity.getGameMatchId() != null) {
                 var matchData = matchRedis.get(entity.getGameMatchId());
@@ -364,7 +177,6 @@ public class DiaryServiceImpl implements DiaryService {
                 }
             }
 
-            // 취소된 경기는 취소 사유를 statusDetail로 반환
             var statusDetail = status.equals(MatchEnum.MatchStatus.CANCELED) && entity.getReason() != null
                     ? entity.getReason() : status.getDesc();
 
@@ -375,7 +187,6 @@ public class DiaryServiceImpl implements DiaryService {
         }).toList();
     }
 
-    @Override
     public DiaryDomain.DiaryDetailResponse findById(Long diaryId) {
         var id = RequestUtils.getId();
         if (id == null) {
@@ -427,18 +238,7 @@ public class DiaryServiceImpl implements DiaryService {
         return new DiaryDomain.DiaryDetailResponse(diaryEntity.getTeamEntity().getId(), diaryEntity.getViewType(),
                 diaryEntity.getGameMatchEntity().getId(), fileDto, diaryEntity.getWeatherType(),
                 diaryEntity.getMoodType(), foodList, seatUseHistoryDto, diaryEntity.getContent(), partnerList, myResult,
-                diaryEntity.getCreatedAt(), diaryEntity.getUpdatedAt(),
-                diaryEntity.getGameMatchEntity().getLeague());
-    }
-
-    /**
-     * DiaryDomain.PartnerDto 리스트를 CommonDto.PartnerSaveRequest 리스트로 변환
-     */
-    private List<CommonDto.PartnerSaveRequest> toPartnerSaveRequests(List<DiaryDomain.PartnerDto> partnerDtoList) {
-        if (partnerDtoList == null || partnerDtoList.isEmpty()) {
-            return List.of();
-        }
-        return partnerDtoList.stream().map(dto -> new CommonDto.PartnerSaveRequest(dto.name(), dto.teamId())).toList();
+                diaryEntity.getCreatedAt(), diaryEntity.getUpdatedAt(), diaryEntity.getGameMatchEntity().getLeague());
     }
 
 }

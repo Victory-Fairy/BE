@@ -75,7 +75,7 @@ dependencies {
 }
 
 pitest {
-    targetClasses = ['kr.co.victoryfairy.core.api.service.impl.DiaryServiceImpl']
+    targetClasses = ['kr.co.victoryfairy.core.api.service.DiaryQueryService']
     targetTests = ['kr.co.victoryfairy.core.api.service.DiaryListServiceTest']
     excludedMethods = [
         'writeDiary', 'lambda$writeDiary*',

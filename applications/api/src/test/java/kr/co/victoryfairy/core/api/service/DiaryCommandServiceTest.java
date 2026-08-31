@@ -14,13 +14,10 @@ import kr.co.victoryfairy.common.service.FileRefDomainService;
 import kr.co.victoryfairy.common.service.GameRecordDomainService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
 import kr.co.victoryfairy.core.api.domain.DiaryDomain;
-import kr.co.victoryfairy.core.api.service.impl.DiaryServiceImpl;
-import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.storage.db.core.entity.DiaryEntity;
 import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
 import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
 import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
 import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
 import kr.co.victoryfairy.storage.db.core.repository.GameRecordRepository;
@@ -32,7 +29,7 @@ import kr.co.victoryfairy.storage.db.core.repository.TeamRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-class DiaryServiceImplTest {
+class DiaryCommandServiceTest {
 
     @Test
     void recordsTheResultWithoutPublishingAWriteDiaryEvent() {
@@ -41,7 +38,6 @@ class DiaryServiceImplTest {
         var memberRepository = mock(MemberRepository.class);
         var teamRepository = mock(TeamRepository.class);
         var gameRecordService = mock(GameRecordDomainService.class);
-        var redisHandler = mock(RedisHandler.class);
         var member = MemberEntity.builder().id(787L).build();
         var team = new TeamEntity(13L, "한화", "한화");
         var match = GameMatchEntity.builder().id("20260827HHSK0").status(MatchEnum.MatchStatus.END).build();
@@ -49,11 +45,11 @@ class DiaryServiceImplTest {
         when(matchRepository.findById(match.getId())).thenReturn(Optional.of(match));
         when(teamRepository.findById(team.getId())).thenReturn(Optional.of(team));
 
-        var service = new DiaryServiceImpl(diaryRepository, mock(DiaryCustomRepository.class),
-                mock(SeatRepository.class), mock(SeatUseHistoryRepository.class), mock(SeatReviewRepository.class),
+        var service = new DiaryCommandService(diaryRepository, mock(SeatRepository.class),
+                mock(SeatUseHistoryRepository.class), mock(SeatReviewRepository.class),
                 matchRepository, mock(GameRecordRepository.class), memberRepository, teamRepository,
                 mock(FileRefDomainService.class), mock(DiaryFoodDomainService.class), mock(PartnerDomainService.class),
-                gameRecordService, redisHandler);
+                gameRecordService);
         var request = new DiaryDomain.WriteRequest(team.getId(), DiaryEnum.ViewType.HOME, match.getId(), List.of(),
                 null, null, List.of(), null, "응원 일기", List.of());
 

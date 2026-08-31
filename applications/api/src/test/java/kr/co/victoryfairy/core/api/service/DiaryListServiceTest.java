@@ -5,20 +5,12 @@ import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.common.model.CommonDto;
 import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
 import kr.co.victoryfairy.common.service.FileRefDomainService;
-import kr.co.victoryfairy.common.service.GameRecordDomainService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
-import kr.co.victoryfairy.core.api.service.impl.DiaryServiceImpl;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
-import kr.co.victoryfairy.storage.db.core.repository.GameRecordRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
-import kr.co.victoryfairy.storage.db.core.repository.SeatRepository;
-import kr.co.victoryfairy.storage.db.core.repository.SeatReviewRepository;
 import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
-import kr.co.victoryfairy.storage.db.core.repository.TeamRepository;
 import kr.co.victoryfairy.support.model.oauth.MemberAccount;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -48,19 +40,7 @@ class DiaryListServiceTest {
     @Mock
     private DiaryCustomRepository diaryCustomRepository;
     @Mock
-    private SeatRepository seatRepository;
-    @Mock
     private SeatUseHistoryRepository seatUseHistoryRepository;
-    @Mock
-    private SeatReviewRepository seatReviewRepository;
-    @Mock
-    private GameMatchRepository gameMatchRepository;
-    @Mock
-    private GameRecordRepository gameRecordRepository;
-    @Mock
-    private MemberRepository memberRepository;
-    @Mock
-    private TeamRepository teamRepository;
     @Mock
     private FileRefDomainService fileRefDomainService;
     @Mock
@@ -68,12 +48,10 @@ class DiaryListServiceTest {
     @Mock
     private PartnerDomainService partnerDomainService;
     @Mock
-    private GameRecordDomainService gameRecordDomainService;
-    @Mock
     private RedisHandler redisHandler;
 
     @InjectMocks
-    private DiaryServiceImpl diaryService;
+    private DiaryQueryService diaryService;
 
     @AfterEach
     void clearRequest() {
