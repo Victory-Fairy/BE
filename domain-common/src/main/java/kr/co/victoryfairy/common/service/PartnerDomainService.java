@@ -30,7 +30,7 @@ public class PartnerDomainService {
 
     /**
      * 동행자 목록 저장
-     * @param refType 참조 타입 (DIARY, FREE_DIARY)
+     * @param refType 참조 타입
      * @param refId 참조 ID
      * @param partnerList 동행자 정보 목록
      */

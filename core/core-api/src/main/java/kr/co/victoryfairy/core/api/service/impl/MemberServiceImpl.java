@@ -264,20 +264,6 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public void checkFcmToken(String fcmToken) {
-        var id = RequestUtils.getId();
-
-        var memberEntity = memberRepository.findById(id)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        if (!StringUtils.hasText(memberEntity.getFcmToken()) || !memberEntity.getFcmToken().equals(fcmToken)) {
-            memberEntity.updateFcmToken(fcmToken);
-            memberRepository.save(memberEntity);
-        }
-
-    }
-
-    @Override
     public void logout() {
         var id = RequestUtils.getId();
         if (id == null)

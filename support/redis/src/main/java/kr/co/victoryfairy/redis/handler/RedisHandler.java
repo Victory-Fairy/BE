@@ -8,7 +8,6 @@ import kr.co.victoryfairy.support.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -109,37 +108,6 @@ public class RedisHandler {
      */
     public void deleteHashValue(String hashKey, String key) {
         redisTemplate.opsForHash().delete(hashKey, key);
-    }
-
-    /**
-     * Redis Stream pub
-     */
-    public void pushEvent(String channel, Object obj) {
-        try {
-            Map<String, String> map = objectMapper.convertValue(obj, new TypeReference<>() {
-            });
-            redisTemplate.opsForStream().add(channel, map);
-        }
-        catch (Exception e) {
-            log.error("Redis Stream 이벤트 발행 실패 - channel: {}", channel, e);
-        }
-    }
-
-    public void initEvent(String key, String groupName) {
-        redisTemplate.opsForStream().createGroup(key, ReadOffset.latest(), groupName);
-    }
-
-    public List<MapRecord<String, Object, Object>> getEventMessages(String key, String groupName, String consumer) {
-        return redisTemplate.opsForStream()
-            .read(Consumer.from(groupName, consumer), StreamReadOptions.empty().block(Duration.ofSeconds(2)).count(10),
-                    StreamOffset.create(key, ReadOffset.lastConsumed()));
-    }
-
-    public void eventKnowEdge(String key, String groupName, String recordId) {
-        Long acked = redisTemplate.opsForStream().acknowledge(key, groupName, recordId);
-        Long deleted = redisTemplate.opsForStream().delete(key, recordId);
-
-        log.info(">> eventKnowEdge: ack={}, delete={}", acked, deleted);
     }
 
     public void pushHash(String key, String id, Object data) {

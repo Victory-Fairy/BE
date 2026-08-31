@@ -1,7 +1,6 @@
 package kr.co.victoryfairy.core.api.service;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,7 +22,6 @@ import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
 import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
-import kr.co.victoryfairy.storage.db.core.repository.FreeDiaryRepository;
 import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
 import kr.co.victoryfairy.storage.db.core.repository.GameRecordRepository;
 import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
@@ -54,8 +52,8 @@ class DiaryServiceImplTest {
         var service = new DiaryServiceImpl(diaryRepository, mock(DiaryCustomRepository.class),
                 mock(SeatRepository.class), mock(SeatUseHistoryRepository.class), mock(SeatReviewRepository.class),
                 matchRepository, mock(GameRecordRepository.class), memberRepository, teamRepository,
-                mock(FreeDiaryRepository.class), mock(FileRefDomainService.class), mock(DiaryFoodDomainService.class),
-                mock(PartnerDomainService.class), gameRecordService, redisHandler);
+                mock(FileRefDomainService.class), mock(DiaryFoodDomainService.class), mock(PartnerDomainService.class),
+                gameRecordService, redisHandler);
         var request = new DiaryDomain.WriteRequest(team.getId(), DiaryEnum.ViewType.HOME, match.getId(), List.of(),
                 null, null, List.of(), null, "응원 일기", List.of());
 
@@ -64,8 +62,6 @@ class DiaryServiceImplTest {
         var diary = ArgumentCaptor.forClass(DiaryEntity.class);
         verify(diaryRepository).save(diary.capture());
         verify(gameRecordService).record(diary.getValue());
-        verify(redisHandler, never()).pushEvent(org.mockito.ArgumentMatchers.anyString(),
-                org.mockito.ArgumentMatchers.any());
     }
 
 }
