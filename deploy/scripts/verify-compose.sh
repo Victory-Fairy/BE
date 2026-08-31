@@ -37,6 +37,7 @@ test -x "$repo_root/deploy/scripts/release-via-ssm.sh"
 grep -q 'release-via-ssm.sh' "$repo_root/.github/workflows/deploy-backend.yml"
 grep -q 'compose.next.yaml' "$repo_root/deploy/scripts/deploy.sh"
 grep -q 'victoryfairy.next.conf' "$repo_root/deploy/scripts/deploy.sh"
+grep -q -- '--add-host api:127.0.0.1' "$repo_root/deploy/scripts/deploy.sh"
 
 runtime_dir="$(mktemp -d)"
 trap 'rm -rf "$runtime_dir"' EXIT
