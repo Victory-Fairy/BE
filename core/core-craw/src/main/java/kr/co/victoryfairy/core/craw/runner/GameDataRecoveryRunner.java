@@ -6,8 +6,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.common.service.GameRecordDomainService;
 import kr.co.victoryfairy.core.craw.service.CrawService;
-import kr.co.victoryfairy.core.craw.service.DiaryResultRecoveryService;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
 import org.slf4j.Logger;
@@ -39,17 +39,15 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
 
     private final GameMatchCustomRepository gameMatchCustomRepository;
 
-    private final DiaryResultRecoveryService diaryResultRecoveryService;
+    private final GameRecordDomainService gameRecordDomainService;
 
     private final RedisHandler redisHandler;
 
     public GameDataRecoveryRunner(@Value("${game-recovery.from:}") String from,
-            @Value("${game-recovery.to:}") String to,
-            @Value("${game-recovery.days-ago:0}") int daysAgo,
+            @Value("${game-recovery.to:}") String to, @Value("${game-recovery.days-ago:0}") int daysAgo,
             @Value("${game-recovery.dry-run:true}") boolean dryRun,
-            @Qualifier("crawServiceImpl") CrawService crawService,
-            GameMatchCustomRepository gameMatchCustomRepository,
-            DiaryResultRecoveryService diaryResultRecoveryService, RedisHandler redisHandler) {
+            @Qualifier("crawServiceImpl") CrawService crawService, GameMatchCustomRepository gameMatchCustomRepository,
+            GameRecordDomainService gameRecordDomainService, RedisHandler redisHandler) {
         var range = resolveDateRange(from, to, daysAgo, LocalDate.now(KOREA));
         this.from = range.from();
         this.to = range.to();
@@ -59,7 +57,7 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
         this.dryRun = dryRun;
         this.crawService = crawService;
         this.gameMatchCustomRepository = gameMatchCustomRepository;
-        this.diaryResultRecoveryService = diaryResultRecoveryService;
+        this.gameRecordDomainService = gameRecordDomainService;
         this.redisHandler = redisHandler;
     }
 
@@ -90,21 +88,24 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
         }
 
         for (YearMonth month = YearMonth.from(from); !month.isAfter(YearMonth.from(to)); month = month.plusMonths(1)) {
-            crawService.crawMatchListByMonth(String.valueOf(month.getYear()), String.format("%02d", month.getMonthValue()));
+            crawService.crawMatchListByMonth(String.valueOf(month.getYear()),
+                    String.format("%02d", month.getMonthValue()));
         }
 
         int details = 0;
         int diaryRecords = 0;
         for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
             for (var match : gameMatchCustomRepository.findByMatchAt(date, MatchEnum.LeagueType.KBO)) {
-                if (match.getStatus() != MatchEnum.MatchStatus.END) {
+                if (match.getStatus() != MatchEnum.MatchStatus.END
+                        && match.getStatus() != MatchEnum.MatchStatus.CANCELED) {
                     continue;
                 }
-                if (!Boolean.TRUE.equals(match.getIsMatchInfoCraw())) {
+                if (match.getStatus() == MatchEnum.MatchStatus.END
+                        && !Boolean.TRUE.equals(match.getIsMatchInfoCraw())) {
                     crawService.crawMatchDetailById(match.getId());
                     details++;
                 }
-                diaryRecords += diaryResultRecoveryService.recover(match.getId());
+                diaryRecords += gameRecordDomainService.recover(match);
             }
             redisHandler.deleteHash(date.format(CACHE_DATE) + "_match_list");
         }

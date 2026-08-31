@@ -24,8 +24,8 @@ public class GameRecordEntity extends BaseEntity {
     @JoinColumn(name = "member_id")
     private MemberEntity member; // 회원 식별자
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "diary_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "diary_id", unique = true)
     private DiaryEntity diaryEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)

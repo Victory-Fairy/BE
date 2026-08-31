@@ -1,7 +1,6 @@
 package kr.co.victoryfairy.core.api.domain;
 
 import io.dodn.springboot.core.enums.DiaryEnum;
-import io.dodn.springboot.core.enums.EventType;
 import io.dodn.springboot.core.enums.MatchEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -81,9 +80,6 @@ public interface DiaryDomain {
             @Schema(description = "좌석 리뷰", example = "[\"탁 트인 시야\", \"넓은 공간\"]") List<String> desc // 좌석
                                                                                                    // 리뷰
     ) {
-    }
-
-    record WriteEventDto(String gameId, Long memberId, Long diaryId, EventType type) {
     }
 
     record ListResponse(Long id, Long teamId, LocalDate date, ImageDto image, List<ImageDto> images,

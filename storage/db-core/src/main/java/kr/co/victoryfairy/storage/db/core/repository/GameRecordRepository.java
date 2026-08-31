@@ -8,6 +8,7 @@ import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface GameRecordRepository extends JpaRepository<GameRecordEntity, Long> {
 
@@ -16,6 +17,8 @@ public interface GameRecordRepository extends JpaRepository<GameRecordEntity, Lo
     List<GameRecordEntity> findByMemberId(Long memberId);
 
     GameRecordEntity findByMemberAndDiaryEntityId(MemberEntity member, Long diaryId);
+
+    Optional<GameRecordEntity> findByDiaryEntityId(Long diaryId);
 
     // 리그 타입별 조회 메서드
     List<GameRecordEntity> findByMemberAndSeasonAndLeagueType(MemberEntity member, String season,

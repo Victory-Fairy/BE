@@ -1,6 +1,5 @@
 package kr.co.victoryfairy.core.api.service.impl;
 
-import io.dodn.springboot.core.enums.EventType;
 import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.core.api.domain.DiaryDomain;
@@ -12,6 +11,7 @@ import kr.co.victoryfairy.redis.lock.LockName;
 import kr.co.victoryfairy.common.model.CommonDto;
 import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
 import kr.co.victoryfairy.common.service.FileRefDomainService;
+import kr.co.victoryfairy.common.service.GameRecordDomainService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
 import kr.co.victoryfairy.storage.db.core.entity.*;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
@@ -24,8 +24,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -63,6 +61,8 @@ public class DiaryServiceImpl implements DiaryService {
     private final DiaryFoodDomainService diaryFoodDomainService;
 
     private final PartnerDomainService partnerDomainService;
+
+    private final GameRecordDomainService gameRecordDomainService;
 
     private final RedisHandler redisHandler;
 
@@ -121,17 +121,7 @@ public class DiaryServiceImpl implements DiaryService {
             seatUseHistoryRepository.save(seatUseHistoryEntity);
         }
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                if (gameMatchEntity.getStatus().equals(MatchEnum.MatchStatus.END)
-                        || gameMatchEntity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)) {
-                    var writeEventDto = new DiaryDomain.WriteEventDto(diaryDto.gameMatchId(), memberId,
-                            diaryEntity.getId(), EventType.DIARY);
-                    redisHandler.pushEvent("write_diary", writeEventDto);
-                }
-            }
-        });
+        gameRecordDomainService.record(diaryEntity);
 
         return new DiaryDomain.WriteResponse(diaryEntity.getId());
     }

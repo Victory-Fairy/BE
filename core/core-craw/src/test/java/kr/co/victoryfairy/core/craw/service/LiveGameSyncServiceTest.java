@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.common.service.GameRecordDomainService;
 import kr.co.victoryfairy.core.craw.service.KboLiveGameCrawler.Records;
 import kr.co.victoryfairy.core.craw.service.KboLiveGameCrawler.Snapshot;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
@@ -14,6 +15,7 @@ import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
 import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,16 +31,18 @@ class LiveGameSyncServiceTest {
 
     @Test
     void pollsFromTenMinutesBeforeUntilFinalRecordsAreSaved() {
-        assertThat(LiveGameSyncService.shouldPoll(matchAt.minusMinutes(10), matchAt,
-                MatchEnum.MatchStatus.READY, false)).isTrue();
-        assertThat(LiveGameSyncService.shouldPoll(matchAt.minusMinutes(11), matchAt,
-                MatchEnum.MatchStatus.READY, false)).isFalse();
-        assertThat(LiveGameSyncService.shouldPoll(matchAt.plusHours(4), matchAt,
-                MatchEnum.MatchStatus.PROGRESS, false)).isTrue();
-        assertThat(LiveGameSyncService.shouldPoll(matchAt.plusHours(4), matchAt,
-                MatchEnum.MatchStatus.END, false)).isTrue();
-        assertThat(LiveGameSyncService.shouldPoll(matchAt.plusHours(4), matchAt,
-                MatchEnum.MatchStatus.END, true)).isFalse();
+        assertThat(
+                LiveGameSyncService.shouldPoll(matchAt.minusMinutes(10), matchAt, MatchEnum.MatchStatus.READY, false))
+            .isTrue();
+        assertThat(
+                LiveGameSyncService.shouldPoll(matchAt.minusMinutes(11), matchAt, MatchEnum.MatchStatus.READY, false))
+            .isFalse();
+        assertThat(LiveGameSyncService.shouldPoll(matchAt.plusHours(4), matchAt, MatchEnum.MatchStatus.PROGRESS, false))
+            .isTrue();
+        assertThat(LiveGameSyncService.shouldPoll(matchAt.plusHours(4), matchAt, MatchEnum.MatchStatus.END, false))
+            .isTrue();
+        assertThat(LiveGameSyncService.shouldPoll(matchAt.plusHours(4), matchAt, MatchEnum.MatchStatus.END, true))
+            .isFalse();
     }
 
     @Test
@@ -52,8 +56,7 @@ class LiveGameSyncServiceTest {
     @Test
     void distinguishesMissingRecordsFromCrawledRecords() {
         assertThat(Records.empty().hasData()).isFalse();
-        assertThat(new Records(List.of(Map.of("name", "player")), List.of(), List.of(), List.of()).hasData())
-            .isTrue();
+        assertThat(new Records(List.of(Map.of("name", "player")), List.of(), List.of(), List.of()).hasData()).isTrue();
     }
 
     @Test
@@ -107,17 +110,53 @@ class LiveGameSyncServiceTest {
         var second = match("second");
         var records = new Records(List.of(), List.of(), List.of(), List.of());
 
-        when(customRepository.findByMatchAt(any(), eq(MatchEnum.LeagueType.KBO)))
-            .thenReturn(List.of(first, second));
-        when(crawler.crawl(any(), any())).thenReturn(List.of(
-                new Snapshot("first", MatchEnum.MatchStatus.READY, "경기예정", "-", null, null, records),
-                new Snapshot("second", MatchEnum.MatchStatus.READY, "경기예정", "-", null, null, records)));
-        doThrow(new IllegalStateException("redis unavailable"))
-            .when(redisHandler).pushHash(any(), eq("first"), any());
+        when(customRepository.findByMatchAt(any(), eq(MatchEnum.LeagueType.KBO))).thenReturn(List.of(first, second));
+        when(crawler.crawl(any(), any()))
+            .thenReturn(List.of(new Snapshot("first", MatchEnum.MatchStatus.READY, "경기예정", "-", null, null, records),
+                    new Snapshot("second", MatchEnum.MatchStatus.READY, "경기예정", "-", null, null, records)));
+        doThrow(new IllegalStateException("redis unavailable")).when(redisHandler).pushHash(any(), eq("first"), any());
 
-        new LiveGameSyncService(customRepository, gameMatchRepository, redisHandler, crawService, crawler).sync();
+        new LiveGameSyncService(customRepository, gameMatchRepository, redisHandler, crawService, crawler,
+                mock(GameRecordDomainService.class))
+            .sync();
 
         verify(redisHandler).pushHash(any(), eq("second"), any());
+    }
+
+    @Test
+    void recoversUnratedDiariesWhenAMatchEnds() {
+        var customRepository = mock(GameMatchCustomRepository.class);
+        var gameMatchRepository = mock(GameMatchRepository.class);
+        var redisHandler = mock(RedisHandler.class);
+        var crawService = mock(CrawService.class);
+        var crawler = mock(KboLiveGameCrawler.class);
+        var gameRecordService = mock(GameRecordDomainService.class);
+        var away = new TeamEntity(1L, "KT", "KT");
+        var home = new TeamEntity(2L, "LG", "LG");
+        var match = GameMatchEntity.builder()
+            .id("ended")
+            .league(MatchEnum.LeagueType.KBO)
+            .series(MatchEnum.SeriesType.REGULAR)
+            .matchAt(LocalDateTime.now().minusHours(1))
+            .awayTeamEntity(away)
+            .homeTeamEntity(home)
+            .stadiumEntity(StadiumEntity.builder().id(1L).shortName("잠실").build())
+            .status(MatchEnum.MatchStatus.PROGRESS)
+            .isMatchInfoCraw(false)
+            .build();
+        var records = new Records(List.of(), List.of(), List.of(), List.of());
+        when(customRepository.findByMatchAt(any(), eq(MatchEnum.LeagueType.KBO))).thenReturn(List.of(match));
+        when(crawler.crawl(any(), any())).thenReturn(
+                List.of(new Snapshot("ended", MatchEnum.MatchStatus.END, "경기종료", "-", (short) 6, (short) 13, records)));
+        when(gameMatchRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        new LiveGameSyncService(customRepository, gameMatchRepository, redisHandler, crawService, crawler,
+                gameRecordService)
+            .sync();
+
+        var savedMatch = ArgumentCaptor.forClass(GameMatchEntity.class);
+        verify(gameRecordService).recover(savedMatch.capture());
+        assertThat(savedMatch.getValue().getStatus()).isEqualTo(MatchEnum.MatchStatus.END);
     }
 
     private static GameMatchEntity match(String id) {
@@ -143,7 +182,7 @@ class LiveGameSyncServiceTest {
 
     private static LiveGameSyncService service(GameMatchCustomRepository customRepository) {
         return new LiveGameSyncService(customRepository, mock(GameMatchRepository.class), mock(RedisHandler.class),
-                mock(CrawService.class), mock(KboLiveGameCrawler.class));
+                mock(CrawService.class), mock(KboLiveGameCrawler.class), mock(GameRecordDomainService.class));
     }
 
 }
