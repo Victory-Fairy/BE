@@ -3,9 +3,15 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 
-for service in api file admin craw; do
-  jar_file="core/core-${service}/build/libs/core-${service}.jar"
+stage_jar() {
+  local module="$1"
+  local context="$2"
+  local jar_file="applications/${module}/build/libs/${module}.jar"
+
   test -f "$jar_file"
-  mkdir -p "build/docker/${service}"
-  cp "$jar_file" "build/docker/${service}/app.jar"
-done
+  mkdir -p "build/docker/${context}"
+  cp "$jar_file" "build/docker/${context}/app.jar"
+}
+
+stage_jar api api
+stage_jar crawler craw

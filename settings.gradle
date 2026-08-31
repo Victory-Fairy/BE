@@ -12,21 +12,10 @@ plugins {
 
 rootProject.name = 'BE'
 
-include 'domain-common'
+include 'domain'
 
-include 'core:core-enum'
-include 'core:core-api'
-include 'core:core-craw'
-include 'core:core-batch'
-include 'core:core-file'
-include 'core:core-event'
-include 'core:core-admin'
+include 'applications:api'
+include 'applications:crawler'
 
-include 'storage:db-core'
 include 'tests:api-docs'
-include 'support:logging'
-include 'support:common'
-include 'support:redis'
-include 'clients:client-example'
-
-
+include 'infrastructure:redis'

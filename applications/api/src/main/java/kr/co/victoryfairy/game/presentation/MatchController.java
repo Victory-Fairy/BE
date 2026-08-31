@@ -1,0 +1,53 @@
+package kr.co.victoryfairy.game.presentation;
+
+import io.dodn.springboot.core.enums.MatchEnum;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.co.victoryfairy.game.presentation.MatchDomain;
+import kr.co.victoryfairy.game.application.GameQueryService;
+import kr.co.victoryfairy.web.response.CustomResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+
+@Tag(name = "Match", description = "경기")
+@RestController
+@RequestMapping("/api/match")
+@RequiredArgsConstructor
+public class MatchController {
+
+    private final GameQueryService matchService;
+
+    @Operation(summary = "특정 날짜 경기 불러오기")
+    @GetMapping("/list")
+    public CustomResponse<MatchDomain.MatchListResponse> findList(
+            @RequestParam @DateTimeFormat(pattern = "yyyyMMdd") LocalDate date,
+            @RequestParam(required = false) MatchEnum.LeagueType league) {
+        var response = matchService.findList(date, league);
+        return CustomResponse.ok(response);
+    }
+
+    @Operation(summary = "오늘 경기 목록")
+    @GetMapping("/today")
+    public CustomResponse<MatchDomain.TodayMatchListResponse> findTodayMatch() {
+        return CustomResponse.ok(matchService.findTodayMatch());
+    }
+
+    @Operation(summary = "경기 상세")
+    @GetMapping("/{id}")
+    public CustomResponse<MatchDomain.MatchInfoResponse> findById(@PathVariable String id) {
+        var response = matchService.findById(id);
+        return CustomResponse.ok(response);
+    }
+
+    @Operation(summary = "경기 기록")
+    @GetMapping("/record/{id}")
+    public CustomResponse<MatchDomain.RecordResponse> findRecordById(@PathVariable String id) {
+        var response = matchService.findRecordById(id);
+        return CustomResponse.ok(response);
+    }
+
+}

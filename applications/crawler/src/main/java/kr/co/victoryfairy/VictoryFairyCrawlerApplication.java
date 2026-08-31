@@ -1,0 +1,20 @@
+package kr.co.victoryfairy;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@ConfigurationPropertiesScan
+@SpringBootApplication
+public class VictoryFairyCrawlerApplication {
+
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(VictoryFairyCrawlerApplication.class, args);
+        if (context.getEnvironment().getProperty("game-recovery.enabled", Boolean.class, false)
+                || context.getEnvironment().getProperty("live-game.enabled", Boolean.class, false)) {
+            SpringApplication.exit(context);
+        }
+    }
+
+}
