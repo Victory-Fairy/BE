@@ -1,7 +1,6 @@
-package kr.co.victoryfairy.core.api.service.impl;
+package kr.co.victoryfairy.core.api.service;
 
 import kr.co.victoryfairy.core.api.domain.CommonDomain;
-import kr.co.victoryfairy.core.api.service.CommonService;
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.storage.db.core.entity.SeatEntity;
 import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
@@ -15,13 +14,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CommonServiceImpl implements CommonService {
+public class CommonQueryService {
 
     private final TeamRepository teamRepository;
 
     private final SeatRepository seatRepository;
 
-    @Override
     public List<CommonDomain.TeamListResponse> findAll(MatchEnum.LeagueType league) {
         List<TeamEntity> teams = (league == null) ? teamRepository.findAllByOrderByOrderNo()
                 : teamRepository.findByLeagueOrderByOrderNo(league);
@@ -32,7 +30,6 @@ public class CommonServiceImpl implements CommonService {
             .toList();
     }
 
-    @Override
     public List<CommonDomain.SeatListResponse> findSeat(Long id, String season) {
         List<SeatEntity> seatEntities = seatRepository.findByStadiumEntityIdAndSeason(id, season);
         if (seatEntities.isEmpty()) {

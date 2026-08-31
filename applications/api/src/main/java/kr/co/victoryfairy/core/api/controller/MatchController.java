@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.api.domain.MatchDomain;
-import kr.co.victoryfairy.core.api.service.MatchService;
+import kr.co.victoryfairy.core.api.service.GameQueryService;
 import kr.co.victoryfairy.support.model.CustomResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -19,7 +19,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class MatchController {
 
-    private final MatchService matchService;
+    private final GameQueryService matchService;
 
     @Operation(summary = "특정 날짜 경기 불러오기")
     @GetMapping("/list")

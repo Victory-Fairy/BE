@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.api.domain.CommonDomain;
-import kr.co.victoryfairy.core.api.service.CommonService;
+import kr.co.victoryfairy.core.api.service.CommonQueryService;
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.support.model.CustomResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommonController {
 
-    private final CommonService commonService;
+    private final CommonQueryService commonService;
 
     @GetMapping("/health")
     public CustomResponse<Boolean> healthCheck() {

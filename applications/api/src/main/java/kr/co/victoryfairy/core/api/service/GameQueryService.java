@@ -1,9 +1,8 @@
-package kr.co.victoryfairy.core.api.service.impl;
+package kr.co.victoryfairy.core.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.core.api.domain.MatchDomain;
-import kr.co.victoryfairy.core.api.service.MatchService;
 import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
 import kr.co.victoryfairy.storage.db.core.entity.HitterRecordEntity;
 import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
@@ -26,7 +25,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MatchServiceImpl implements MatchService {
+public class GameQueryService {
 
     private final TeamRepository teamRepository;
 
@@ -48,12 +47,10 @@ public class MatchServiceImpl implements MatchService {
 
     private final RedisHandler redisHandler;
 
-    @Override
     public MatchDomain.MatchListResponse findList(LocalDate date) {
         return findList(date, null);
     }
 
-    @Override
     public MatchDomain.MatchListResponse findList(LocalDate date, MatchEnum.LeagueType league) {
         var memberId = RequestUtils.getId();
 
@@ -195,7 +192,6 @@ public class MatchServiceImpl implements MatchService {
         return new MatchDomain.MatchListResponse(date, matchList);
     }
 
-    @Override
     public MatchDomain.MatchInfoResponse findById(String id) {
         if (!StringUtils.hasText(id)) {
             throw new CustomException(MessageEnum.Common.REQUEST_PARAMETER);
@@ -298,7 +294,6 @@ public class MatchServiceImpl implements MatchService {
                 homeTeamDto, matchEntity.getLeague());
     }
 
-    @Override
     public MatchDomain.RecordResponse findRecordById(String id) {
         var matchEntity = gameMatchRepository.findById(id)
             .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
@@ -442,7 +437,6 @@ public class MatchServiceImpl implements MatchService {
         return new MatchDomain.RecordResponse(matchEntity.getMatchAt(), awayTeamDto, homeTeamDto);
     }
 
-    @Override
     public List<MatchDomain.InterestTeamMatchInfoResponse> findByTeam() {
         var id = RequestUtils.getId();
 
@@ -561,7 +555,6 @@ public class MatchServiceImpl implements MatchService {
         }).toList();
     }
 
-    @Override
     public MatchDomain.TodayMatchListResponse findTodayMatch() {
         var date = LocalDate.now();
         var memberId = RequestUtils.getId();

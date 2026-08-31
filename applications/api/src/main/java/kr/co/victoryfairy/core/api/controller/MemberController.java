@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.api.domain.MatchDomain;
 import kr.co.victoryfairy.core.api.domain.MemberDomain;
-import kr.co.victoryfairy.core.api.service.MatchService;
+import kr.co.victoryfairy.core.api.service.GameQueryService;
 import kr.co.victoryfairy.core.api.service.MemberService;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.model.CustomResponse;
@@ -25,7 +25,7 @@ public class MemberController {
 
     private final MemberService memberService;
 
-    private final MatchService matchService;
+    private final GameQueryService matchService;
 
     @Operation(summary = "sns 별 인증 주소 불러오기")
     @GetMapping("/auth-path")

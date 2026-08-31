@@ -2,7 +2,7 @@ package kr.co.victoryfairy.core.api.controller;
 
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.core.api.domain.CommonDomain;
-import kr.co.victoryfairy.core.api.service.CommonService;
+import kr.co.victoryfairy.core.api.service.CommonQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -35,7 +35,7 @@ class CommonControllerE2ETest {
     private MockMvc mockMvc;
 
     @Mock
-    private CommonService commonService;
+    private CommonQueryService commonService;
 
     @InjectMocks
     private CommonController commonController;

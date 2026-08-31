@@ -2,7 +2,7 @@ package kr.co.victoryfairy.core.api.controller;
 
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.core.api.domain.MatchDomain;
-import kr.co.victoryfairy.core.api.service.MatchService;
+import kr.co.victoryfairy.core.api.service.GameQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -36,7 +36,7 @@ class MatchControllerE2ETest {
     private MockMvc mockMvc;
 
     @Mock
-    private MatchService matchService;
+    private GameQueryService matchService;
 
     @InjectMocks
     private MatchController matchController;

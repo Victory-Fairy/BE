@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.core.api.controller;
 
-import kr.co.victoryfairy.core.api.service.MatchService;
+import kr.co.victoryfairy.core.api.service.GameQueryService;
 import kr.co.victoryfairy.core.api.service.MemberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ class RemovedMemberEndpointTest {
     private MemberService memberService;
 
     @Mock
-    private MatchService matchService;
+    private GameQueryService matchService;
 
     private MockMvc mockMvc;
 
