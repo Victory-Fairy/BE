@@ -7,6 +7,7 @@ plugins {
 }
 
 val service = "api"
+val ciBuild = providers.gradleProperty("ci").isPresent
 
 tasks.named<BootJar>("bootJar") {
     enabled = true
@@ -16,7 +17,7 @@ tasks.named<BootJar>("bootJar") {
             into(rootProject.layout.projectDirectory.dir(".deploy"))
         }
 
-        if (!project.hasProperty("ci")) {
+        if (!ciBuild) {
             providers.exec {
                 workingDir(rootProject.layout.projectDirectory.dir(".deploy"))
                 commandLine("sh", "deploy.sh", service)
