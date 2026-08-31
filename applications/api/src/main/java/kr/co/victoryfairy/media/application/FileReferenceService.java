@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.common.service;
+package kr.co.victoryfairy.media.application;
 
 import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.common.model.CommonDto;
@@ -14,14 +14,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * 파일 참조 도메인 서비스
- * <p>
- * FileRef 관련 공통 비즈니스 로직을 처리합니다.
- */
+/** FileRef 저장과 조회 응답용 URL 생성을 조율합니다. */
 @Service
 @RequiredArgsConstructor
-public class FileRefDomainService {
+public class FileReferenceService {
 
     private final FileRepository fileRepository;
 

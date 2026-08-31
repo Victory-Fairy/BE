@@ -10,7 +10,7 @@ import kr.co.victoryfairy.storage.db.core.repository.DiaryFoodRepository;
 import kr.co.victoryfairy.storage.db.core.repository.PartnerRepository;
 import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
 import kr.co.victoryfairy.support.config.MapStructConfig;
-import kr.co.victoryfairy.support.model.PageResult;
+import kr.co.victoryfairy.storage.db.core.model.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.common.service;
+package kr.co.victoryfairy.media.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -14,7 +14,7 @@ import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
 import kr.co.victoryfairy.support.service.S3PresignedUrlService;
 import org.junit.jupiter.api.Test;
 
-class FileRefDomainServiceTest {
+class FileReferenceServiceTest {
 
     @Test
     void returnsSignedUrlWithExistingFileFields() {
@@ -33,7 +33,7 @@ class FileRefDomainServiceTest {
         when(urlService.create("image/diary/202608", "sample", "jpg"))
             .thenReturn("https://signed.example/image.jpg");
 
-        var images = new FileRefDomainService(fileRepository, fileRefRepository, urlService)
+        var images = new FileReferenceService(fileRepository, fileRefRepository, urlService)
             .findImagesByRefId(RefType.DIARY, 3L);
 
         assertThat(images).containsExactly(new kr.co.victoryfairy.common.model.CommonDto.ImageDto(7L,

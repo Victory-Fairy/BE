@@ -4,7 +4,7 @@ import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.common.model.CommonDto;
 import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
-import kr.co.victoryfairy.common.service.FileRefDomainService;
+import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.common.service.GameRecordDomainService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
 import kr.co.victoryfairy.diary.presentation.DiaryDomain;
@@ -54,7 +54,7 @@ public class DiaryCommandService {
 
     private final TeamRepository teamRepository;
 
-    private final FileRefDomainService fileRefDomainService;
+    private final FileReferenceService fileRefDomainService;
 
     private final DiaryFoodDomainService diaryFoodDomainService;
 

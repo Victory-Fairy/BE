@@ -4,7 +4,7 @@ import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.common.model.CommonDto;
 import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
-import kr.co.victoryfairy.common.service.FileRefDomainService;
+import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
 import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
@@ -42,7 +42,7 @@ class DiaryListServiceTest {
     @Mock
     private SeatUseHistoryRepository seatUseHistoryRepository;
     @Mock
-    private FileRefDomainService fileRefDomainService;
+    private FileReferenceService fileRefDomainService;
     @Mock
     private DiaryFoodDomainService diaryFoodDomainService;
     @Mock

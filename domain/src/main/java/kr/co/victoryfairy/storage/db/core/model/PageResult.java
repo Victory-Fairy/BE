@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.support.model;
+package kr.co.victoryfairy.storage.db.core.model;
 
 import lombok.Getter;
 

@@ -3,7 +3,7 @@ package kr.co.victoryfairy.diary.application;
 import io.dodn.springboot.core.enums.MatchEnum;
 import io.dodn.springboot.core.enums.RefType;
 import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
-import kr.co.victoryfairy.common.service.FileRefDomainService;
+import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.common.service.PartnerDomainService;
 import kr.co.victoryfairy.diary.presentation.DiaryDomain;
 import kr.co.victoryfairy.game.presentation.MatchDomain;
@@ -39,7 +39,7 @@ public class DiaryQueryService {
 
     private final SeatUseHistoryRepository seatUseHistoryRepository;
 
-    private final FileRefDomainService fileRefDomainService;
+    private final FileReferenceService fileRefDomainService;
 
     private final DiaryFoodDomainService diaryFoodDomainService;
 
