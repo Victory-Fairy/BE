@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.api.domain.MyPageDomain;
-import kr.co.victoryfairy.core.api.service.MemberService;
 import kr.co.victoryfairy.core.api.service.MyPageService;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.model.CustomResponse;

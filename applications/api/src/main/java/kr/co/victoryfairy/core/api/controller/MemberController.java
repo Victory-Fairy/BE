@@ -8,7 +8,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.api.domain.MatchDomain;
 import kr.co.victoryfairy.core.api.domain.MemberDomain;
 import kr.co.victoryfairy.core.api.service.GameQueryService;
-import kr.co.victoryfairy.core.api.service.MemberService;
+import kr.co.victoryfairy.core.api.service.MemberAuthService;
+import kr.co.victoryfairy.core.api.service.MemberCommandService;
+import kr.co.victoryfairy.core.api.service.MemberQueryService;
 import kr.co.victoryfairy.support.constant.MessageEnum;
 import kr.co.victoryfairy.support.model.CustomResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MemberController {
 
-    private final MemberService memberService;
+    private final MemberAuthService authService;
+
+    private final MemberCommandService commandService;
+
+    private final MemberQueryService queryService;
 
     private final GameQueryService matchService;
 
@@ -33,14 +39,14 @@ public class MemberController {
             @RequestParam @Validated @Schema(description = "인증 로그인 타입", example = "KAKAO",
                     implementation = MemberEnum.SnsType.class) MemberEnum.SnsType snsType,
             @RequestParam(required = false) @Schema(description = "redirect url") String redirectUrl) {
-        var response = memberService.getOauthPath(snsType, redirectUrl);
+        var response = authService.getOauthPath(snsType, redirectUrl);
         return CustomResponse.ok(response);
     }
 
     @Operation(summary = "로그인")
     @GetMapping("/login")
     public CustomResponse<MemberDomain.MemberLoginResponse> login(@Validated MemberDomain.MemberLoginRequest request) {
-        var response = memberService.login(request);
+        var response = authService.login(request);
         return CustomResponse.ok(response);
     }
 
@@ -48,7 +54,7 @@ public class MemberController {
     @Operation(summary = "로그아웃")
     @PostMapping("/logout")
     public CustomResponse<MessageEnum> logout() {
-        memberService.logout();
+        authService.logout();
         return CustomResponse.ok(MessageEnum.Auth.LOGOUT);
     }
 
@@ -57,7 +63,7 @@ public class MemberController {
     @PutMapping("/team")
     public CustomResponse<MessageEnum> updateTeam(
             @RequestBody @Validated MemberDomain.MemberTeamUpdateRequest request) {
-        memberService.updateTeam(request);
+        commandService.updateTeam(request);
         return CustomResponse.ok(MessageEnum.Common.UPDATE);
     }
 
@@ -66,7 +72,7 @@ public class MemberController {
     @PostMapping("/check-nick-duplicate")
     public CustomResponse<MemberDomain.MemberCheckNickDuplicateResponse> checkNickNmDuplicate(
             @RequestBody String nickNm) {
-        return CustomResponse.ok(memberService.checkNickNmDuplicate(nickNm));
+        return CustomResponse.ok(queryService.checkNickNmDuplicate(nickNm));
     }
 
     @SecurityRequirement(name = "accessToken")
@@ -74,7 +80,7 @@ public class MemberController {
     @PatchMapping("/profile")
     public CustomResponse<MessageEnum> updateMemberProfile(
             @RequestBody @Validated MemberDomain.MemberProfileUpdateRequest request) {
-        memberService.updateMemberProfile(request);
+        commandService.updateMemberProfile(request);
         return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
 
@@ -83,7 +89,7 @@ public class MemberController {
     @PatchMapping("/nick-name")
     public CustomResponse<MessageEnum> updateMemberNickNm(
             @RequestBody @Validated MemberDomain.MemberNickNmUpdateRequest request) {
-        memberService.updateMemberNickNm(request);
+        commandService.updateMemberNickNm(request);
         return CustomResponse.ok(MessageEnum.Common.REQUEST);
     }
 
@@ -98,7 +104,7 @@ public class MemberController {
     @Operation(summary = "직관 승률")
     @GetMapping("/win-rate")
     public CustomResponse<MemberDomain.MemberHomeWinRateResponse> findHomeWinRate() {
-        var response = memberService.findHomeWinRate();
+        var response = queryService.findHomeWinRate();
         return CustomResponse.ok(response);
     }
 
@@ -106,7 +112,7 @@ public class MemberController {
     @PatchMapping("/refresh-token")
     public CustomResponse<MemberDomain.RefreshTokenResponse> refreshToken(
             @RequestParam(required = true) String refreshToken) {
-        var response = memberService.refreshToken(refreshToken);
+        var response = authService.refreshToken(refreshToken);
         return CustomResponse.ok(response);
     }
 

@@ -1,7 +1,9 @@
 package kr.co.victoryfairy.core.api.controller;
 
 import kr.co.victoryfairy.core.api.service.GameQueryService;
-import kr.co.victoryfairy.core.api.service.MemberService;
+import kr.co.victoryfairy.core.api.service.MemberAuthService;
+import kr.co.victoryfairy.core.api.service.MemberCommandService;
+import kr.co.victoryfairy.core.api.service.MemberQueryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +20,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RemovedMemberEndpointTest {
 
     @Mock
-    private MemberService memberService;
+    private MemberAuthService authService;
+
+    @Mock
+    private MemberCommandService commandService;
+
+    @Mock
+    private MemberQueryService queryService;
 
     @Mock
     private GameQueryService matchService;
@@ -27,7 +35,9 @@ class RemovedMemberEndpointTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new MemberController(memberService, matchService)).build();
+        mockMvc = MockMvcBuilders
+            .standaloneSetup(new MemberController(authService, commandService, queryService, matchService))
+            .build();
     }
 
     @Test
@@ -35,7 +45,7 @@ class RemovedMemberEndpointTest {
         mockMvc.perform(patch("/api/member/check-fcm").param("fcmToken", "retired-token"))
             .andExpect(status().isNotFound());
 
-        verifyNoInteractions(memberService);
+        verifyNoInteractions(authService, commandService, queryService);
     }
 
 }

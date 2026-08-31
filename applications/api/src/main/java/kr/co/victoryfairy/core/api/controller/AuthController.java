@@ -3,7 +3,7 @@ package kr.co.victoryfairy.core.api.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.core.api.domain.MemberDomain;
-import kr.co.victoryfairy.core.api.service.MemberService;
+import kr.co.victoryfairy.core.api.service.MemberAuthService;
 import kr.co.victoryfairy.support.model.CustomResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final MemberService memberService;
+    private final MemberAuthService authService;
 
     @Operation(summary = "토큰 재발행")
     @PatchMapping("/refresh-token")
     public CustomResponse<MemberDomain.RefreshTokenResponse> refreshToken(@RequestParam(required = true) String refreshToken) {
-        var response = memberService.refreshToken(refreshToken);
+        var response = authService.refreshToken(refreshToken);
         return CustomResponse.ok(response);
     }
 }
