@@ -5,7 +5,7 @@ dependencies {
     implementation project(":domain")
     implementation project(":support:logging")
     implementation project(":support:common")
-    implementation project(":support:redis")
+    implementation project(":infrastructure:redis")
 
     testImplementation project(":tests:api-docs")
 

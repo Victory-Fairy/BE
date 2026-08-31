@@ -3,8 +3,6 @@ package kr.co.victoryfairy.redis.handler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.victoryfairy.support.constant.MessageEnum;
-import kr.co.victoryfairy.support.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +83,7 @@ public class RedisHandler {
         }
         catch (JsonProcessingException e) {
             log.error("Redis JSON 역직렬화 실패 - hashKey: {}, key: {}", hashKey, key, e);
-            throw new CustomException(MessageEnum.Common.REQUEST_FAIL);
+            throw new IllegalStateException("Redis JSON 역직렬화 실패", e);
         }
     }
 
@@ -99,7 +97,7 @@ public class RedisHandler {
         }
         catch (JsonProcessingException e) {
             log.error("Redis JSON 직렬화 실패 - hashKey: {}, key: {}", hashKey, key, e);
-            throw new CustomException(MessageEnum.Common.REQUEST_FAIL);
+            throw new IllegalStateException("Redis JSON 직렬화 실패", e);
         }
     }
 
