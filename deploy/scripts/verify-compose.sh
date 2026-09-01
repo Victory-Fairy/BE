@@ -50,3 +50,10 @@ grep -q 'OnCalendar=2026-09-04 18:20:00 Asia/Seoul' "$runtime_dir/victoryfairy-l
 printf '%s\n' 'LIVE_GAME_NEXT_AT=NONE' \
     | SYSTEMD_RUNTIME_DIR="$runtime_dir" LIVE_GAME_DRY_RUN=1 "$schedule_script" schedule
 test ! -e "$runtime_dir/victoryfairy-live-game.timer"
+
+printf '%s\n' 'LIVE_GAME_NEXT_AT=2099-09-04 18:20:00 Asia/Seoul' \
+    | docker run --rm -i \
+        -e SYSTEMD_RUNTIME_DIR=/tmp/systemd \
+        -v "$repo_root:/repo:ro" \
+        ubuntu:24.04 \
+        bash -c 'systemctl() { :; }; export -f systemctl; /repo/deploy/scripts/schedule-live-game.sh schedule'
