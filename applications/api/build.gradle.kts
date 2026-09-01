@@ -40,7 +40,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17")
     implementation("io.sentry:sentry-logback:${providers.gradleProperty("sentryVersion").get()}")
     implementation("org.apache.httpcomponents:httpclient:4.5.13")
 
@@ -50,7 +50,7 @@ dependencies {
     compileOnly("org.mapstruct:mapstruct:1.5.5.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 
-    implementation("org.springframework.security:spring-security-crypto:6.3.3")
+    implementation("org.springframework.security:spring-security-crypto")
 
     implementation("io.jsonwebtoken:jjwt-api:0.11.2")
     implementation("javax.xml.bind:jaxb-api:2.4.0-b180830.0359")

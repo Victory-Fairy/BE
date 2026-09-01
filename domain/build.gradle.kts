@@ -20,5 +20,5 @@ dependencies {
     annotationProcessor("jakarta.annotation:jakarta.annotation-api")
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
 
-    implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.1")
+    implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.12.1")
 }

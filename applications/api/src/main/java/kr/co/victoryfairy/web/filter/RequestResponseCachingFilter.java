@@ -21,6 +21,8 @@ import java.io.IOException;
  */
 public class RequestResponseCachingFilter implements Filter {
 
+    private static final int REQUEST_CONTENT_CACHE_LIMIT_BYTES = 64 * 1024;
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, jakarta.servlet.ServletException {
@@ -29,7 +31,8 @@ public class RequestResponseCachingFilter implements Filter {
             return;
         }
 
-        ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper((HttpServletRequest) request);
+        ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper((HttpServletRequest) request,
+                REQUEST_CONTENT_CACHE_LIMIT_BYTES);
         ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(
                 (HttpServletResponse) response);
 
