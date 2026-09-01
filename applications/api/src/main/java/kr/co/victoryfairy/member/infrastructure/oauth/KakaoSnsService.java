@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.member.infrastructure.oauth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.dodn.springboot.core.enums.MemberEnum;
 import kr.co.victoryfairy.member.presentation.MemberDomain;
 import kr.co.victoryfairy.member.infrastructure.oauth.model.AuthToken;

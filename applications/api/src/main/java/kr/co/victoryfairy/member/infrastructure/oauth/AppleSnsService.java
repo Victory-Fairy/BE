@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.member.infrastructure.oauth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.dodn.springboot.core.enums.MemberEnum;
@@ -14,7 +14,7 @@ import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.oauth.OauthHttpClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.tomcat.util.codec.binary.Base64;
+import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;

@@ -37,10 +37,10 @@ dependencies {
     testImplementation(project(":tests:api-docs"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-aspectj")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
     implementation("io.sentry:sentry-logback:${providers.gradleProperty("sentryVersion").get()}")
     implementation("org.apache.httpcomponents:httpclient:4.5.13")
 

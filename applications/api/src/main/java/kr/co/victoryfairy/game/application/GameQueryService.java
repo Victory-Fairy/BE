@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.game.application;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.game.presentation.MatchDomain;
 import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;

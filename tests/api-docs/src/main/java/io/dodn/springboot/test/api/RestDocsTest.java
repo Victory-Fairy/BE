@@ -1,20 +1,19 @@
 package io.dodn.springboot.test.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.restassured.module.mockmvc.specification.MockMvcRequestSpecification;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @Tag("restdocs")
 @ExtendWith(RestDocumentationExtension.class)
@@ -39,7 +38,7 @@ public abstract class RestDocsTest {
     }
 
     private MockMvc createMockMvc(Object controller) {
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(objectMapper());
+        JacksonJsonHttpMessageConverter converter = new JacksonJsonHttpMessageConverter(objectMapper());
 
         return MockMvcBuilders.standaloneSetup(controller)
             .apply(MockMvcRestDocumentation.documentationConfiguration(restDocumentation))
@@ -47,10 +46,11 @@ public abstract class RestDocsTest {
             .build();
     }
 
-    private ObjectMapper objectMapper() {
-        return new ObjectMapper().findAndRegisterModules()
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS);
+    private JsonMapper objectMapper() {
+        return JsonMapper.builder()
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .disable(DateTimeFeature.WRITE_DURATIONS_AS_TIMESTAMPS)
+            .build();
     }
 
 }
