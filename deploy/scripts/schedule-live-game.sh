@@ -30,7 +30,7 @@ schedule_next() {
 
     if [[ "${LIVE_GAME_DRY_RUN:-0}" != "1" ]]; then
         now_epoch="$(date +%s)"
-        next_epoch="$(date -d "$next_at" +%s)"
+        next_epoch="$(TZ=Asia/Seoul date -d "${next_at% Asia/Seoul}" +%s)"
         if (( next_epoch <= now_epoch )); then
             next_at="$(date -u -d "@$((now_epoch + 60))" '+%Y-%m-%d %H:%M:%S UTC')"
         fi
