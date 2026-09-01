@@ -14,7 +14,7 @@ dependencies {
 
     testImplementation(project(":tests:api-docs"))
 
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("io.sentry:sentry-logback:${providers.gradleProperty("sentryVersion").get()}")
     implementation("com.microsoft.playwright:playwright:1.48.0")
 }

@@ -1,8 +1,5 @@
 package kr.co.victoryfairy.game.crawler.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.ElementHandle;
 import com.microsoft.playwright.Page;
@@ -27,6 +24,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class KboGameCrawler {
@@ -565,7 +566,7 @@ public class KboGameCrawler {
     }
 
     static OfficialRecords parseOfficialRecords(ObjectMapper mapper, String response, GameMatchEntity match,
-            boolean isHome) throws JsonProcessingException {
+            boolean isHome) throws JacksonException {
         JsonNode root = mapper.readTree(response);
         if (!"100".equals(root.path("code").asText())) {
             throw new IllegalArgumentException("KBO record API failed: " + root.path("msg").asText());
