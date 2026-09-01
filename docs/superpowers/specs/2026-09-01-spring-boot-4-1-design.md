@@ -35,7 +35,7 @@ Jackson annotation 패키지는 Jackson 3에서도 `com.fasterxml.jackson.annota
 3. Spring Framework 7, Spring Data 4, Hibernate 7에서 발생한 실제 컴파일·테스트 오류만 수정한다. QueryDSL은 선제 업그레이드하지 않는다.
 4. 삭제·변경된 설정 속성을 점검한다. 속성 마이그레이터가 필요하면 로컬 진단에만 사용하고 최종 산출물에서는 제거한다.
 5. 전체 테스트, API PIT, assemble, ARM64 Docker 빌드와 로컬 실행을 검증한다.
-6. `develop`에 먼저 반영해 Swagger, 로그인, DB 조회 API를 스모크 테스트한 뒤 `main` 승격 여부를 결정한다.
+6. `develop`에서 전체 빌드·테스트·이미지 검증을 마친 뒤 `main`에 승격한다. 별도 develop 서버가 없으므로 운영 배포 직후 Swagger, 로그인, DB 조회 API를 스모크 테스트한다.
 
 ## 호환성 기준
 
@@ -58,7 +58,7 @@ Jackson annotation 패키지는 Jackson 3에서도 `com.fasterxml.jackson.annota
 
 ## 배포와 롤백
 
-- `develop` 검증 전에는 `main`과 운영 배포를 변경하지 않는다.
+- `develop`의 전체 검증 전에는 `main`과 운영 배포를 변경하지 않는다.
 - 배포 이미지는 커밋 SHA 태그로 식별하고, 장애 시 직전 정상 이미지로 되돌린다.
 - 현재 배포 파이프라인의 자동 health-check 롤백 부재는 알려진 위험으로 남긴다. 이번 버전업에 배포 구조 개선을 섞지 않고, 배포 직후 스모크 테스트로 차단한다.
 
@@ -66,5 +66,5 @@ Jackson annotation 패키지는 Jackson 3에서도 `com.fasterxml.jackson.annota
 
 - 빌드·테스트·PIT·ARM64 이미지 검증이 모두 통과한다.
 - API 및 JWT 계약 변경이 없다.
-- `develop` 환경 스모크 테스트가 통과한다.
+- `develop`의 전체 검증과 운영 배포 직후 스모크 테스트가 통과한다.
 - 임시 Jackson 2 호환 모듈과 속성 마이그레이터가 최종 의존성에 남지 않는다.
