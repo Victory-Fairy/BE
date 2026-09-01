@@ -1,4 +1,3 @@
-import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
@@ -36,14 +35,6 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "io.spring.javaformat")
     apply(plugin = "org.asciidoctor.jvm.convert")
-
-    extensions.configure<DependencyManagementExtension> {
-        imports {
-            mavenBom(
-                "org.springframework.cloud:spring-cloud-dependencies:${providers.gradleProperty("springCloudDependenciesVersion").get()}"
-            )
-        }
-    }
 
     dependencies {
         add("testImplementation", "org.springframework.boot:spring-boot-starter-test")
