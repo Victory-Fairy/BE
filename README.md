@@ -4,7 +4,7 @@
 ## 기술 스택
 - 언어 & 프레임워크
   - Java 21
-  - Spring Boot 3.5.16
+  - Spring Boot 4.1.1
   - Spring Batch
   - Spring Data JPA + QueryDSL
 
