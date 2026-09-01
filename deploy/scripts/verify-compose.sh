@@ -15,6 +15,8 @@ test "$(grep -c 'proxy_pass http://admin:8084' "$repo_root/deploy/nginx/victoryf
 grep -q 'SERVER_SERVLET_CONTEXT_PATH: /v2' "$repo_root/deploy/compose.yaml"
 grep -q 'file:/config/admin/,file:/config/file/,file:/config/api/' "$repo_root/deploy/compose.yaml"
 grep -q 'SPRINGDOC_API_DOCS_PATH: /api/v3/api-docs' "$repo_root/deploy/compose.yaml"
+grep -q 'SPRINGDOC_SWAGGER_UI_CONFIG_URL: /v2/api/v3/api-docs/swagger-config' "$repo_root/deploy/compose.yaml"
+grep -q 'SPRINGDOC_SWAGGER_UI_URL: /v2/api/v3/api-docs' "$repo_root/deploy/compose.yaml"
 grep -q 'location /v2/api/swagger-ui/' "$repo_root/deploy/nginx/victoryfairy.conf"
 
 live_service="$repo_root/deploy/systemd/victoryfairy-live-game.service"
