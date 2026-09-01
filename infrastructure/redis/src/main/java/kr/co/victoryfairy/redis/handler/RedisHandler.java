@@ -1,8 +1,5 @@
 package kr.co.victoryfairy.redis.handler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +12,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -81,7 +82,7 @@ public class RedisHandler {
         try {
             return objectMapper.readValue(json.toString(), clazz);
         }
-        catch (JsonProcessingException e) {
+        catch (JacksonException e) {
             log.error("Redis JSON 역직렬화 실패 - hashKey: {}, key: {}", hashKey, key, e);
             throw new IllegalStateException("Redis JSON 역직렬화 실패", e);
         }
@@ -95,7 +96,7 @@ public class RedisHandler {
             String json = objectMapper.writeValueAsString(value);
             redisTemplate.opsForHash().put(hashKey, key, json);
         }
-        catch (JsonProcessingException e) {
+        catch (JacksonException e) {
             log.error("Redis JSON 직렬화 실패 - hashKey: {}, key: {}", hashKey, key, e);
             throw new IllegalStateException("Redis JSON 직렬화 실패", e);
         }
@@ -113,7 +114,7 @@ public class RedisHandler {
             String json = objectMapper.writeValueAsString(data);
             redisTemplate.opsForHash().put(key, id, json); // 덮어쓰기
         }
-        catch (JsonProcessingException e) {
+        catch (JacksonException e) {
             throw new RuntimeException("Redis JSON 직렬화 실패", e);
         }
     }
@@ -137,7 +138,7 @@ public class RedisHandler {
                 });
                 result.put(id, matchData);
             }
-            catch (JsonProcessingException e) {
+            catch (JacksonException e) {
                 throw new RuntimeException("Redis JSON 역직렬화 실패", e);
             }
         });
@@ -156,7 +157,7 @@ public class RedisHandler {
                 });
                 result.put(id, matchData);
             }
-            catch (JsonProcessingException e) {
+            catch (JacksonException e) {
                 throw new RuntimeException("Redis JSON 역직렬화 실패", e);
             }
         });

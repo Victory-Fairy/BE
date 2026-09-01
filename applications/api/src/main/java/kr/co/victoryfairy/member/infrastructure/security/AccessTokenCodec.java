@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.member.infrastructure.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.response.StatusEnum;
