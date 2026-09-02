@@ -27,6 +27,7 @@ services:
       - "443:443"
     volumes:
       - /opt/victoryfairy/nginx/victoryfairy.conf:/etc/nginx/conf.d/default.conf:ro
+      - /opt/victoryfairy/nginx/metrics.htpasswd:/etc/nginx/metrics.htpasswd:ro
       - /opt/victoryfairy/letsencrypt:/etc/letsencrypt:ro
 
   redis:
@@ -52,12 +53,26 @@ services:
       SPRINGDOC_SWAGGER_UI_CONFIG_URL: /v2/api/v3/api-docs/swagger-config
       SPRINGDOC_SWAGGER_UI_URL: /v2/api/v3/api-docs
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/config/admin/,file:/config/file/,file:/config/api/
       JAVA_TOOL_OPTIONS: -Xms128m -Xmx1024m
     volumes:
       - /opt/victoryfairy/config/api:/config/api:ro
       - /opt/victoryfairy/config/admin:/config/admin:ro
       - /opt/victoryfairy/config/file:/config/file:ro
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.9.1
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+    pid: host
+    ports:
+      - "127.0.0.1:9100:9100"
+    volumes:
+      - /:/host:ro,rslave
 
   craw:
     image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:craw-${IMAGE_TAG}
