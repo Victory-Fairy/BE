@@ -19,6 +19,8 @@ grep -q 'SPRINGDOC_SWAGGER_UI_CONFIG_URL: /v2/api/v3/api-docs/swagger-config' "$
 grep -q 'SPRINGDOC_SWAGGER_UI_URL: /v2/api/v3/api-docs' "$repo_root/deploy/compose.yaml"
 grep -q 'SPRING_JPA_HIBERNATE_DDL_AUTO: validate' "$repo_root/deploy/compose.yaml"
 test "$(grep -c 'SPRING_JPA_HIBERNATE_DDL_AUTO: validate' "$repo_root/deploy/compose.yaml")" -eq 1
+grep -q 'SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"' "$repo_root/deploy/compose.yaml"
+test "$(grep -c 'SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"' "$repo_root/deploy/compose.yaml")" -eq 1
 grep -q 'location /v2/api/swagger-ui/' "$repo_root/deploy/nginx/victoryfairy.conf"
 
 live_service="$repo_root/deploy/systemd/victoryfairy-live-game.service"

@@ -51,6 +51,7 @@ services:
       SPRINGDOC_API_DOCS_PATH: /api/v3/api-docs
       SPRINGDOC_SWAGGER_UI_CONFIG_URL: /v2/api/v3/api-docs/swagger-config
       SPRINGDOC_SWAGGER_UI_URL: /v2/api/v3/api-docs
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/config/admin/,file:/config/file/,file:/config/api/
       JAVA_TOOL_OPTIONS: -Xms128m -Xmx1024m
     volumes:

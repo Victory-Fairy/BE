@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.util.Locale;
 
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.MySQLContainer;
@@ -14,6 +15,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.MountableFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FlywayBaselineMigrationTest {
 
@@ -74,6 +76,16 @@ class FlywayBaselineMigrationTest {
             assertThat(importResult.getExitCode()).isZero();
 
             assertThat(applicationTableCount(MYSQL)).isEqualTo(20);
+            insertSentinel(MYSQL);
+            assertThat(sentinelCount(MYSQL)).isEqualTo(1);
+
+            Flyway unbaselinedFlyway = Flyway.configure()
+                .dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
+                .load();
+
+            assertThatThrownBy(unbaselinedFlyway::migrate)
+                .isInstanceOf(FlywayException.class);
+            assertThat(historyTableExists(MYSQL)).isFalse();
 
             Flyway flyway = Flyway.configure()
                 .baselineVersion("1")
@@ -84,6 +96,7 @@ class FlywayBaselineMigrationTest {
 
             assertThat(flyway.migrate().migrationsExecuted).isZero();
             assertThat(applicationTableCount(MYSQL)).isEqualTo(20);
+            assertThat(sentinelCount(MYSQL)).isEqualTo(1);
             assertThat(historyEntryCount(MYSQL)).isEqualTo(1);
         }
     }
@@ -102,6 +115,34 @@ class FlywayBaselineMigrationTest {
             SELECT COUNT(*)
             FROM flyway_schema_history
             WHERE version = '1' AND type = 'BASELINE' AND success = 1
+            """);
+    }
+
+    private boolean historyTableExists(MySQLContainer<?> mysql) throws Exception {
+        return count(mysql, """
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+              AND table_name = 'flyway_schema_history'
+            """) == 1;
+    }
+
+    private void insertSentinel(MySQLContainer<?> mysql) throws Exception {
+        try (var connection = DriverManager.getConnection(
+                mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword());
+             var statement = connection.prepareStatement("""
+                 INSERT INTO withdrawal_reason (created_at, is_use, updated_at, reason)
+                 VALUES (CURRENT_TIMESTAMP(6), b'1', CURRENT_TIMESTAMP(6), 'flyway-baseline-sentinel')
+                 """)) {
+            statement.executeUpdate();
+        }
+    }
+
+    private int sentinelCount(MySQLContainer<?> mysql) throws Exception {
+        return count(mysql, """
+            SELECT COUNT(*)
+            FROM withdrawal_reason
+            WHERE reason = 'flyway-baseline-sentinel'
             """);
     }
 
