@@ -38,6 +38,7 @@ out/
 
 ### project
 *.yml
+!monitoring/grafana/provisioning/dashboards/dashboards.yml
 application-local.properties
 !*.github/
 !.github/workflows/
