@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 30s
+
+scrape_configs:
+  - job_name: victoryfairy-api
+    metrics_path: /v2/api/actuator/prometheus
+    static_configs:
+      - targets: [host.docker.internal:8080]
