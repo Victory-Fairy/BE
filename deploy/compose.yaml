@@ -7,6 +7,7 @@ x-app-environment: &app-environment
   SPRING_DATA_REDIS_HOST: redis
   SPRING_DATA_REDIS_PORT: "6379"
   SPRING_DATA_REDIS_DATABASE: "1"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: validate
 
 x-app-common: &app-common
   env_file: ${APP_ENV_FILE:-/opt/victoryfairy/.env}
@@ -50,6 +51,7 @@ services:
       SPRINGDOC_API_DOCS_PATH: /api/v3/api-docs
       SPRINGDOC_SWAGGER_UI_CONFIG_URL: /v2/api/v3/api-docs/swagger-config
       SPRINGDOC_SWAGGER_UI_URL: /v2/api/v3/api-docs
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/config/admin/,file:/config/file/,file:/config/api/
       JAVA_TOOL_OPTIONS: -Xms128m -Xmx1024m
     volumes:
