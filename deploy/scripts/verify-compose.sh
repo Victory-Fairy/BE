@@ -10,7 +10,7 @@ APP_ENV_FILE="$repo_root/deploy/env.example" docker compose \
   config --quiet
 
 grep -q 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf"
-test "$(grep -c 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf")" -eq 6
+test "$(grep -c 'proxy_pass http://api:8081' "$repo_root/deploy/nginx/victoryfairy.conf")" -eq 7
 test "$(grep -c 'proxy_pass http://admin:8084' "$repo_root/deploy/nginx/victoryfairy.conf")" -eq 0
 grep -q 'SERVER_SERVLET_CONTEXT_PATH: /v2' "$repo_root/deploy/compose.yaml"
 grep -q 'file:/config/admin/,file:/config/file/,file:/config/api/' "$repo_root/deploy/compose.yaml"
@@ -21,6 +21,9 @@ grep -q 'SPRING_JPA_HIBERNATE_DDL_AUTO: validate' "$repo_root/deploy/compose.yam
 test "$(grep -c 'SPRING_JPA_HIBERNATE_DDL_AUTO: validate' "$repo_root/deploy/compose.yaml")" -eq 1
 grep -q 'SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"' "$repo_root/deploy/compose.yaml"
 test "$(grep -c 'SPRING_FLYWAY_BASELINE_ON_MIGRATE: "false"' "$repo_root/deploy/compose.yaml")" -eq 1
+grep -q 'MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus' "$repo_root/deploy/compose.yaml"
+grep -q '127.0.0.1:9100:9100' "$repo_root/deploy/compose.yaml"
+grep -q 'auth_basic_user_file /etc/nginx/metrics.htpasswd' "$repo_root/deploy/nginx/victoryfairy.conf"
 grep -q 'location /v2/api/swagger-ui/' "$repo_root/deploy/nginx/victoryfairy.conf"
 
 live_service="$repo_root/deploy/systemd/victoryfairy-live-game.service"
@@ -33,8 +36,9 @@ test -f "$planner_timer"
 test -x "$schedule_script"
 grep -q 'schedule-live-game.sh sync' "$live_service"
 grep -q 'schedule-live-game.sh plan' "$planner_service"
-grep -q 'pull api craw' "$repo_root/deploy/scripts/deploy.sh"
-grep -q 'up -d --remove-orphans redis api nginx' "$repo_root/deploy/scripts/deploy.sh"
+grep -q 'pull api craw node-exporter' "$repo_root/deploy/scripts/deploy.sh"
+grep -q 'up -d --remove-orphans redis api nginx node-exporter' "$repo_root/deploy/scripts/deploy.sh"
+grep -q 'missing metrics authentication file' "$repo_root/deploy/scripts/deploy.sh"
 ! grep -q 'file-latest' "$repo_root/deploy/compose.yaml"
 ! grep -q 'admin-latest' "$repo_root/deploy/compose.yaml"
 ! grep -q ':core:core-admin:bootJar' "$repo_root/.github/workflows/deploy-backend.yml"
