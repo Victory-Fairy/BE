@@ -31,7 +31,7 @@ class FlywayBaselineMigrationTest {
     class MySqlMigration {
 
         @Container
-        static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0");
+        static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4");
 
         @Test
         void appliesBaselineToEmptyMySql() throws Exception {
@@ -57,7 +57,7 @@ class FlywayBaselineMigrationTest {
     class ExistingSchemaBaseline {
 
         @Container
-        static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0")
+        static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4")
             .withDatabaseName("existing_schema")
             .withCopyFileToContainer(
                 MountableFile.forClasspathResource("db/migration/V1__baseline.sql"),
