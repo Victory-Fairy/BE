@@ -47,6 +47,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-aspectj")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("com.github.gavlyukovskiy:datasource-proxy-spring-boot-starter:2.0.1")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
     implementation("io.sentry:sentry-logback:${providers.gradleProperty("sentryVersion").get()}")
     implementation("org.apache.httpcomponents:httpclient:4.5.13")
