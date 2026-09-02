@@ -7,6 +7,7 @@ x-app-environment: &app-environment
   SPRING_DATA_REDIS_HOST: redis
   SPRING_DATA_REDIS_PORT: "6379"
   SPRING_DATA_REDIS_DATABASE: "1"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: validate
 
 x-app-common: &app-common
   env_file: ${APP_ENV_FILE:-/opt/victoryfairy/.env}
