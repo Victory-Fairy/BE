@@ -48,3 +48,5 @@ application-local.properties
 
 # Local handover package contains production data and uploaded files.
 /victoryfairy-handover/
+
+/monitoring/secrets/

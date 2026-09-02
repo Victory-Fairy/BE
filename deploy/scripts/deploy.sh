@@ -5,6 +5,7 @@ readonly runtime_dir=/opt/victoryfairy
 readonly env_file="$runtime_dir/.env"
 readonly compose_file="$runtime_dir/compose.yaml"
 readonly nginx_file="$runtime_dir/nginx/victoryfairy.conf"
+readonly metrics_auth_file="$runtime_dir/nginx/metrics.htpasswd"
 readonly installed_script="$runtime_dir/bin/deploy.sh"
 readonly candidate_compose="$runtime_dir/compose.next.yaml"
 readonly candidate_nginx="$runtime_dir/nginx/victoryfairy.next.conf"
@@ -28,6 +29,11 @@ for candidate in "$candidate_compose" "$candidate_nginx" "$candidate_script"; do
     exit 66
   fi
 done
+
+if [[ ! -s $metrics_auth_file ]]; then
+  echo "missing metrics authentication file: $metrics_auth_file" >&2
+  exit 66
+fi
 
 ecr_registry="$(sed -n 's/^ECR_REGISTRY=//p' "$env_file" | head -n 1)"
 if [[ ! $ecr_registry =~ ^[0-9]{12}\.dkr\.ecr\.ap-northeast-2\.amazonaws\.com$ ]]; then
@@ -57,10 +63,11 @@ awk -v tag="$image_tag" '
 ' "$env_file" > "$candidate_env"
 
 APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$candidate_compose" config --quiet
-APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$candidate_compose" pull api craw
+APP_ENV_FILE="$env_file" docker compose --env-file "$candidate_env" -f "$candidate_compose" pull api craw node-exporter
 docker run --rm \
   --add-host api:127.0.0.1 \
   -v "$candidate_nginx:/etc/nginx/conf.d/default.conf:ro" \
+  -v "$metrics_auth_file:/etc/nginx/metrics.htpasswd:ro" \
   -v "$runtime_dir/letsencrypt:/etc/letsencrypt:ro" \
   nginx:1.27-alpine nginx -t
 
@@ -70,14 +77,14 @@ if ! (
   install -o root -g root -m 0644 "$candidate_nginx" "$nginx_file"
   install -o root -g root -m 0755 "$candidate_script" "$installed_script"
   install -o root -g root -m 0600 "$candidate_env" "$env_file"
-  docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api nginx
+  docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api nginx node-exporter
   docker compose --env-file "$env_file" -f "$compose_file" restart nginx
 ); then
   install -o root -g root -m 0600 "$previous_env" "$env_file"
   install -o root -g root -m 0644 "$previous_compose" "$compose_file"
   install -o root -g root -m 0644 "$previous_nginx" "$nginx_file"
   install -o root -g root -m 0755 "$previous_script" "$installed_script"
-  docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api nginx || true
+  docker compose --env-file "$env_file" -f "$compose_file" up -d --remove-orphans redis api nginx node-exporter || true
   docker compose --env-file "$env_file" -f "$compose_file" restart nginx || true
   exit 1
 fi

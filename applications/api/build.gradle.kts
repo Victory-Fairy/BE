@@ -44,6 +44,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-aspectj")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
@@ -57,6 +58,7 @@ dependencies {
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
 
     implementation("org.springframework.security:spring-security-crypto")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
     implementation("io.jsonwebtoken:jjwt-api:0.11.2")
     implementation("javax.xml.bind:jaxb-api:2.4.0-b180830.0359")
