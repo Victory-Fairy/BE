@@ -41,7 +41,7 @@ Flyway 의존성과 마이그레이션 파일은 `applications/api`에만 둔다
 다음 항목은 제외한다.
 
 - `INSERT`와 실제 운영 데이터
-- `DROP DATABASE`, `CREATE DATABASE`, `USE`
+- `DROP TABLE`, `DROP DATABASE`, `CREATE DATABASE`, `USE`
 - 사용자, 권한, 비밀번호
 - 환경에 종속된 DEFINER 또는 서버 설정
 
