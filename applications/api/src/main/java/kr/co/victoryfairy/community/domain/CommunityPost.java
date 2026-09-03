@@ -24,6 +24,19 @@ public record CommunityPost(
         return new CommunityPost(null, memberId, title, content, null, null);
     }
 
+    public CommunityPost update(String title, String content) {
+        return new CommunityPost(id, memberId, title, content, createdAt, deletedAt);
+    }
+
+    public CommunityPost delete(LocalDateTime deletedAt) {
+        return new CommunityPost(id, memberId, title, content, createdAt,
+                Objects.requireNonNull(deletedAt, "deletedAt"));
+    }
+
+    public boolean ownedBy(Long memberId) {
+        return Objects.equals(this.memberId, memberId);
+    }
+
     private static String normalize(String value, int maxLength, String field) {
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException(field + " must not be blank");
