@@ -24,6 +24,30 @@ public interface CommunityCommentJpaRepository extends JpaRepository<CommunityCo
 
     Optional<CommunityCommentJpaEntity> findByIdAndPostIdAndDeletedAtIsNull(Long id, Long postId);
 
+    @Modifying(clearAutomatically = true)
+    @Query("""
+        UPDATE community_comment c
+        SET c.content = :content
+        WHERE c.id = :commentId
+          AND c.postId = :postId
+          AND c.memberId = :memberId
+          AND c.deletedAt IS NULL
+        """)
+    int updateActiveComment(@Param("commentId") Long commentId, @Param("postId") Long postId,
+            @Param("memberId") Long memberId, @Param("content") String content);
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+        UPDATE community_comment c
+        SET c.deletedAt = :deletedAt
+        WHERE c.id = :commentId
+          AND c.postId = :postId
+          AND c.memberId = :memberId
+          AND c.deletedAt IS NULL
+        """)
+    int deleteActiveComment(@Param("commentId") Long commentId, @Param("postId") Long postId,
+            @Param("memberId") Long memberId, @Param("deletedAt") java.time.LocalDateTime deletedAt);
+
     @Query(value = """
         SELECT comment_id, COUNT(*)
         FROM community_comment_like

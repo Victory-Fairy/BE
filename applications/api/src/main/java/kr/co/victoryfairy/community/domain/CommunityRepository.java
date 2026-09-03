@@ -9,11 +9,19 @@ public interface CommunityRepository {
 
     CommunityPost save(CommunityPost post);
 
+    boolean updatePost(CommunityPost post);
+
+    boolean deletePost(CommunityPost post);
+
     void savePostFiles(Long postId, List<Long> fileIds);
 
     void replacePostFiles(Long postId, List<Long> fileIds);
 
     CommunityComment saveComment(CommunityComment comment);
+
+    boolean updateComment(CommunityComment comment);
+
+    boolean deleteComment(CommunityComment comment);
 
     List<CommunityPost> findPosts(Long cursor, String keyword, int limit);
 

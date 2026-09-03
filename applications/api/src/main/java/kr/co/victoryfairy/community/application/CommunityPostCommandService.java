@@ -8,6 +8,7 @@ import kr.co.victoryfairy.community.domain.CommunityRepository;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +42,9 @@ public class CommunityPostCommandService {
         verifyOwner(post, memberId);
         var fileIds = validateFiles(requestedFileIds);
 
-        repository.save(post.update(title, content));
+        if (!repository.updatePost(post.update(title, content))) {
+            throw noResult();
+        }
         repository.replacePostFiles(postId, fileIds);
     }
 
@@ -49,7 +52,9 @@ public class CommunityPostCommandService {
     public void delete(Long memberId, Long postId) {
         var post = findPost(postId);
         verifyOwner(post, memberId);
-        repository.save(post.delete(LocalDateTime.now()));
+        if (!repository.deletePost(post.delete(LocalDateTime.now()))) {
+            throw noResult();
+        }
     }
 
     private CommunityPost findPost(Long postId) {
@@ -58,7 +63,7 @@ public class CommunityPostCommandService {
 
     private void verifyOwner(CommunityPost post, Long memberId) {
         if (!post.ownedBy(memberId)) {
-            throw new CustomException(MessageEnum.Auth.FAIL_DENY);
+            throw new CustomException(HttpStatus.FORBIDDEN, MessageEnum.Auth.FAIL_DENY);
         }
     }
 

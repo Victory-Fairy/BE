@@ -48,7 +48,7 @@ public class CommunityController {
     @Operation(summary = "게시글 수정")
     @PatchMapping("/{postId}")
     public CustomResponse<MessageEnum> updatePost(@PathVariable Long postId,
-            @Valid @RequestBody CommunityApi.UpdatePostRequest request) {
+            @Valid @RequestBody CommunityApi.WriteRequest request) {
         postCommands.update(CurrentRequest.getId(), postId, request.title(), request.content(), request.fileIds());
         return CustomResponse.ok(MessageEnum.Common.UPDATE);
     }

@@ -41,22 +41,23 @@ class CommunityQueryServiceTest {
     }
 
     @Test
-    void rendersDeletedCommentWithoutAuthorOrLikeData() {
+    void mapsOnlyActiveCommentsReturnedByRepository() {
         var repository = mock(CommunityRepository.class);
         var members = mock(CommunityMemberReader.class);
         var files = mock(CommunityFileReader.class);
-        var deletedAt = LocalDateTime.of(2026, 9, 3, 12, 0);
         when(repository.findActivePost(99L)).thenReturn(java.util.Optional.of(post(99L, 7L)));
         when(repository.findComments(99L, null, 21)).thenReturn(List.of(
-            new CommunityComment(31L, 99L, 8L, "원래 내용", deletedAt.minusMinutes(1), deletedAt)));
+            new CommunityComment(31L, 99L, 8L, "댓글", LocalDateTime.of(2026, 9, 3, 12, 0), null)));
+        when(members.findAuthors(List.of(8L)))
+            .thenReturn(Map.of(8L, new CommunityMemberReader.Author(8L, "작성자", null)));
         var service = new CommunityQueryService(repository, members, files);
 
         var result = service.findComments(7L, 99L, null);
 
         assertThat(result.items()).singleElement().satisfies(comment -> {
-            assertThat(comment.content()).isEqualTo("삭제된 댓글입니다.");
-            assertThat(comment.deleted()).isTrue();
-            assertThat(comment.author()).isNull();
+            assertThat(comment.content()).isEqualTo("댓글");
+            assertThat(comment.deleted()).isFalse();
+            assertThat(comment.author().nickname()).isEqualTo("작성자");
             assertThat(comment.likeCount()).isZero();
         });
     }

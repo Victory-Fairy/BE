@@ -34,6 +34,8 @@ class CommunityCommentTest {
 
     @Test
     void rejectsInvalidCommentContent() {
+        assertThat(CommunityComment.create(99L, 7L, "가".repeat(100)).content())
+            .hasSize(100);
         assertThatIllegalArgumentException()
             .isThrownBy(() -> CommunityComment.create(99L, 7L, "  "));
         assertThatIllegalArgumentException()

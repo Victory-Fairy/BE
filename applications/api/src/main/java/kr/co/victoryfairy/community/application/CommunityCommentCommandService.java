@@ -7,6 +7,7 @@ import kr.co.victoryfairy.community.domain.CommunityRepository;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +28,9 @@ public class CommunityCommentCommandService {
         findPost(postId);
         var comment = findComment(postId, commentId);
         verifyOwner(comment, memberId);
-        repository.saveComment(comment.update(content));
+        if (!repository.updateComment(comment.update(content))) {
+            throw noResult();
+        }
     }
 
     @Transactional
@@ -35,7 +38,9 @@ public class CommunityCommentCommandService {
         findPost(postId);
         var comment = findComment(postId, commentId);
         verifyOwner(comment, memberId);
-        repository.saveComment(comment.delete(LocalDateTime.now()));
+        if (!repository.deleteComment(comment.delete(LocalDateTime.now()))) {
+            throw noResult();
+        }
     }
 
     private void findPost(Long postId) {
@@ -48,7 +53,7 @@ public class CommunityCommentCommandService {
 
     private void verifyOwner(CommunityComment comment, Long memberId) {
         if (!comment.ownedBy(memberId)) {
-            throw new CustomException(MessageEnum.Auth.FAIL_DENY);
+            throw new CustomException(HttpStatus.FORBIDDEN, MessageEnum.Auth.FAIL_DENY);
         }
     }
 

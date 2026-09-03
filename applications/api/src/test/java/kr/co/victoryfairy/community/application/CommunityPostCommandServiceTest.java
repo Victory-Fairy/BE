@@ -18,6 +18,7 @@ import kr.co.victoryfairy.community.domain.CommunityRepository;
 import kr.co.victoryfairy.web.error.CustomException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpStatus;
 
 class CommunityPostCommandServiceTest {
 
@@ -90,12 +91,13 @@ class CommunityPostCommandServiceTest {
         var files = mock(CommunityFileReader.class);
         when(repository.findActivePost(99L)).thenReturn(Optional.of(post(7L)));
         when(files.findExistingIds(List.of(20L, 10L))).thenReturn(Set.of(20L, 10L));
+        when(repository.updatePost(any())).thenReturn(true);
         var service = new CommunityPostCommandService(repository, members, files);
 
         service.update(7L, 99L, " 새 제목 ", " 새 내용 ", List.of(20L, 10L));
 
         var updated = ArgumentCaptor.forClass(CommunityPost.class);
-        verify(repository).save(updated.capture());
+        verify(repository).updatePost(updated.capture());
         assertThat(updated.getValue().title()).isEqualTo("새 제목");
         assertThat(updated.getValue().content()).isEqualTo("새 내용");
         verify(repository).replacePostFiles(99L, List.of(20L, 10L));
@@ -110,7 +112,8 @@ class CommunityPostCommandServiceTest {
         var service = new CommunityPostCommandService(repository, members, files);
 
         assertThatThrownBy(() -> service.update(7L, 99L, "제목", "내용", List.of()))
-            .isInstanceOf(CustomException.class);
+            .isInstanceOfSatisfying(CustomException.class,
+                    exception -> assertThat(exception.getHttpStatus()).isEqualTo(HttpStatus.FORBIDDEN));
         verify(repository, never()).save(any());
     }
 
@@ -120,13 +123,42 @@ class CommunityPostCommandServiceTest {
         var members = mock(CommunityMemberReader.class);
         var files = mock(CommunityFileReader.class);
         when(repository.findActivePost(99L)).thenReturn(Optional.of(post(7L)));
+        when(repository.deletePost(any())).thenReturn(true);
         var service = new CommunityPostCommandService(repository, members, files);
 
         service.delete(7L, 99L);
 
         var deleted = ArgumentCaptor.forClass(CommunityPost.class);
-        verify(repository).save(deleted.capture());
+        verify(repository).deletePost(deleted.capture());
         assertThat(deleted.getValue().deletedAt()).isNotNull();
+    }
+
+    @Test
+    void doesNotReplaceFilesWhenConcurrentDeleteWins() {
+        var repository = mock(CommunityRepository.class);
+        when(repository.findActivePost(99L)).thenReturn(Optional.of(post(7L)));
+        when(repository.updatePost(any())).thenReturn(false);
+        var service = new CommunityPostCommandService(repository, mock(CommunityMemberReader.class),
+                mock(CommunityFileReader.class));
+
+        assertThatThrownBy(() -> service.update(7L, 99L, "제목", "내용", List.of()))
+            .isInstanceOf(CustomException.class);
+
+        verify(repository, never()).replacePostFiles(any(), any());
+    }
+
+    @Test
+    void rejectsDeletingAnotherMembersPost() {
+        var repository = mock(CommunityRepository.class);
+        when(repository.findActivePost(99L)).thenReturn(Optional.of(post(8L)));
+        var service = new CommunityPostCommandService(repository, mock(CommunityMemberReader.class),
+                mock(CommunityFileReader.class));
+
+        assertThatThrownBy(() -> service.delete(7L, 99L))
+            .isInstanceOfSatisfying(CustomException.class,
+                    exception -> assertThat(exception.getHttpStatus()).isEqualTo(HttpStatus.FORBIDDEN));
+
+        verify(repository, never()).save(any());
     }
 
     private CommunityPost post(Long memberId) {

@@ -30,6 +30,16 @@ public class JpaCommunityRepository implements CommunityRepository {
     }
 
     @Override
+    public boolean updatePost(CommunityPost post) {
+        return posts.updateActivePost(post.id(), post.memberId(), post.title(), post.content()) == 1;
+    }
+
+    @Override
+    public boolean deletePost(CommunityPost post) {
+        return posts.deleteActivePost(post.id(), post.memberId(), post.deletedAt()) == 1;
+    }
+
+    @Override
     public void savePostFiles(Long postId, List<Long> fileIds) {
         postFiles.saveAll(fileIds.stream()
             .map(fileId -> new CommunityPostFileJpaEntity(null, postId, fileId))
@@ -45,6 +55,16 @@ public class JpaCommunityRepository implements CommunityRepository {
     @Override
     public CommunityComment saveComment(CommunityComment comment) {
         return comments.save(CommunityCommentJpaEntity.from(comment)).toDomain();
+    }
+
+    @Override
+    public boolean updateComment(CommunityComment comment) {
+        return comments.updateActiveComment(comment.id(), comment.postId(), comment.memberId(), comment.content()) == 1;
+    }
+
+    @Override
+    public boolean deleteComment(CommunityComment comment) {
+        return comments.deleteActiveComment(comment.id(), comment.postId(), comment.memberId(), comment.deletedAt()) == 1;
     }
 
     @Override

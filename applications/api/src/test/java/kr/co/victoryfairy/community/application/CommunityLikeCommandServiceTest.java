@@ -1,6 +1,8 @@
 package kr.co.victoryfairy.community.application;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -10,6 +12,7 @@ import java.util.Optional;
 import kr.co.victoryfairy.community.domain.CommunityComment;
 import kr.co.victoryfairy.community.domain.CommunityPost;
 import kr.co.victoryfairy.community.domain.CommunityRepository;
+import kr.co.victoryfairy.web.error.CustomException;
 import org.junit.jupiter.api.Test;
 
 class CommunityLikeCommandServiceTest {
@@ -35,6 +38,27 @@ class CommunityLikeCommandServiceTest {
         service.setCommentLike(7L, 99L, 31L, false);
 
         verify(repository).setCommentLike(31L, 7L, false);
+    }
+
+    @Test
+    void rejectsPostLikeForInactivePost() {
+        var repository = mock(CommunityRepository.class);
+        var service = new CommunityLikeCommandService(repository);
+
+        assertThatThrownBy(() -> service.setPostLike(7L, 99L, true)).isInstanceOf(CustomException.class);
+
+        verify(repository, never()).setPostLike(99L, 7L, true);
+    }
+
+    @Test
+    void rejectsCommentLikeForInactivePost() {
+        var repository = mock(CommunityRepository.class);
+        var service = new CommunityLikeCommandService(repository);
+
+        assertThatThrownBy(() -> service.setCommentLike(7L, 99L, 31L, true))
+            .isInstanceOf(CustomException.class);
+
+        verify(repository, never()).findActiveComment(99L, 31L);
     }
 
     private CommunityPost post() {

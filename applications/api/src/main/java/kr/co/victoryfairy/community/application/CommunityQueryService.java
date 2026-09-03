@@ -80,22 +80,17 @@ public class CommunityQueryService {
         var fetched = repository.findComments(postId, cursor, PAGE_SIZE + 1);
         boolean hasNext = fetched.size() > PAGE_SIZE;
         var comments = fetched.stream().limit(PAGE_SIZE).toList();
-        var active = comments.stream().filter(comment -> comment.deletedAt() == null).toList();
-        var activeIds = active.stream().map(CommunityComment::id).toList();
-        var authorByMemberId = authors(active.stream().map(CommunityComment::memberId).distinct().toList());
-        var likeCounts = repository.countCommentLikes(activeIds);
-        var likedIds = repository.findLikedCommentIds(memberId, activeIds);
+        var commentIds = comments.stream().map(CommunityComment::id).toList();
+        var authorByMemberId = authors(comments.stream().map(CommunityComment::memberId).distinct().toList());
+        var likeCounts = repository.countCommentLikes(commentIds);
+        var likedIds = repository.findLikedCommentIds(memberId, commentIds);
 
-        var items = comments.stream().map(comment -> {
-            if (comment.deletedAt() != null) {
-                return new CommunityView.Comment(comment.id(), "삭제된 댓글입니다.", 0, false, false, true,
-                        comment.createdAt(), null);
-            }
-            return new CommunityView.Comment(
+        var items = comments.stream()
+            .map(comment -> new CommunityView.Comment(
                 comment.id(), comment.content(), likeCounts.getOrDefault(comment.id(), 0L),
                 likedIds.contains(comment.id()), Objects.equals(comment.memberId(), memberId), false,
-                comment.createdAt(), authorByMemberId.get(comment.memberId()));
-        }).toList();
+                comment.createdAt(), authorByMemberId.get(comment.memberId())))
+            .toList();
         return new CommunityView.Cursor<>(items, hasNext ? comments.getLast().id() : null, hasNext);
     }
 

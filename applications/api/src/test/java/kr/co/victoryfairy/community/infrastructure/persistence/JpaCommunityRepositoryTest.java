@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 import kr.co.victoryfairy.community.domain.CommunityComment;
 import kr.co.victoryfairy.community.domain.CommunityPost;
@@ -90,6 +91,26 @@ class JpaCommunityRepositoryTest {
         verify(posts).deleteLike(99L, 7L);
         verify(comments).addLike(31L, 7L);
         verify(comments).deleteLike(31L, 7L);
+    }
+
+    @Test
+    void appliesMutationsOnlyToActiveOwnedRows() {
+        var posts = mock(CommunityPostJpaRepository.class);
+        var files = mock(CommunityPostFileJpaRepository.class);
+        var comments = mock(CommunityCommentJpaRepository.class);
+        var repository = new JpaCommunityRepository(posts, files, comments);
+        var deletedAt = LocalDateTime.of(2026, 9, 3, 13, 0);
+        var post = new CommunityPost(99L, 7L, "제목", "내용", null, deletedAt);
+        var comment = new CommunityComment(31L, 99L, 7L, "댓글", null, deletedAt);
+        when(posts.updateActivePost(99L, 7L, "제목", "내용")).thenReturn(1);
+        when(posts.deleteActivePost(99L, 7L, deletedAt)).thenReturn(1);
+        when(comments.updateActiveComment(31L, 99L, 7L, "댓글")).thenReturn(1);
+        when(comments.deleteActiveComment(31L, 99L, 7L, deletedAt)).thenReturn(1);
+
+        assertThat(repository.updatePost(post)).isTrue();
+        assertThat(repository.deletePost(post)).isTrue();
+        assertThat(repository.updateComment(comment)).isTrue();
+        assertThat(repository.deleteComment(comment)).isTrue();
     }
 
 }

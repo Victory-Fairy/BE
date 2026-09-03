@@ -26,6 +26,28 @@ public interface CommunityPostJpaRepository extends JpaRepository<CommunityPostJ
 
     Optional<CommunityPostJpaEntity> findByIdAndDeletedAtIsNull(Long id);
 
+    @Modifying(clearAutomatically = true)
+    @Query("""
+        UPDATE community_post p
+        SET p.title = :title, p.content = :content
+        WHERE p.id = :postId
+          AND p.memberId = :memberId
+          AND p.deletedAt IS NULL
+        """)
+    int updateActivePost(@Param("postId") Long postId, @Param("memberId") Long memberId,
+            @Param("title") String title, @Param("content") String content);
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+        UPDATE community_post p
+        SET p.deletedAt = :deletedAt
+        WHERE p.id = :postId
+          AND p.memberId = :memberId
+          AND p.deletedAt IS NULL
+        """)
+    int deleteActivePost(@Param("postId") Long postId, @Param("memberId") Long memberId,
+            @Param("deletedAt") java.time.LocalDateTime deletedAt);
+
     @Query(value = """
         SELECT post_id, COUNT(*)
         FROM community_post_like

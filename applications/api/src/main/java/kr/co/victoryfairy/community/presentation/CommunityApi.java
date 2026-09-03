@@ -17,12 +17,6 @@ public interface CommunityApi {
     record WriteResponse(Long postId) {
     }
 
-    record UpdatePostRequest(
-            @NotBlank @Size(max = 30) String title,
-            @NotBlank @Size(max = 100) String content,
-            List<Long> fileIds) {
-    }
-
     record CommentRequest(@NotBlank @Size(max = 100) String content) {
     }
 

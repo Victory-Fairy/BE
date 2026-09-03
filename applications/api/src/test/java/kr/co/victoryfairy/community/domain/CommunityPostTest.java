@@ -35,6 +35,8 @@ class CommunityPostTest {
 
     @Test
     void rejectsTextOverApiLimits() {
+        assertThat(CommunityPost.create(7L, "가".repeat(30), "나".repeat(100)).title())
+            .hasSize(30);
         assertThatIllegalArgumentException()
             .isThrownBy(() -> CommunityPost.create(7L, "가".repeat(31), "내용"));
         assertThatIllegalArgumentException()
