@@ -3,6 +3,8 @@ package kr.co.victoryfairy.community.application;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import kr.co.victoryfairy.community.domain.CommunityReport;
+
 public interface CommunityView {
 
     record Cursor<T>(List<T> items, Long nextCursor, boolean hasNext) {
@@ -12,6 +14,19 @@ public interface CommunityView {
     }
 
     record Image(Long fileId, String url) {
+    }
+
+    record Report(
+            Long reportId,
+            CommunityReport.TargetType targetType,
+            Long targetId,
+            Long reporterId,
+            Long reportedMemberId,
+            CommunityReport.Reason reason,
+            CommunityReport.Status status,
+            String detail,
+            CommunityReport.Snapshot snapshot,
+            LocalDateTime createdAt) {
     }
 
     record PostPreview(
