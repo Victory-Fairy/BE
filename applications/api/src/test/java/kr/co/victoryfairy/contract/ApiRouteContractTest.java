@@ -1,6 +1,7 @@
 package kr.co.victoryfairy.contract;
 
 import kr.co.victoryfairy.common.presentation.CommonController;
+import kr.co.victoryfairy.community.presentation.CommunityController;
 import kr.co.victoryfairy.diary.presentation.DiaryController;
 import kr.co.victoryfairy.game.presentation.MatchController;
 import kr.co.victoryfairy.media.presentation.FileController;
@@ -19,6 +20,7 @@ class ApiRouteContractTest {
     void keepsPublicRoutesWhenApplicationsAreMerged() {
         assertRoute(AuthController.class, "/api/auth");
         assertRoute(CommonController.class, "/api/common");
+        assertRoute(CommunityController.class, "/api/community/posts");
         assertRoute(DiaryController.class, "/api/diary");
         assertRoute(MatchController.class, "/api/match");
         assertRoute(MemberController.class, "/api/member");
