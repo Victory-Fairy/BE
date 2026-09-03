@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -138,11 +137,8 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
             return null;
         }
 
-        String matchAtStr = matchAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-        StringTemplate dbDate = Expressions.stringTemplate("DATE_FORMAT({0}, '%Y-%m-%d')", gameMatchEntity.matchAt);
-
-        return dbDate.eq(matchAtStr);
+        return gameMatchEntity.matchAt.goe(matchAt.atStartOfDay())
+            .and(gameMatchEntity.matchAt.lt(matchAt.plusDays(1).atStartOfDay()));
     }
 
     private BooleanExpression eqTeamId(Long teamId) {
