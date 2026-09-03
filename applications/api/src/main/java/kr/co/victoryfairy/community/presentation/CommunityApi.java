@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import kr.co.victoryfairy.community.domain.CommunityReport;
 
 public interface CommunityApi {
 
@@ -24,6 +25,17 @@ public interface CommunityApi {
     }
 
     record LikeRequest(@NotNull Boolean liked) {
+    }
+
+    record ReportRequest(
+            @NotNull CommunityReport.Reason reason,
+            @Size(max = 500) String detail) {
+    }
+
+    record ReportResponse(Long reportId) {
+    }
+
+    record ResolveReportRequest(@NotNull CommunityReport.Status status) {
     }
 
 }
