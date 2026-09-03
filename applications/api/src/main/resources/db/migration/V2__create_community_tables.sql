@@ -140,7 +140,8 @@ CREATE TABLE community_post_report (
                                  ON UPDATE CURRENT_TIMESTAMP(6),
 
     PRIMARY KEY (id),
-    UNIQUE KEY uk_community_post_report (post_id, reporter_id)
+    UNIQUE KEY uk_community_post_report (post_id, reporter_id),
+    KEY idx_community_post_report_status_id (status_code, id)
 );
 
 
@@ -158,7 +159,8 @@ CREATE TABLE community_comment_report (
                                  ON UPDATE CURRENT_TIMESTAMP(6),
 
     PRIMARY KEY (id),
-    UNIQUE KEY uk_community_comment_report (comment_id, reporter_id)
+    UNIQUE KEY uk_community_comment_report (comment_id, reporter_id),
+    KEY idx_community_comment_report_status_id (status_code, id)
 );
 
 

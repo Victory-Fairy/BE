@@ -47,6 +47,10 @@ class FlywayBaselineMigrationTest {
             assertThat(applicationTableCount(MYSQL)).isEqualTo(29);
             assertThat(commonCodeDetailCount(MYSQL)).isEqualTo(7);
             assertThat(indexCount(MYSQL, "file_ref", "idx_file_ref_ref_type_ref_id_is_use")).isEqualTo(1);
+            assertThat(indexCount(MYSQL, "community_post_report", "idx_community_post_report_status_id"))
+                .isEqualTo(1);
+            assertThat(indexCount(MYSQL, "community_comment_report", "idx_community_comment_report_status_id"))
+                .isEqualTo(1);
             assertThat(columnCount(MYSQL, "community_post", "updated_at")).isEqualTo(1);
             assertThat(columnCount(MYSQL, "community_comment", "updated_at")).isEqualTo(1);
         }
@@ -100,6 +104,10 @@ class FlywayBaselineMigrationTest {
             assertThat(successfulMigrationCount(MYSQL, "2")).isEqualTo(1);
             assertThat(commonCodeDetailCount(MYSQL)).isEqualTo(7);
             assertThat(indexCount(MYSQL, "file_ref", "idx_file_ref_ref_type_ref_id_is_use")).isEqualTo(1);
+            assertThat(indexCount(MYSQL, "community_post_report", "idx_community_post_report_status_id"))
+                .isEqualTo(1);
+            assertThat(indexCount(MYSQL, "community_comment_report", "idx_community_comment_report_status_id"))
+                .isEqualTo(1);
             assertThat(columnCount(MYSQL, "community_post", "updated_at")).isEqualTo(1);
             assertThat(columnCount(MYSQL, "community_comment", "updated_at")).isEqualTo(1);
         }
