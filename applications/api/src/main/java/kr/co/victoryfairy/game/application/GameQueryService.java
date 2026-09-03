@@ -7,6 +7,7 @@ import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
 import kr.co.victoryfairy.storage.db.core.entity.HitterRecordEntity;
 import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
 import kr.co.victoryfairy.storage.db.core.entity.PitcherRecordEntity;
+import kr.co.victoryfairy.storage.db.core.entity.StadiumEntity;
 import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
 import kr.co.victoryfairy.storage.db.core.repository.*;
 import kr.co.victoryfairy.web.response.MessageEnum;
@@ -21,6 +22,8 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -78,22 +81,35 @@ public class GameQueryService {
                 return new MatchDomain.MatchListResponse(date, matchList);
             }
 
+            var teamsById = findTeamsById(matchEntities.stream()
+                .flatMap(match -> Stream.of(match.getAwayTeamEntity(), match.getHomeTeamEntity()))
+                .filter(Objects::nonNull)
+                .map(TeamEntity::getId)
+                .collect(Collectors.toSet()));
+            var stadiumsById = findStadiumsById(matchEntities.stream()
+                .map(GameMatchEntity::getStadiumEntity)
+                .filter(Objects::nonNull)
+                .map(StadiumEntity::getId)
+                .collect(Collectors.toSet()));
+            var diaryIdsByMatchId = findDiaryIdsByMatchId(memberId, matchEntities.stream()
+                .map(GameMatchEntity::getId)
+                .toList());
+
             matchList = matchEntities.stream().map(entity -> {
 
                 var matchAt = entity.getMatchAt();
                 var awayTeamEntity = entity.getAwayTeamEntity() != null
-                        ? teamRepository.findById(entity.getAwayTeamEntity().getId()).orElse(null)
+                        ? teamsById.get(entity.getAwayTeamEntity().getId())
                         : null;
                 var homeTeamEntity = entity.getHomeTeamEntity() != null
-                        ? teamRepository.findById(entity.getHomeTeamEntity().getId()).orElse(null)
+                        ? teamsById.get(entity.getHomeTeamEntity().getId())
                         : null;
                 var stadiumEntity = entity.getStadiumEntity() != null
-                        ? stadiumRepository.findById(entity.getStadiumEntity().getId()).orElse(null)
+                        ? stadiumsById.get(entity.getStadiumEntity().getId())
                         : null;
 
-                var diaryEntity = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, entity.getId());
-                var isWrited = diaryEntity.isPresent();
-                var diaryId = diaryEntity.map(d -> d.getId()).orElse(null);
+                var diaryId = diaryIdsByMatchId.get(entity.getId());
+                var isWrited = diaryId != null;
 
                 var awayScore = entity.getAwayScore();
                 var homeScore = entity.getHomeScore();
@@ -125,16 +141,21 @@ public class GameQueryService {
             return new MatchDomain.MatchListResponse(date, matchList);
         }
 
-        for (Map.Entry<String, Map<String, Object>> entry : matchRedis.entrySet()) {
-            Map<String, Object> matchData = entry.getValue();
+        var matchEntries = matchRedis.entrySet().stream()
+            .filter(entry -> league == null || league.name().equals(entry.getValue().get("league")))
+            .toList();
+        var teamsById = findTeamsById(matchEntries.stream()
+            .flatMap(entry -> Stream.of(
+                Long.valueOf(String.valueOf(entry.getValue().get("awayId"))),
+                Long.valueOf(String.valueOf(entry.getValue().get("homeId")))
+            ))
+            .collect(Collectors.toSet()));
+        var diaryIdsByMatchId = findDiaryIdsByMatchId(memberId, matchEntries.stream()
+            .map(Map.Entry::getKey)
+            .toList());
 
-            // league 필터링
-            if (league != null) {
-                String matchLeague = (String) matchData.get("league");
-                if (matchLeague == null || !league.name().equals(matchLeague)) {
-                    continue;
-                }
-            }
+        for (Map.Entry<String, Map<String, Object>> entry : matchEntries) {
+            Map<String, Object> matchData = entry.getValue();
 
             String id = entry.getKey();
             String time = (String) matchData.get("time");
@@ -149,11 +170,10 @@ public class GameQueryService {
             Object awayScoreObj = matchData.get("awayScore");
             Object homeScoreObj = matchData.get("homeScore");
 
-            var awayEntity = teamRepository.findById(awayId).orElse(null);
-            var homeEntity = teamRepository.findById(homeId).orElse(null);
-            var diaryEntity = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, id);
-            var isWrited = diaryEntity.isPresent();
-            var diaryId = diaryEntity.map(d -> d.getId()).orElse(null);
+            var awayEntity = teamsById.get(awayId);
+            var homeEntity = teamsById.get(homeId);
+            var diaryId = diaryIdsByMatchId.get(id);
+            var isWrited = diaryId != null;
 
             var awayScore = awayScoreObj != null ? Short.valueOf(String.valueOf(awayScoreObj)) : null;
             var homeScore = homeScoreObj != null ? Short.valueOf(String.valueOf(homeScoreObj)) : null;
@@ -190,6 +210,33 @@ public class GameQueryService {
             .toList();
 
         return new MatchDomain.MatchListResponse(date, matchList);
+    }
+
+    private Map<Long, TeamEntity> findTeamsById(Collection<Long> teamIds) {
+        if (teamIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return teamRepository.findAllById(teamIds).stream()
+            .collect(Collectors.toMap(TeamEntity::getId, team -> team));
+    }
+
+    private Map<Long, StadiumEntity> findStadiumsById(Collection<Long> stadiumIds) {
+        if (stadiumIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return stadiumRepository.findAllById(stadiumIds).stream()
+            .collect(Collectors.toMap(StadiumEntity::getId, stadium -> stadium));
+    }
+
+    private Map<String, Long> findDiaryIdsByMatchId(Long memberId, Collection<String> matchIds) {
+        if (memberId == null || matchIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return diaryRepository.findByMemberIdAndGameMatchEntityIdIn(memberId, matchIds).stream()
+            .collect(Collectors.toMap(diary -> diary.getGameMatchEntity().getId(), diary -> diary.getId()));
     }
 
     public MatchDomain.MatchInfoResponse findById(String id) {
