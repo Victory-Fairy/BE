@@ -69,6 +69,16 @@ class MediaCommandServiceTest {
         assertThat(fileCount(storageRoot)).isEqualTo(1);
     }
 
+    @Test
+    void storesCommunityImagesInDedicatedPath(@TempDir Path storageRoot) {
+        var service = service(storageRoot, mock(FileRepository.class), Optional.empty(),
+                mock(S3PresignedUrlService.class));
+
+        var response = service.createFile(request(RefType.COMMUNITY));
+
+        assertThat(response.get(0).path()).startsWith("image/community/");
+    }
+
     private MediaCommandService service(Path storageRoot, FileRepository fileRepository,
             Optional<S3FileUploader> uploader, S3PresignedUrlService urlService) {
         FileProperties properties = new FileProperties();
@@ -79,8 +89,12 @@ class MediaCommandServiceTest {
     }
 
     private FileDomain.CreateRequest request() {
+        return request(RefType.PROFILE);
+    }
+
+    private FileDomain.CreateRequest request(RefType refType) {
         MockMultipartFile file = new MockMultipartFile("file", "profile.jpg", "image/jpeg", "image".getBytes());
-        return new FileDomain.CreateRequest(List.of(file), RefType.PROFILE);
+        return new FileDomain.CreateRequest(List.of(file), refType);
     }
 
     private long fileCount(Path storageRoot) throws Exception {
