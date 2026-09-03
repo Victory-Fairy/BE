@@ -42,6 +42,11 @@ public class CommunityCommentJpaEntity {
 
     private LocalDateTime deletedAt;
 
+    static CommunityCommentJpaEntity from(CommunityComment comment) {
+        return new CommunityCommentJpaEntity(comment.id(), comment.postId(), comment.memberId(), comment.content(),
+                comment.createdAt(), comment.deletedAt());
+    }
+
     CommunityComment toDomain() {
         return new CommunityComment(id, postId, memberId, content, createdAt, deletedAt);
     }

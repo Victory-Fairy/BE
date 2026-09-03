@@ -11,9 +11,19 @@ public interface CommunityRepository {
 
     void savePostFiles(Long postId, List<Long> fileIds);
 
+    void replacePostFiles(Long postId, List<Long> fileIds);
+
+    CommunityComment saveComment(CommunityComment comment);
+
     List<CommunityPost> findPosts(Long cursor, String keyword, int limit);
 
     Optional<CommunityPost> findActivePost(Long postId);
+
+    Optional<CommunityComment> findActiveComment(Long postId, Long commentId);
+
+    void setPostLike(Long postId, Long memberId, boolean liked);
+
+    void setCommentLike(Long commentId, Long memberId, boolean liked);
 
     List<CommunityPostFile> findPostFiles(List<Long> postIds);
 

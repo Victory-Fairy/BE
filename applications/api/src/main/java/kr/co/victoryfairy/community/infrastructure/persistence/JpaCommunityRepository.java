@@ -37,6 +37,17 @@ public class JpaCommunityRepository implements CommunityRepository {
     }
 
     @Override
+    public void replacePostFiles(Long postId, List<Long> fileIds) {
+        postFiles.deleteByPostId(postId);
+        savePostFiles(postId, fileIds);
+    }
+
+    @Override
+    public CommunityComment saveComment(CommunityComment comment) {
+        return comments.save(CommunityCommentJpaEntity.from(comment)).toDomain();
+    }
+
+    @Override
     public List<CommunityPost> findPosts(Long cursor, String keyword, int limit) {
         return posts.findPosts(cursor, keyword, PageRequest.of(0, limit)).stream()
             .map(CommunityPostJpaEntity::toDomain)
@@ -46,6 +57,32 @@ public class JpaCommunityRepository implements CommunityRepository {
     @Override
     public Optional<CommunityPost> findActivePost(Long postId) {
         return posts.findByIdAndDeletedAtIsNull(postId).map(CommunityPostJpaEntity::toDomain);
+    }
+
+    @Override
+    public Optional<CommunityComment> findActiveComment(Long postId, Long commentId) {
+        return comments.findByIdAndPostIdAndDeletedAtIsNull(commentId, postId)
+            .map(CommunityCommentJpaEntity::toDomain);
+    }
+
+    @Override
+    public void setPostLike(Long postId, Long memberId, boolean liked) {
+        if (liked) {
+            posts.addLike(postId, memberId);
+        }
+        else {
+            posts.deleteLike(postId, memberId);
+        }
+    }
+
+    @Override
+    public void setCommentLike(Long commentId, Long memberId, boolean liked) {
+        if (liked) {
+            comments.addLike(commentId, memberId);
+        }
+        else {
+            comments.deleteLike(commentId, memberId);
+        }
     }
 
     @Override

@@ -8,4 +8,6 @@ public interface CommunityPostFileJpaRepository extends JpaRepository<CommunityP
 
     List<CommunityPostFileJpaEntity> findByPostIdInOrderByIdAsc(List<Long> postIds);
 
+    void deleteByPostId(Long postId);
+
 }

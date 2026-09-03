@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -49,5 +50,19 @@ public interface CommunityPostJpaRepository extends JpaRepository<CommunityPostJ
           AND post_id IN (:postIds)
         """, nativeQuery = true)
     List<Long> findLikedPostIds(@Param("memberId") Long memberId, @Param("postIds") List<Long> postIds);
+
+    @Modifying
+    @Query(value = """
+        INSERT IGNORE INTO community_post_like (post_id, member_id)
+        VALUES (:postId, :memberId)
+        """, nativeQuery = true)
+    void addLike(@Param("postId") Long postId, @Param("memberId") Long memberId);
+
+    @Modifying
+    @Query(value = """
+        DELETE FROM community_post_like
+        WHERE post_id = :postId AND member_id = :memberId
+        """, nativeQuery = true)
+    void deleteLike(@Param("postId") Long postId, @Param("memberId") Long memberId);
 
 }
