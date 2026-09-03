@@ -6,6 +6,7 @@ import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,5 +26,7 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Long> {
     List<DiaryEntity> findByMemberId(Long memberId);
 
     Optional<DiaryEntity> findByMemberIdAndGameMatchEntityId(Long memberId, String gameMatchEntityId);
+
+    List<DiaryEntity> findByMemberIdAndGameMatchEntityIdIn(Long memberId, Collection<String> gameMatchEntityIds);
 
 }

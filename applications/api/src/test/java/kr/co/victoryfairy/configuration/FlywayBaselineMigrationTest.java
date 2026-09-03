@@ -28,6 +28,18 @@ class FlywayBaselineMigrationTest {
             "DROP DATABASE", "CREATE DATABASE", "\nUSE ");
     }
 
+    @Test
+    void containsGameQueryIndexMigration() throws Exception {
+        String migration = readMigration("V3__optimize_game_query_indexes.sql").toUpperCase(Locale.ROOT);
+
+        assertThat(migration).contains(
+            "IDX_GAME_MATCH_LEAGUE_MATCH_AT",
+            "IDX_DIARY_MEMBER_GAME_MATCH",
+            "IDX_PITCHER_RECORD_GAME_MATCH",
+            "IDX_HITTER_RECORD_GAME_MATCH"
+        );
+    }
+
     @Nested
     @Testcontainers(disabledWithoutDocker = true)
     class MySqlMigration {
@@ -51,6 +63,7 @@ class FlywayBaselineMigrationTest {
                 .isEqualTo(1);
             assertThat(indexCount(MYSQL, "community_comment_report", "idx_community_comment_report_status_id"))
                 .isEqualTo(1);
+            assertGameQueryIndexes(MYSQL);
             assertThat(columnCount(MYSQL, "community_post", "updated_at")).isEqualTo(1);
             assertThat(columnCount(MYSQL, "community_comment", "updated_at")).isEqualTo(1);
         }
@@ -97,7 +110,7 @@ class FlywayBaselineMigrationTest {
 
             flyway.baseline();
 
-            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);
+            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(2);
             assertThat(applicationTableCount(MYSQL)).isEqualTo(29);
             assertThat(sentinelCount(MYSQL)).isEqualTo(1);
             assertThat(historyEntryCount(MYSQL)).isEqualTo(1);
@@ -108,6 +121,7 @@ class FlywayBaselineMigrationTest {
                 .isEqualTo(1);
             assertThat(indexCount(MYSQL, "community_comment_report", "idx_community_comment_report_status_id"))
                 .isEqualTo(1);
+            assertGameQueryIndexes(MYSQL);
             assertThat(columnCount(MYSQL, "community_post", "updated_at")).isEqualTo(1);
             assertThat(columnCount(MYSQL, "community_comment", "updated_at")).isEqualTo(1);
         }
@@ -148,6 +162,14 @@ class FlywayBaselineMigrationTest {
 
     private int commonCodeDetailCount(MySQLContainer<?> mysql) throws Exception {
         return count(mysql, "SELECT COUNT(*) FROM common_code_detail");
+    }
+
+    private void assertGameQueryIndexes(MySQLContainer<?> mysql) throws Exception {
+        assertThat(successfulMigrationCount(mysql, "3")).isEqualTo(1);
+        assertThat(indexCount(mysql, "game_match", "idx_game_match_league_match_at")).isEqualTo(1);
+        assertThat(indexCount(mysql, "diary", "idx_diary_member_game_match")).isEqualTo(1);
+        assertThat(indexCount(mysql, "pitcher_record", "idx_pitcher_record_game_match")).isEqualTo(1);
+        assertThat(indexCount(mysql, "hitter_record", "idx_hitter_record_game_match")).isEqualTo(1);
     }
 
     private int indexCount(MySQLContainer<?> mysql, String tableName, String indexName) throws Exception {
@@ -230,6 +252,14 @@ class FlywayBaselineMigrationTest {
         try (var input = getClass().getClassLoader()
             .getResourceAsStream("db/migration/V1__baseline.sql")) {
             assertThat(input).as("V1 baseline resource").isNotNull();
+            return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+        }
+    }
+
+    private String readMigration(String filename) throws IOException {
+        try (var input = getClass().getClassLoader()
+            .getResourceAsStream("db/migration/" + filename)) {
+            assertThat(input).as("%s resource", filename).isNotNull();
             return new String(input.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
