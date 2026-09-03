@@ -34,7 +34,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":infrastructure:redis"))
 
-    implementation("org.flywaydb:flyway-core")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
     runtimeOnly("org.flywaydb:flyway-mysql")
 
     testImplementation(project(":tests:api-docs"))
