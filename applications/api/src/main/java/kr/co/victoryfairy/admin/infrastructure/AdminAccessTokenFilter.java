@@ -24,6 +24,7 @@ public class AdminAccessTokenFilter extends PathPatternWebFilter {
 
         this.addIncludePathPatterns("/v2/admin/member/**");
         this.addIncludePathPatterns("/v2/admin/diary/**");
+        this.addIncludePathPatterns("/v2/admin/community/**");
         this.addExcludePathPatterns(
                 "/",
                 "/swagger-ui/**",

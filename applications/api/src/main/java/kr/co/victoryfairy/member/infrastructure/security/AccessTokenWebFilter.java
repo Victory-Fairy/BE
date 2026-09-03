@@ -24,6 +24,7 @@ public class AccessTokenWebFilter extends PathPatternWebFilter {
         this.addIncludePathPatterns("/v2/api/member/**");
         this.addIncludePathPatterns("/v2/api/my-page/**");
         this.addIncludePathPatterns("/v2/api/diary/**");
+        this.addIncludePathPatterns("/v2/api/community/**");
         this.addExcludePathPatterns("/", "/swagger-ui/**", "/swagger/**", "/v2/api/member/auth-path",
                 "/v2/api/member/login", "/v2/api/member/refresh-token", "/v2/api/match/list",
                 "/v2/api/diary/list", "/v2/api/diary/daily-list", "/v2/api/member/match-today",

@@ -36,20 +36,23 @@ class FlywayBaselineMigrationTest {
         static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4");
 
         @Test
-        void appliesBaselineToEmptyMySql() throws Exception {
+        void appliesAllMigrationsToEmptyMySql() throws Exception {
             Flyway.configure()
                 .dataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword())
                 .load()
                 .migrate();
 
-            try (var connection = DriverManager.getConnection(
-                    MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword());
-                 var statement = connection.prepareStatement(
-                    "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '1' AND success = 1");
-                 var result = statement.executeQuery()) {
-                result.next();
-                assertThat(result.getInt(1)).isEqualTo(1);
-            }
+            assertThat(successfulMigrationCount(MYSQL, "1")).isEqualTo(1);
+            assertThat(successfulMigrationCount(MYSQL, "2")).isEqualTo(1);
+            assertThat(applicationTableCount(MYSQL)).isEqualTo(29);
+            assertThat(commonCodeDetailCount(MYSQL)).isEqualTo(7);
+            assertThat(indexCount(MYSQL, "file_ref", "idx_file_ref_ref_type_ref_id_is_use")).isEqualTo(1);
+            assertThat(indexCount(MYSQL, "community_post_report", "idx_community_post_report_status_id"))
+                .isEqualTo(1);
+            assertThat(indexCount(MYSQL, "community_comment_report", "idx_community_comment_report_status_id"))
+                .isEqualTo(1);
+            assertThat(columnCount(MYSQL, "community_post", "updated_at")).isEqualTo(1);
+            assertThat(columnCount(MYSQL, "community_comment", "updated_at")).isEqualTo(1);
         }
 
     }
@@ -94,10 +97,19 @@ class FlywayBaselineMigrationTest {
 
             flyway.baseline();
 
-            assertThat(flyway.migrate().migrationsExecuted).isZero();
-            assertThat(applicationTableCount(MYSQL)).isEqualTo(20);
+            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);
+            assertThat(applicationTableCount(MYSQL)).isEqualTo(29);
             assertThat(sentinelCount(MYSQL)).isEqualTo(1);
             assertThat(historyEntryCount(MYSQL)).isEqualTo(1);
+            assertThat(successfulMigrationCount(MYSQL, "2")).isEqualTo(1);
+            assertThat(commonCodeDetailCount(MYSQL)).isEqualTo(7);
+            assertThat(indexCount(MYSQL, "file_ref", "idx_file_ref_ref_type_ref_id_is_use")).isEqualTo(1);
+            assertThat(indexCount(MYSQL, "community_post_report", "idx_community_post_report_status_id"))
+                .isEqualTo(1);
+            assertThat(indexCount(MYSQL, "community_comment_report", "idx_community_comment_report_status_id"))
+                .isEqualTo(1);
+            assertThat(columnCount(MYSQL, "community_post", "updated_at")).isEqualTo(1);
+            assertThat(columnCount(MYSQL, "community_comment", "updated_at")).isEqualTo(1);
         }
     }
 
@@ -116,6 +128,64 @@ class FlywayBaselineMigrationTest {
             FROM flyway_schema_history
             WHERE version = '1' AND type = 'BASELINE' AND success = 1
             """);
+    }
+
+    private int successfulMigrationCount(MySQLContainer<?> mysql, String version) throws Exception {
+        try (var connection = DriverManager.getConnection(
+                mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword());
+             var statement = connection.prepareStatement("""
+                 SELECT COUNT(*)
+                 FROM flyway_schema_history
+                 WHERE version = ? AND type = 'SQL' AND success = 1
+                 """)) {
+            statement.setString(1, version);
+            try (var result = statement.executeQuery()) {
+                result.next();
+                return result.getInt(1);
+            }
+        }
+    }
+
+    private int commonCodeDetailCount(MySQLContainer<?> mysql) throws Exception {
+        return count(mysql, "SELECT COUNT(*) FROM common_code_detail");
+    }
+
+    private int indexCount(MySQLContainer<?> mysql, String tableName, String indexName) throws Exception {
+        try (var connection = DriverManager.getConnection(
+                mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword());
+             var statement = connection.prepareStatement("""
+                 SELECT COUNT(DISTINCT index_name)
+                 FROM information_schema.statistics
+                 WHERE table_schema = DATABASE()
+                   AND table_name = ?
+                   AND index_name = ?
+                 """)) {
+            statement.setString(1, tableName);
+            statement.setString(2, indexName);
+            try (var result = statement.executeQuery()) {
+                result.next();
+                return result.getInt(1);
+            }
+        }
+    }
+
+    private int columnCount(MySQLContainer<?> mysql, String tableName, String columnName) throws Exception {
+        try (var connection = DriverManager.getConnection(
+                mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword());
+             var statement = connection.prepareStatement("""
+                 SELECT COUNT(*)
+                 FROM information_schema.columns
+                 WHERE table_schema = DATABASE()
+                   AND table_name = ?
+                   AND column_name = ?
+                 """)) {
+            statement.setString(1, tableName);
+            statement.setString(2, columnName);
+            try (var result = statement.executeQuery()) {
+                result.next();
+                return result.getInt(1);
+            }
+        }
     }
 
     private boolean historyTableExists(MySQLContainer<?> mysql) throws Exception {
