@@ -65,9 +65,9 @@ public final class AccessTokenCodec {
         if (account == null) {
             return accessError(accessToken);
         } else {
-            // URL이 /mgt로 시작하면 ADMIN 권한 확인
+            // 관리자 API는 ADMIN 권한 확인
             String requestURI = request.getRequestURI();
-            if (requestURI.contains("/mgt/")) {
+            if (requestURI.contains("/admin/") || requestURI.contains("/mgt/")) {
                 checkRoles(account.getRoles(), "ADMIN", accessToken);
             }
             request.setAttribute("accountByToken", account);

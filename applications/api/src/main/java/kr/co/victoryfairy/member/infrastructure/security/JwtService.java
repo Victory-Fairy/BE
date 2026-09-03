@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -65,6 +67,7 @@ public class JwtService {
             .id(admin.getId())
             .expireMinutes(String.valueOf(accessTokenExpireMinutes))
             .ip(ip)
+            .roles(List.of("ADMIN"))
             .build();
 
         // Access Token, Refresh Token 생성
@@ -131,6 +134,7 @@ public class JwtService {
         int refreshTokenExpireDays = jwtProperties.getRefreshTokenExpireDays();
 
         adminAccount.setExpireMinutes(String.valueOf(accessTokenExpireMinutes));
+        adminAccount.setRoles(List.of("ADMIN"));
         AccessTokenCodec.makeAuthToken(adminAccount, jwtProperties, refreshTokenExpireDays);
 
         // 새 Refresh Token을 Redis에 저장 (기존 토큰 대체)
