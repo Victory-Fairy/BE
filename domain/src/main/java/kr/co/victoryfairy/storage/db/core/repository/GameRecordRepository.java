@@ -6,6 +6,7 @@ import kr.co.victoryfairy.storage.db.core.entity.DiaryEntity;
 import kr.co.victoryfairy.storage.db.core.entity.GameRecordEntity;
 import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,10 @@ import java.util.Optional;
 public interface GameRecordRepository extends JpaRepository<GameRecordEntity, Long> {
 
     List<GameRecordEntity> findByMemberAndSeason(MemberEntity member, String season);
+
+    @EntityGraph(attributePaths = { "gameMatchEntity", "gameMatchEntity.homeTeamEntity", "stadiumEntity",
+            "teamEntity" })
+    List<GameRecordEntity> findByMemberIdAndSeasonOrderByGameMatchEntityMatchAtAsc(Long memberId, String season);
 
     List<GameRecordEntity> findByMemberId(Long memberId);
 

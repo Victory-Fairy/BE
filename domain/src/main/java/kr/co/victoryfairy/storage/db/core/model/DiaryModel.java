@@ -13,7 +13,7 @@ public interface DiaryModel {
     record ListRequest(Long memberId, LocalDate startDate, LocalDate endDate) {
     }
 
-    record DailyListRequest(Long memberId, LocalDate date) {
+    record DailyListRequest(Long memberId, LocalDateTime startAt, LocalDateTime endExclusive) {
     }
 
     record DiaryListRequest(LocalDate date, MatchEnum.MatchStatus status, Integer page, Integer size) {

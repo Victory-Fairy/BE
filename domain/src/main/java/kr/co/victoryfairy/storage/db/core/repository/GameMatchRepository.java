@@ -2,12 +2,17 @@ package kr.co.victoryfairy.storage.db.core.repository;
 
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface GameMatchRepository extends JpaRepository<GameMatchEntity, String> {
+
+    @EntityGraph(attributePaths = { "awayTeamEntity", "homeTeamEntity", "stadiumEntity" })
+    Optional<GameMatchEntity> findDiaryWriteById(String id);
 
     /**
      * 리그 및 시즌 별 경기 삭제

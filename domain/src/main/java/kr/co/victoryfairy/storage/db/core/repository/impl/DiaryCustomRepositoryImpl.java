@@ -2,9 +2,6 @@ package kr.co.victoryfairy.storage.db.core.repository.impl;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.ComparableExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.dodn.springboot.core.enums.MatchEnum;
 import kr.co.victoryfairy.storage.db.core.entity.DiaryEntity;
@@ -20,7 +17,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static kr.co.victoryfairy.storage.db.core.entity.QDiaryEntity.diaryEntity;
@@ -85,7 +81,8 @@ public class DiaryCustomRepositoryImpl extends QuerydslRepositorySupport impleme
             .on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
             .leftJoin(gameRecordEntity)
             .on(gameRecordEntity.diaryEntity.id.eq(diaryEntity.id))
-            .where(diaryEntity.member.id.eq(request.memberId()).and(this.eqMatchAt(request.date())))
+            .where(diaryEntity.member.id.eq(request.memberId())
+                .and(this.betweenMatchAt(request.startAt(), request.endExclusive())))
             .fetch();
     }
 
@@ -128,16 +125,17 @@ public class DiaryCustomRepositoryImpl extends QuerydslRepositorySupport impleme
         return gameMatchEntity.matchAt.between(start, end);
     }
 
-    private BooleanExpression eqMatchAt(LocalDate matchAt) {
-        if (matchAt == null) {
+    private BooleanExpression betweenMatchAt(LocalDateTime startAt, LocalDateTime endExclusive) {
+        if (startAt == null || endExclusive == null) {
             return null;
         }
 
-        String matchAtStr = matchAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return gameMatchEntity.matchAt.goe(startAt).and(gameMatchEntity.matchAt.lt(endExclusive));
+    }
 
-        StringTemplate dbDate = Expressions.stringTemplate("DATE_FORMAT({0}, '%Y-%m-%d')", gameMatchEntity.matchAt);
-
-        return dbDate.eq(matchAtStr);
+    private BooleanExpression eqMatchAt(LocalDate matchAt) {
+        return matchAt == null ? null
+                : betweenMatchAt(matchAt.atStartOfDay(), matchAt.plusDays(1).atStartOfDay());
     }
 
     private BooleanExpression eqStatus(MatchEnum.MatchStatus status) {
