@@ -118,7 +118,7 @@ class FlywayBaselineMigrationTest {
 
             flyway.baseline();
 
-            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(2);
+            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(3);
             assertThat(applicationTableCount(MYSQL)).isEqualTo(29);
             assertThat(sentinelCount(MYSQL)).isEqualTo(1);
             assertThat(historyEntryCount(MYSQL)).isEqualTo(1);
