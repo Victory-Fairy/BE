@@ -4,6 +4,7 @@ import kr.co.victoryfairy.storage.db.core.entity.DiaryEntity;
 import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
 import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -22,6 +23,9 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Long> {
     List<DiaryEntity> findByIsRatedFalseAndGameMatchEntityStatusIn(List<MatchEnum.MatchStatus> statuses);
 
     Optional<DiaryEntity> findByMemberIdAndId(Long memberId, Long id);
+
+    @EntityGraph(attributePaths = { "gameMatchEntity", "gameMatchEntity.homeTeamEntity", "teamEntity" })
+    Optional<DiaryEntity> findDetailByMemberIdAndId(Long memberId, Long id);
 
     List<DiaryEntity> findByMemberId(Long memberId);
 

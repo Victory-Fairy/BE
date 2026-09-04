@@ -109,7 +109,8 @@ public class DiaryQueryService {
             return new ArrayList<>();
         }
 
-        var diaryEntities = diaryCustomRepository.findDailyList(new DiaryModel.DailyListRequest(id, date));
+        var diaryEntities = diaryCustomRepository.findDailyList(
+                new DiaryModel.DailyListRequest(id, date.atStartOfDay(), date.plusDays(1).atStartOfDay()));
 
         if (diaryEntities.isEmpty()) {
             return new ArrayList<>();
@@ -193,7 +194,7 @@ public class DiaryQueryService {
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
         }
 
-        var diaryEntity = diaryRepository.findByMemberIdAndId(id, diaryId)
+        var diaryEntity = diaryRepository.findDetailByMemberIdAndId(id, diaryId)
             .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         var foodList = diaryFoodDomainService.findFoodNamesByRefId(RefType.DIARY, diaryId);
