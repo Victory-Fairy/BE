@@ -1,6 +1,7 @@
 package kr.co.victoryfairy.member.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,8 @@ import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
 import kr.co.victoryfairy.storage.db.core.repository.GameRecordRepository;
 import kr.co.victoryfairy.storage.db.core.repository.MemberCustomRepository;
 import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
+import kr.co.victoryfairy.web.error.CustomException;
+import kr.co.victoryfairy.web.response.MessageEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,6 +92,18 @@ class MyPageReportServiceTest {
         assertThat(result.viewStatistics().winningStreak()).isEqualTo((short) 1);
         assertThat(result.viewStatistics().homeWinAvg()).isEqualTo((short) 100);
         assertThat(result.viewStatistics().stadiumWinAvg()).isZero();
+    }
+
+    @Test
+    void rejectsAReportRequestWhenTheAuthenticatedMemberNoLongerExists() {
+        authenticate(787L);
+        when(gameRecordRepository.findByMemberIdAndSeasonOrderByGameMatchEntityMatchAtAsc(787L, "2026"))
+            .thenReturn(List.of());
+        when(memberRepository.existsById(787L)).thenReturn(false);
+
+        assertThatThrownBy(() -> service.findReport("2026"))
+            .isInstanceOf(CustomException.class)
+            .hasMessage(MessageEnum.Data.FAIL_NO_RESULT.getDescKr());
     }
 
     private void authenticate(Long memberId) {

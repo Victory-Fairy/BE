@@ -108,6 +108,9 @@ public class MyPageQueryService {
         var recordList = gameRecordRepository.findByMemberIdAndSeasonOrderByGameMatchEntityMatchAtAsc(id, season);
 
         if (recordList.isEmpty()) {
+            if (!memberRepository.existsById(id)) {
+                throw new CustomException(MessageEnum.Data.FAIL_NO_RESULT);
+            }
             return new MyPageDomain.ReportResponse(null, null, null);
         }
 
