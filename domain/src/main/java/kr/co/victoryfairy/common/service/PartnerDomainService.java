@@ -10,9 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -40,27 +40,25 @@ public class PartnerDomainService {
             return;
         }
 
-        List<PartnerEntity> partnerEntityList = new ArrayList<>();
-        for (CommonDto.PartnerSaveRequest partnerDto : partnerList) {
-            TeamEntity partnerTeamEntity = null;
-            String partnerTeamName = null;
+        var teamIds = partnerList.stream()
+            .map(CommonDto.PartnerSaveRequest::teamId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        var teamsById = teamRepository.findAllById(teamIds)
+            .stream()
+            .collect(Collectors.toMap(TeamEntity::getId, team -> team));
 
-            if (partnerDto.teamId() != null) {
-                partnerTeamEntity = teamRepository.findById(partnerDto.teamId()).orElse(null);
-                if (partnerTeamEntity != null) {
-                    partnerTeamName = partnerTeamEntity.getName();
-                }
-            }
-
-            PartnerEntity partnerEntity = PartnerEntity.builder()
+        var partnerEntityList = partnerList.stream().map(partnerDto -> {
+            var partnerTeam = teamsById.get(partnerDto.teamId());
+            return PartnerEntity.builder()
                 .refId(refId)
                 .refType(refType)
                 .name(partnerDto.name())
-                .teamName(partnerTeamName)
-                .teamEntity(partnerTeamEntity)
+                .teamName(partnerTeam == null ? null : partnerTeam.getName())
+                .teamEntity(partnerTeam)
                 .build();
-            partnerEntityList.add(partnerEntity);
-        }
+        }).toList();
         partnerRepository.saveAll(partnerEntityList);
     }
 

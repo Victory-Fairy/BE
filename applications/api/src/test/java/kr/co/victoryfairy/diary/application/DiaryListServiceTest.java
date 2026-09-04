@@ -120,6 +120,27 @@ class DiaryListServiceTest {
         assertThat(emptyDay.images()).isEmpty();
     }
 
+    @Test
+    void returnsDailyDiariesUsingTheRequestedDayBoundaries() {
+        authenticate(787L);
+        var date = LocalDate.of(2026, 9, 3);
+        var start = date.atStartOfDay();
+        var endExclusive = date.plusDays(1).atStartOfDay();
+        var diary = diary(6000L, 13L, LocalDateTime.of(2026, 9, 3, 18, 30),
+                LocalDateTime.of(2026, 9, 3, 22, 0), MatchEnum.ResultType.WIN);
+        when(diaryCustomRepository.findDailyList(
+                new DiaryModel.DailyListRequest(787L, start, endExclusive)))
+            .thenReturn(List.of(diary));
+        when(redisHandler.getHashMap("20260903_match_list")).thenReturn(Map.of());
+        when(fileRefDomainService.findImageMapByRefIds(RefType.DIARY, List.of(6000L))).thenReturn(Map.of());
+
+        var responses = diaryService.findDailyList(date);
+
+        assertThat(responses).hasSize(1);
+        assertThat(responses.getFirst().id()).isEqualTo(6000L);
+        assertThat(responses.getFirst().date()).isEqualTo(date);
+    }
+
     private void authenticate(Long memberId) {
         var request = new MockHttpServletRequest();
         request.setAttribute("accountByToken", MemberAccount.builder().id(memberId).build());

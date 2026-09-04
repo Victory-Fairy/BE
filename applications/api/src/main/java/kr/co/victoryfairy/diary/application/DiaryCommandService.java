@@ -68,7 +68,7 @@ public class DiaryCommandService {
         MemberEntity member = memberRepository.findById(Objects.requireNonNull(memberId))
             .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
-        GameMatchEntity gameMatchEntity = gameMatchRepository.findById(diaryDto.gameMatchId())
+        GameMatchEntity gameMatchEntity = gameMatchRepository.findDiaryWriteById(diaryDto.gameMatchId())
             .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         var teamEntity = teamRepository.findById(diaryDto.teamId())

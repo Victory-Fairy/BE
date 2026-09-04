@@ -42,7 +42,7 @@ class DiaryCommandServiceTest {
         var team = new TeamEntity(13L, "한화", "한화");
         var match = GameMatchEntity.builder().id("20260827HHSK0").status(MatchEnum.MatchStatus.END).build();
         when(memberRepository.findById(787L)).thenReturn(Optional.of(member));
-        when(matchRepository.findById(match.getId())).thenReturn(Optional.of(match));
+        when(matchRepository.findDiaryWriteById(match.getId())).thenReturn(Optional.of(match));
         when(teamRepository.findById(team.getId())).thenReturn(Optional.of(team));
 
         var service = new DiaryCommandService(diaryRepository, mock(SeatRepository.class),
