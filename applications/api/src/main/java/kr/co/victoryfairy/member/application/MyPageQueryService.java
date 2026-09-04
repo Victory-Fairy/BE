@@ -101,17 +101,11 @@ public class MyPageQueryService {
         if (id == null)
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
 
-        var memberEntity = memberRepository.findById(id)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
         if (!StringUtils.hasText(season)) {
             season = String.valueOf(LocalDate.now().getYear());
         }
 
-        var recordList = gameRecordRepository.findByMemberAndSeason(memberEntity, season)
-            .stream()
-            .sorted(Comparator.comparing(entity -> entity.getGameMatchEntity().getMatchAt()))
-            .toList();
+        var recordList = gameRecordRepository.findByMemberIdAndSeasonOrderByGameMatchEntityMatchAtAsc(id, season);
 
         if (recordList.isEmpty()) {
             return new MyPageDomain.ReportResponse(null, null, null);

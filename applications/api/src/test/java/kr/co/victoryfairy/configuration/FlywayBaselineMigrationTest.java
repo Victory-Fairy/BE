@@ -40,6 +40,13 @@ class FlywayBaselineMigrationTest {
         );
     }
 
+    @Test
+    void containsReportQueryIndexMigration() throws Exception {
+        String migration = readMigration("V4__optimize_report_query_index.sql").toUpperCase(Locale.ROOT);
+
+        assertThat(migration).contains("IDX_GAME_RECORD_MEMBER_SEASON");
+    }
+
     @Nested
     @Testcontainers(disabledWithoutDocker = true)
     class MySqlMigration {
@@ -64,6 +71,7 @@ class FlywayBaselineMigrationTest {
             assertThat(indexCount(MYSQL, "community_comment_report", "idx_community_comment_report_status_id"))
                 .isEqualTo(1);
             assertGameQueryIndexes(MYSQL);
+            assertReportQueryIndex(MYSQL);
             assertThat(columnCount(MYSQL, "community_post", "updated_at")).isEqualTo(1);
             assertThat(columnCount(MYSQL, "community_comment", "updated_at")).isEqualTo(1);
         }
@@ -122,6 +130,7 @@ class FlywayBaselineMigrationTest {
             assertThat(indexCount(MYSQL, "community_comment_report", "idx_community_comment_report_status_id"))
                 .isEqualTo(1);
             assertGameQueryIndexes(MYSQL);
+            assertReportQueryIndex(MYSQL);
             assertThat(columnCount(MYSQL, "community_post", "updated_at")).isEqualTo(1);
             assertThat(columnCount(MYSQL, "community_comment", "updated_at")).isEqualTo(1);
         }
@@ -170,6 +179,11 @@ class FlywayBaselineMigrationTest {
         assertThat(indexCount(mysql, "diary", "idx_diary_member_game_match")).isEqualTo(1);
         assertThat(indexCount(mysql, "pitcher_record", "idx_pitcher_record_game_match")).isEqualTo(1);
         assertThat(indexCount(mysql, "hitter_record", "idx_hitter_record_game_match")).isEqualTo(1);
+    }
+
+    private void assertReportQueryIndex(MySQLContainer<?> mysql) throws Exception {
+        assertThat(successfulMigrationCount(mysql, "4")).isEqualTo(1);
+        assertThat(indexCount(mysql, "game_record", "idx_game_record_member_season")).isEqualTo(1);
     }
 
     private int indexCount(MySQLContainer<?> mysql, String tableName, String indexName) throws Exception {
