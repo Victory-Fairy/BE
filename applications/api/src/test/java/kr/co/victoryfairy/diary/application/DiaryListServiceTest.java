@@ -7,7 +7,7 @@ import kr.co.victoryfairy.diary.application.DiaryFoodDomainService;
 import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.diary.application.PartnerDomainService;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.diary.infrastructure.persistence.model.DiaryModel;
+import kr.co.victoryfairy.diary.domain.DiaryModel;
 import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository;
 import kr.co.victoryfairy.diary.infrastructure.persistence.repository.SeatUseHistoryRepository;

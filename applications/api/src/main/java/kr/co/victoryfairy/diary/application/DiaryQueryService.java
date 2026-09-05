@@ -1,6 +1,7 @@
 package kr.co.victoryfairy.diary.application;
 
 import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
 import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.diary.application.DiaryFoodDomainService;
 import kr.co.victoryfairy.media.application.FileReferenceService;
@@ -8,10 +9,10 @@ import kr.co.victoryfairy.diary.application.PartnerDomainService;
 import kr.co.victoryfairy.diary.presentation.DiaryDomain;
 import kr.co.victoryfairy.game.presentation.MatchDomain;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.diary.infrastructure.persistence.model.DiaryModel;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryCustomRepository;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.SeatUseHistoryRepository;
+import kr.co.victoryfairy.diary.domain.DiaryModel;
+import kr.co.victoryfairy.diary.domain.DiaryQueryStore;
+import kr.co.victoryfairy.diary.domain.DiaryStore;
+import kr.co.victoryfairy.diary.domain.SeatUseStore;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
@@ -33,11 +34,13 @@ import java.util.stream.IntStream;
 @Transactional(readOnly = true)
 public class DiaryQueryService {
 
-    private final DiaryRepository diaryRepository;
+    private final DiaryStore diaryRepository;
 
-    private final DiaryCustomRepository diaryCustomRepository;
+    private final DiaryQueryStore diaryCustomRepository;
 
-    private final SeatUseHistoryRepository seatUseHistoryRepository;
+    private final SeatUseStore seatUseHistoryRepository;
+
+    private final GameMatchRepository matches;
 
     private final FileReferenceService fileRefDomainService;
 
@@ -194,7 +197,7 @@ public class DiaryQueryService {
             throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
         }
 
-        var diaryEntity = diaryRepository.findDetailByMemberIdAndId(id, diaryId)
+        var diaryEntity = diaryRepository.findDetailByMemberAndId(id, diaryId)
             .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         var foodList = diaryFoodDomainService.findFoodNamesByRefId(RefType.DIARY, diaryId);
@@ -206,11 +209,10 @@ public class DiaryQueryService {
 
         DiaryDomain.SeatUseHistoryDto seatUseHistoryDto = null;
 
-        var seatUseHistoryEntity = seatUseHistoryRepository.findByDiaryEntityId(diaryId);
-        if (seatUseHistoryEntity != null) {
-            var seatEntity = seatUseHistoryEntity.getSeatEntity();
-            seatUseHistoryDto = new DiaryDomain.SeatUseHistoryDto(seatEntity != null ? seatEntity.getId() : null,
-                    seatUseHistoryEntity.getSeatName(), List.of());
+        var seatUseHistory = seatUseHistoryRepository.find(diaryId);
+        if (seatUseHistory.isPresent()) {
+            var value = seatUseHistory.orElseThrow();
+            seatUseHistoryDto = new DiaryDomain.SeatUseHistoryDto(value.seatId(), value.name(), List.of());
         }
 
         var partnerList = partnerDomainService.findPartnersByRefId(RefType.DIARY, diaryId)
@@ -218,15 +220,15 @@ public class DiaryQueryService {
             .map(dto -> new DiaryDomain.PartnerDto(dto.name(), dto.teamId()))
             .toList();
 
-        var matchEntity = diaryEntity.getGameMatchEntity();
-        var myTeam = diaryEntity.getTeamEntity().getId();
-        var isHome = matchEntity.getHomeTeamEntity().getId().equals(myTeam);
-        var awayScore = matchEntity.getAwayScore();
-        var homeScore = matchEntity.getHomeScore();
+        var matchEntity = matches.findById(diaryEntity.gameMatchId()).orElseThrow();
+        var myTeam = diaryEntity.teamId();
+        var isHome = matchEntity.homeTeamId().equals(myTeam);
+        var awayScore = matchEntity.awayScore();
+        var homeScore = matchEntity.homeScore();
 
         MatchEnum.ResultType myResult = null;
 
-        if (matchEntity.getStatus() == MatchEnum.MatchStatus.END && awayScore != null && homeScore != null) {
+        if (matchEntity.status() == MatchEnum.MatchStatus.END && awayScore != null && homeScore != null) {
             if (awayScore.equals(homeScore)) {
                 myResult = MatchEnum.ResultType.DRAW;
             }
@@ -236,10 +238,10 @@ public class DiaryQueryService {
             }
         }
 
-        return new DiaryDomain.DiaryDetailResponse(diaryEntity.getTeamEntity().getId(), diaryEntity.getViewType(),
-                diaryEntity.getGameMatchEntity().getId(), fileDto, diaryEntity.getWeatherType(),
-                diaryEntity.getMoodType(), foodList, seatUseHistoryDto, diaryEntity.getContent(), partnerList, myResult,
-                diaryEntity.getCreatedAt(), diaryEntity.getUpdatedAt(), diaryEntity.getGameMatchEntity().getLeague());
+        return new DiaryDomain.DiaryDetailResponse(diaryEntity.teamId(), diaryEntity.viewType(),
+                diaryEntity.gameMatchId(), fileDto, diaryEntity.weather(), diaryEntity.mood(), foodList,
+                seatUseHistoryDto, diaryEntity.content(), partnerList, myResult, diaryEntity.createdAt(),
+                diaryEntity.updatedAt(), matchEntity.league());
     }
 
 }

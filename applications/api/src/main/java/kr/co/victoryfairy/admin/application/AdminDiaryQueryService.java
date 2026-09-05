@@ -2,20 +2,17 @@ package kr.co.victoryfairy.admin.application;
 
 import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.admin.presentation.AdminDiaryDto;
-import kr.co.victoryfairy.diary.infrastructure.persistence.entity.DiaryFoodEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.entity.PartnerEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.model.DiaryModel;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryCustomRepository;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryFoodRepository;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.PartnerRepository;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.SeatUseHistoryRepository;
+import kr.co.victoryfairy.diary.domain.DiaryModel;
+import kr.co.victoryfairy.diary.domain.DiaryQueryStore;
+import kr.co.victoryfairy.diary.domain.SeatUseStore;
+import kr.co.victoryfairy.diary.application.DiaryFoodDomainService;
+import kr.co.victoryfairy.diary.application.PartnerDomainService;
 import kr.co.victoryfairy.configuration.MapStructConfig;
 import kr.co.victoryfairy.shared.domain.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import static java.util.stream.Collectors.*;
 
 @Service
 @RequiredArgsConstructor
@@ -23,38 +20,28 @@ public class AdminDiaryQueryService {
 
     private final Mapper mapper;
 
-    private final DiaryCustomRepository diaryCustomRepository;
+    private final DiaryQueryStore diaryCustomRepository;
 
-    private final DiaryFoodRepository diaryFoodRepository;
+    private final DiaryFoodDomainService diaryFoods;
 
-    private final PartnerRepository partnerRepository;
+    private final PartnerDomainService partners;
 
-    private final SeatUseHistoryRepository seatUseHistoryRepository;
+    private final SeatUseStore seatUses;
 
     public PageResult<AdminDiaryDto.DiaryListResponse> findAll(AdminDiaryDto.DiaryListRequest request) {
         var result = diaryCustomRepository.findAll(mapper.toRequest(request));
 
         var diaryIds = result.getContents().stream().map(DiaryModel.DiaryListResponse::getId).toList();
 
-        var diaryFoods = diaryFoodRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds)
-            .stream()
-            .collect(groupingBy(DiaryFoodEntity::getRefId, mapping(DiaryFoodEntity::getFoodName, toList())));
-
-        var partners = partnerRepository.findByRefTypeAndRefIdIn(RefType.DIARY, diaryIds)
-            .stream()
-            .collect(groupingBy(PartnerEntity::getRefId, mapping(PartnerEntity::getName, toList())));
-
-        var seatUseHistories = seatUseHistoryRepository.findAllByDiaryEntityIdIn(diaryIds)
-            .stream()
-            .filter(entity -> entity.getSeatEntity() != null)
-            .collect(groupingBy(entity -> entity.getDiaryEntity().getId(),
-                    mapping(entity -> entity.getSeatEntity().getName() + " " + entity.getSeatName(), toList())));
+        var diaryFoods = this.diaryFoods.findFoodMapByRefIds(RefType.DIARY, diaryIds);
+        var partnerNames = partners.findPartnerNameMapByRefIds(RefType.DIARY, diaryIds);
+        var seatUseHistories = seatUses.findDescriptions(diaryIds);
 
         result.getContents().forEach(diary -> {
             var diaryId = diary.getId();
 
             diary.setFoods(diaryFoods.getOrDefault(diaryId, List.of()));
-            diary.setPartners(partners.getOrDefault(diaryId, List.of()));
+            diary.setPartners(partnerNames.getOrDefault(diaryId, List.of()));
             diary.setSeatUseHistories(seatUseHistories.getOrDefault(diaryId, List.of()));
         });
 

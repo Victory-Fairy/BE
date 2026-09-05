@@ -3,10 +3,10 @@ package kr.co.victoryfairy.member.application;
 import kr.co.victoryfairy.diary.domain.DiaryEnum;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.member.presentation.MyPageDomain;
-import kr.co.victoryfairy.diary.infrastructure.persistence.entity.GameRecordEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.*;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.*;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.*;
+import kr.co.victoryfairy.diary.domain.GameRecord;
+import kr.co.victoryfairy.diary.domain.GameRecordStore;
+import kr.co.victoryfairy.member.domain.MemberStore;
+import kr.co.victoryfairy.member.domain.MemberQueryStore;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
@@ -27,11 +27,11 @@ import java.util.Map;
 @Transactional(readOnly = true)
 public class MyPageQueryService {
 
-    private final MemberRepository memberRepository;
+    private final MemberStore memberRepository;
 
-    private final MemberCustomRepository memberCustomRepository;
+    private final MemberQueryStore memberCustomRepository;
 
-    private final GameRecordRepository gameRecordRepository;
+    private final GameRecordStore gameRecordRepository;
 
     private final S3PresignedUrlService s3PresignedUrlService;
 
@@ -63,18 +63,18 @@ public class MyPageQueryService {
             return new MyPageDomain.VictoryPowerResponse(null, null);
         }
 
-        var memberEntity = memberRepository.findById(id)
+        var memberEntity = memberRepository.findMember(id)
             .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         var year = StringUtils.hasText(season) ? season : String.valueOf(LocalDate.now().getYear());
 
-        var recordList = gameRecordRepository.findByMemberAndSeason(memberEntity, year);
+        var recordList = gameRecordRepository.findByMemberAndSeason(memberEntity.id(), year);
 
         var stadiumRecord = recordList.stream()
-            .filter(record -> record.getViewType() == DiaryEnum.ViewType.STADIUM)
+            .filter(record -> record.viewType() == DiaryEnum.ViewType.STADIUM)
             .toList();
 
-        var homeRecord = recordList.stream().filter(record -> record.getViewType() == DiaryEnum.ViewType.HOME).toList();
+        var homeRecord = recordList.stream().filter(record -> record.viewType() == DiaryEnum.ViewType.HOME).toList();
 
         var power = this.getPower(stadiumRecord, homeRecord);
 
@@ -107,10 +107,10 @@ public class MyPageQueryService {
             season = String.valueOf(LocalDate.now().getYear());
         }
 
-        var recordList = gameRecordRepository.findByMemberIdAndSeasonOrderByGameMatchEntityMatchAtAsc(id, season);
+        var recordList = gameRecordRepository.findByMemberAndSeasonOrdered(id, season);
 
         if (recordList.isEmpty()) {
-            if (!memberRepository.existsById(id)) {
+            if (!memberRepository.memberExists(id)) {
                 throw new CustomException(MessageEnum.Data.FAIL_NO_RESULT);
             }
             return new MyPageDomain.ReportResponse(null, null, null);
@@ -133,9 +133,9 @@ public class MyPageQueryService {
         var loseMap = new HashMap<String, MyPageDomain.TeamResultDto>();
 
         for (var record : recordList) {
-            var opponent = record.getOpponentTeamName();
-            var matchAt = record.getGameMatchEntity().getMatchAt();
-            var result = record.getResultType();
+            var opponent = record.opponentTeamName();
+            var matchAt = record.matchAt();
+            var result = record.result();
 
             if (result == MatchEnum.ResultType.WIN) {
                 winMap.merge(opponent, new MyPageDomain.TeamResultDto(1, matchAt),
@@ -150,28 +150,28 @@ public class MyPageQueryService {
         }
 
         var stadiumRecord = recordList.stream()
-            .filter(record -> record.getViewType() == DiaryEnum.ViewType.STADIUM)
+            .filter(record -> record.viewType() == DiaryEnum.ViewType.STADIUM)
             .toList();
 
         MyPageDomain.ViewTypeDto stadiumViewDto = null;
         if (!stadiumRecord.isEmpty()) {
             var winCount = (short) stadiumRecord.stream()
-                .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END)
-                        && record.getResultType().equals(MatchEnum.ResultType.WIN))
+                .filter(record -> record.status().equals(MatchEnum.MatchStatus.END)
+                        && record.result().equals(MatchEnum.ResultType.WIN))
                 .count();
 
             var loseCount = (short) stadiumRecord.stream()
-                .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END)
-                        && record.getResultType().equals(MatchEnum.ResultType.LOSS))
+                .filter(record -> record.status().equals(MatchEnum.MatchStatus.END)
+                        && record.result().equals(MatchEnum.ResultType.LOSS))
                 .count();
 
             var drawCount = (short) stadiumRecord.stream()
-                .filter(record -> record.getStatus() != MatchEnum.MatchStatus.CANCELED
-                        && record.getResultType().equals(MatchEnum.ResultType.DRAW))
+                .filter(record -> record.status() != MatchEnum.MatchStatus.CANCELED
+                        && record.result().equals(MatchEnum.ResultType.DRAW))
                 .count();
 
             var cancelCount = (short) stadiumRecord.stream()
-                .filter(record -> record.getStatus() == MatchEnum.MatchStatus.CANCELED)
+                .filter(record -> record.status() == MatchEnum.MatchStatus.CANCELED)
                 .count();
 
             var validGameCount = winCount + loseCount;
@@ -185,22 +185,18 @@ public class MyPageQueryService {
 
             // 직관 데이터
             for (var record : stadiumRecord) {
-                var stadiumEntity = record.getStadiumEntity();
-                var result = record.getResultType();
-                var matchEntity = record.getGameMatchEntity();
+                var result = record.result();
 
                 // 최대 방문 구장 처리
-                stadiumVisitCount.merge(stadiumEntity.getFullName(),
-                        new MyPageDomain.VisitInfoDto(1, matchEntity.getMatchAt()), (oldVal, newVal) -> {
+                stadiumVisitCount.merge(record.stadiumName(),
+                        new MyPageDomain.VisitInfoDto(1, record.matchAt()), (oldVal, newVal) -> {
                             return new MyPageDomain.VisitInfoDto(oldVal.count() + 1,
-                                    matchEntity.getMatchAt().isAfter(oldVal.lastVisited()) ? matchEntity.getMatchAt()
+                                    record.matchAt().isAfter(oldVal.lastVisited()) ? record.matchAt()
                                             : oldVal.lastVisited());
                         });
 
-                var myTeam = record.getTeamEntity();
-
                 // 원정, 홈 여부
-                var isHome = matchEntity.getHomeTeamEntity().getId().equals(myTeam.getId());
+                var isHome = record.homeTeamId().equals(record.teamId());
 
                 if (isHome) {
                     homeGameCount++;
@@ -230,27 +226,27 @@ public class MyPageQueryService {
 
         MyPageDomain.ViewTypeDto homeViewDto = null;
         var homeRecord = recordList.stream()
-            .filter(record -> record.getViewType().equals(DiaryEnum.ViewType.HOME))
+            .filter(record -> record.viewType().equals(DiaryEnum.ViewType.HOME))
             .toList();
 
         if (!homeRecord.isEmpty()) {
             var winCount = (short) homeRecord.stream()
-                .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END)
-                        && record.getResultType().equals(MatchEnum.ResultType.WIN))
+                .filter(record -> record.status().equals(MatchEnum.MatchStatus.END)
+                        && record.result().equals(MatchEnum.ResultType.WIN))
                 .count();
 
             var loseCount = (short) homeRecord.stream()
-                .filter(record -> record.getStatus().equals(MatchEnum.MatchStatus.END)
-                        && record.getResultType().equals(MatchEnum.ResultType.LOSS))
+                .filter(record -> record.status().equals(MatchEnum.MatchStatus.END)
+                        && record.result().equals(MatchEnum.ResultType.LOSS))
                 .count();
 
             var drawCount = (short) homeRecord.stream()
-                .filter(record -> record.getStatus() != MatchEnum.MatchStatus.CANCELED
-                        && record.getResultType() == MatchEnum.ResultType.DRAW)
+                .filter(record -> record.status() != MatchEnum.MatchStatus.CANCELED
+                        && record.result() == MatchEnum.ResultType.DRAW)
                 .count();
 
             var cancelCount = (short) homeRecord.stream()
-                .filter(record -> record.getStatus() == MatchEnum.MatchStatus.CANCELED)
+                .filter(record -> record.status() == MatchEnum.MatchStatus.CANCELED)
                 .count();
 
             var validGameCount = winCount + loseCount;
@@ -300,18 +296,18 @@ public class MyPageQueryService {
         return new MyPageDomain.ReportResponse(stadiumViewDto, homeViewDto, visitStatisticsDto);
     }
 
-    private Short getPower(List<GameRecordEntity> stadiumRecord, List<GameRecordEntity> homeRecord) {
+    private Short getPower(List<GameRecord> stadiumRecord, List<GameRecord> homeRecord) {
         Short stadiumWinAvg = null;
         Short homeWinAvg = null;
 
         // 직관 기록이 있는 경우만 계산
         if (!stadiumRecord.isEmpty()) {
             var winCount = (short) stadiumRecord.stream()
-                .filter(record -> record.getResultType() == MatchEnum.ResultType.WIN)
+                .filter(record -> record.result() == MatchEnum.ResultType.WIN)
                 .count();
 
             var loseCount = (short) stadiumRecord.stream()
-                .filter(record -> record.getResultType() == MatchEnum.ResultType.LOSS)
+                .filter(record -> record.result() == MatchEnum.ResultType.LOSS)
                 .count();
 
             var validGameCount = winCount + loseCount;
@@ -325,11 +321,11 @@ public class MyPageQueryService {
         // 집관 기록이 있는 경우만 계산
         if (!homeRecord.isEmpty()) {
             var winCount = (short) homeRecord.stream()
-                .filter(record -> record.getResultType() == MatchEnum.ResultType.WIN)
+                .filter(record -> record.result() == MatchEnum.ResultType.WIN)
                 .count();
 
             var loseCount = (short) homeRecord.stream()
-                .filter(record -> record.getResultType() == MatchEnum.ResultType.LOSS)
+                .filter(record -> record.result() == MatchEnum.ResultType.LOSS)
                 .count();
 
             var validGameCount = winCount + loseCount;
