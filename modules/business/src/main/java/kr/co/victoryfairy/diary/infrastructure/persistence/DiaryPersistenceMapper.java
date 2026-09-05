@@ -9,7 +9,7 @@ final class DiaryPersistenceMapper {
     private DiaryPersistenceMapper() {}
 
     static Diary toDomain(DiaryEntity entity) {
-        return new Diary(entity.getId(), entity.getMember().getId(), entity.getGameMatchEntity().getId(),
+        return new Diary(entity.getId(), entity.getMemberId(), entity.getGameMatchEntity().getId(),
                 entity.getTeamEntity().getId(), entity.getTeamName(), entity.getViewType(), entity.getWeatherType(),
                 entity.getMoodType(), entity.getContent(), entity.getIsRated(), entity.getCreatedAt(),
                 entity.getUpdatedAt());
@@ -17,7 +17,7 @@ final class DiaryPersistenceMapper {
 
     static GameRecord toDomain(GameRecordEntity entity) {
         var match = entity.getGameMatchEntity();
-        return new GameRecord(entity.getId(), entity.getMember().getId(), entity.getDiaryEntity().getId(),
+        return new GameRecord(entity.getId(), entity.getMemberId(), entity.getDiaryEntity().getId(),
                 match.getId(), entity.getTeamEntity().getId(), entity.getTeamName(),
                 entity.getOpponentTeamEntity().getId(), entity.getOpponentTeamName(), entity.getStadiumEntity().getId(),
                 entity.getStadiumEntity().getFullName(), entity.getViewType(), entity.getStatus(),

@@ -1,7 +1,6 @@
 package kr.co.victoryfairy.diary.infrastructure.persistence.entity;
 
 import kr.co.victoryfairy.game.infrastructure.persistence.entity.*;
-import kr.co.victoryfairy.member.infrastructure.persistence.entity.*;
 import kr.co.victoryfairy.shared.infrastructure.persistence.entity.BaseEntity;
 
 import jakarta.persistence.*;

@@ -1,7 +1,6 @@
 package kr.co.victoryfairy.diary.infrastructure.persistence.entity;
 
 import kr.co.victoryfairy.game.infrastructure.persistence.entity.*;
-import kr.co.victoryfairy.member.infrastructure.persistence.entity.*;
 import kr.co.victoryfairy.shared.infrastructure.persistence.entity.BaseEntity;
 
 import kr.co.victoryfairy.diary.domain.DiaryEnum;
@@ -25,9 +24,8 @@ public class GameRecordEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id")
-    private MemberEntity member; // 회원 식별자
+    @Column(name = "member_id")
+    private Long memberId; // 회원 식별자
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "diary_id", unique = true)
@@ -88,9 +86,9 @@ public class GameRecordEntity extends BaseEntity {
         this.resultType = resultType;
     }
 
-    public void apply(GameRecord record, MemberEntity member, DiaryEntity diary, GameMatchEntity match,
+    public void apply(GameRecord record, DiaryEntity diary, GameMatchEntity match,
             TeamEntity team, TeamEntity opponent, StadiumEntity stadium) {
-        this.member = member;
+        this.memberId = record.memberId();
         this.diaryEntity = diary;
         this.gameMatchEntity = match;
         this.teamEntity = team;

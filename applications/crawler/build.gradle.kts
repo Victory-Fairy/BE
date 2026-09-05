@@ -13,6 +13,9 @@ dependencies {
     implementation(project(":infrastructure:redis"))
 
     testImplementation(project(":tests:api-docs"))
+    testImplementation(platform("org.testcontainers:testcontainers-bom:2.0.5"))
+    testImplementation("org.testcontainers:testcontainers-mysql")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("io.sentry:sentry-logback:${providers.gradleProperty("sentryVersion").get()}")

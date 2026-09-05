@@ -8,7 +8,6 @@ import kr.co.victoryfairy.diary.infrastructure.persistence.entity.DiaryEntity;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchRepository;
 import kr.co.victoryfairy.game.infrastructure.persistence.repository.TeamRepository;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -16,14 +15,12 @@ public class DiaryPersistenceAdapter implements DiaryStore {
     private static final List<MatchEnum.MatchStatus> TERMINAL =
             List.of(MatchEnum.MatchStatus.END, MatchEnum.MatchStatus.CANCELED);
     private final kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository diaries;
-    private final MemberRepository members;
     private final GameMatchRepository matches;
     private final TeamRepository teams;
 
     public DiaryPersistenceAdapter(kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository diaries,
-            MemberRepository members, GameMatchRepository matches, TeamRepository teams) {
+            GameMatchRepository matches, TeamRepository teams) {
         this.diaries = diaries;
-        this.members = members;
         this.matches = matches;
         this.teams = teams;
     }
@@ -52,7 +49,7 @@ public class DiaryPersistenceAdapter implements DiaryStore {
         DiaryEntity entity = value.id() == null ? DiaryEntity.builder().build()
                 : diaries.findById(value.id()).orElseThrow();
         if (value.id() != null && !java.util.Objects.equals(value.updatedAt(), entity.getUpdatedAt())) entity.update();
-        entity.apply(value, members.getReferenceById(value.memberId()), matches.getReferenceById(value.gameMatchId()),
+        entity.apply(value, matches.getReferenceById(value.gameMatchId()),
                 teams.getReferenceById(value.teamId()));
         return DiaryPersistenceMapper.toDomain(diaries.save(entity));
     }

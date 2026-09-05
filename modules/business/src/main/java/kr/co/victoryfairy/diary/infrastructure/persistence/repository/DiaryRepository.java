@@ -2,7 +2,6 @@ package kr.co.victoryfairy.diary.infrastructure.persistence.repository;
 
 import kr.co.victoryfairy.diary.infrastructure.persistence.entity.DiaryEntity;
 import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
-import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Repository;
@@ -15,8 +14,6 @@ import kr.co.victoryfairy.game.domain.MatchEnum;
 
 @Repository
 public interface DiaryRepository extends JpaRepository<DiaryEntity, Long> {
-
-    DiaryEntity findByMemberAndGameMatchEntity(MemberEntity memberEntity, GameMatchEntity gameMatchEntity);
 
     List<DiaryEntity> findByGameMatchEntityAndIsRatedFalse(GameMatchEntity gameMatchEntity);
 

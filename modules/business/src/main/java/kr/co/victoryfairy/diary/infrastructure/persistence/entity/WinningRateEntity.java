@@ -1,7 +1,6 @@
 package kr.co.victoryfairy.diary.infrastructure.persistence.entity;
 
 import kr.co.victoryfairy.game.infrastructure.persistence.entity.*;
-import kr.co.victoryfairy.member.infrastructure.persistence.entity.*;
 import kr.co.victoryfairy.shared.infrastructure.persistence.entity.BaseEntity;
 
 import jakarta.persistence.*;
@@ -20,9 +19,8 @@ public class WinningRateEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "member_id")
-    private MemberEntity member; // 회원 식별자
+    @Column(name = "member_id")
+    private Long memberId; // 회원 식별자
 
     @Comment("시즌")
     private String season;
@@ -57,8 +55,8 @@ public class WinningRateEntity extends BaseEntity {
     public WinningRateEntity() {
     }
 
-    public WinningRateEntity(MemberEntity member, String season) {
-        this.member = member;
+    public WinningRateEntity(Long memberId, String season) {
+        this.memberId = memberId;
         this.season = season;
     }
 
