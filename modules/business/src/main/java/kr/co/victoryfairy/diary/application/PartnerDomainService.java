@@ -1,7 +1,6 @@
 package kr.co.victoryfairy.diary.application;
 
 import kr.co.victoryfairy.shared.domain.RefType;
-import kr.co.victoryfairy.shared.application.model.CommonDto;
 import kr.co.victoryfairy.diary.domain.PartnerStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ public class PartnerDomainService {
      * @param partnerList 동행자 정보 목록
      */
     @Transactional
-    public void savePartners(RefType refType, Long refId, List<CommonDto.PartnerSaveRequest> partnerList) {
+    public void savePartners(RefType refType, Long refId, List<PartnerDto.PartnerSaveRequest> partnerList) {
         if (partnerList == null || partnerList.isEmpty()) {
             return;
         }
@@ -44,7 +43,7 @@ public class PartnerDomainService {
      * @param partnerList 새로운 동행자 정보 목록
      */
     @Transactional
-    public void replacePartners(RefType refType, Long refId, List<CommonDto.PartnerSaveRequest> partnerList) {
+    public void replacePartners(RefType refType, Long refId, List<PartnerDto.PartnerSaveRequest> partnerList) {
         deletePartners(refType, refId);
         savePartners(refType, refId, partnerList);
     }
@@ -65,9 +64,9 @@ public class PartnerDomainService {
      * @param refId 참조 ID
      * @return 동행자 응답 목록
      */
-    public List<CommonDto.PartnerResponse> findPartnersByRefId(RefType refType, Long refId) {
+    public List<PartnerDto.PartnerResponse> findPartnersByRefId(RefType refType, Long refId) {
         return partnerStore.find(refType, refId).stream()
-            .map(value -> new CommonDto.PartnerResponse(value.name(), value.teamId())).toList();
+            .map(value -> new PartnerDto.PartnerResponse(value.name(), value.teamId())).toList();
     }
 
     /**

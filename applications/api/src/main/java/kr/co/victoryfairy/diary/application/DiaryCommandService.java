@@ -13,7 +13,7 @@ import kr.co.victoryfairy.member.domain.MemberStore;
 import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import kr.co.victoryfairy.redis.lock.DistributedLock;
 import kr.co.victoryfairy.redis.lock.LockName;
-import kr.co.victoryfairy.shared.application.model.CommonDto;
+import kr.co.victoryfairy.diary.application.PartnerDto;
 import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.web.response.MessageEnum;
@@ -89,8 +89,8 @@ public class DiaryCommandService {
         return id;
     }
 
-    private static List<CommonDto.PartnerSaveRequest> toPartners(List<DiaryDomain.PartnerDto> values) {
-        return values == null ? List.of() : values.stream().map(value -> new CommonDto.PartnerSaveRequest(value.name(), value.teamId())).toList();
+    private static List<PartnerDto.PartnerSaveRequest> toPartners(List<DiaryDomain.PartnerDto> values) {
+        return values == null ? List.of() : values.stream().map(value -> new PartnerDto.PartnerSaveRequest(value.name(), value.teamId())).toList();
     }
 
     private static CustomException notFound() { return new CustomException(MessageEnum.Data.FAIL_NO_RESULT); }

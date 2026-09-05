@@ -1,8 +1,9 @@
 package kr.co.victoryfairy.common.presentation;
 
 import kr.co.victoryfairy.game.domain.MatchEnum;
-import kr.co.victoryfairy.common.presentation.CommonDomain;
-import kr.co.victoryfairy.common.application.CommonQueryService;
+import kr.co.victoryfairy.game.presentation.CommonDomain;
+import kr.co.victoryfairy.game.application.CommonQueryService;
+import kr.co.victoryfairy.game.presentation.GameCommonController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,11 +39,11 @@ class CommonControllerE2ETest {
     private CommonQueryService commonService;
 
     @InjectMocks
-    private CommonController commonController;
+    private GameCommonController commonController;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(commonController)
+        mockMvc = MockMvcBuilders.standaloneSetup(commonController, new CommonController())
             .setMessageConverters(new JacksonJsonHttpMessageConverter())
             .setControllerAdvice(new kr.co.victoryfairy.web.error.ExceptionAdvice())
             .build();

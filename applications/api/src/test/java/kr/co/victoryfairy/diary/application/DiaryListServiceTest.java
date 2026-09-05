@@ -2,7 +2,7 @@ package kr.co.victoryfairy.diary.application;
 
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.shared.domain.RefType;
-import kr.co.victoryfairy.shared.application.model.CommonDto;
+import kr.co.victoryfairy.media.application.ImageDto;
 import kr.co.victoryfairy.diary.application.DiaryFoodDomainService;
 import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.diary.application.PartnerDomainService;
@@ -153,8 +153,8 @@ class DiaryListServiceTest {
                 MatchEnum.MatchStatus.END, 1L, "원정", (short) 1, 13L, "한화", (short) 2, createdAt);
     }
 
-    private CommonDto.ImageDto image(Long id, String name) {
-        return new CommonDto.ImageDto(id, "image/diary/202608", name, "jpg", "https://example.test/" + name);
+    private ImageDto image(Long id, String name) {
+        return new ImageDto(id, "image/diary/202608", name, "jpg", "https://example.test/" + name);
     }
 
 }

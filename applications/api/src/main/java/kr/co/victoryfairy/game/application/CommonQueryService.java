@@ -1,6 +1,6 @@
-package kr.co.victoryfairy.common.application;
+package kr.co.victoryfairy.game.application;
 
-import kr.co.victoryfairy.common.presentation.CommonDomain;
+import kr.co.victoryfairy.game.presentation.CommonDomain;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.game.domain.Seat;
 import kr.co.victoryfairy.game.domain.SeatReader;

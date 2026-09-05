@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import kr.co.victoryfairy.shared.domain.RefType;
-import kr.co.victoryfairy.shared.application.model.CommonDto;
+import kr.co.victoryfairy.media.application.ImageDto;
 import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
 import kr.co.victoryfairy.media.domain.MediaFile;
@@ -26,7 +26,7 @@ class CommunityReferenceAdapterTest {
         var info = new MemberProfile(8L, 7L, null, null, null, "작성자", null, null, null);
         when(members.findProfiles(List.of(7L))).thenReturn(List.of(info));
         when(fileReferences.findImageMapByRefIds(RefType.PROFILE, List.of(7L)))
-            .thenReturn(Map.of(7L, new CommonDto.ImageDto(1L, "profile", "saved", "png", "profile-url")));
+            .thenReturn(Map.of(7L, new ImageDto(1L, "profile", "saved", "png", "profile-url")));
         var adapter = new CommunityMemberAdapter(members, fileReferences);
 
         var authors = adapter.findAuthors(List.of(7L));

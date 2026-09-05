@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.common.presentation;
+package kr.co.victoryfairy.game.presentation;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.victoryfairy.game.domain.MatchEnum;

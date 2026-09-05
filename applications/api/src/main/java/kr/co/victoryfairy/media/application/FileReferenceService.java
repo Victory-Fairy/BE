@@ -1,7 +1,6 @@
 package kr.co.victoryfairy.media.application;
 
 import kr.co.victoryfairy.shared.domain.RefType;
-import kr.co.victoryfairy.shared.application.model.CommonDto;
 import kr.co.victoryfairy.media.domain.FileReference;
 import kr.co.victoryfairy.media.domain.FileReferenceRepository;
 import kr.co.victoryfairy.media.domain.MediaFileRepository;
@@ -75,10 +74,10 @@ public class FileReferenceService {
      * @param refId 참조 ID
      * @return 이미지 DTO 목록
      */
-    public List<CommonDto.ImageDto> findImagesByRefId(RefType refType, Long refId) {
+    public List<ImageDto> findImagesByRefId(RefType refType, Long refId) {
         return fileRefRepository.findActive(refType, refId).stream().map(ref -> {
             var file = ref.file();
-            return new CommonDto.ImageDto(file.id(), file.path(), file.saveName(), file.ext(),
+            return new ImageDto(file.id(), file.path(), file.saveName(), file.ext(),
                     s3PresignedUrlService.create(file.path(), file.saveName(), file.ext()));
         }).toList();
     }
@@ -89,7 +88,7 @@ public class FileReferenceService {
      * @param refIds 참조 ID 목록
      * @return refId -> ImageDto 맵 (첫 번째 파일만)
      */
-    public Map<Long, CommonDto.ImageDto> findImageMapByRefIds(RefType refType, List<Long> refIds) {
+    public Map<Long, ImageDto> findImageMapByRefIds(RefType refType, List<Long> refIds) {
         if (refIds == null || refIds.isEmpty()) {
             return Map.of();
         }
@@ -98,7 +97,7 @@ public class FileReferenceService {
             .stream()
             .collect(Collectors.toMap(FileReference::refId, ref -> {
                 var file = ref.file();
-                return new CommonDto.ImageDto(file.id(), file.path(), file.saveName(), file.ext(),
+                return new ImageDto(file.id(), file.path(), file.saveName(), file.ext(),
                         s3PresignedUrlService.create(file.path(), file.saveName(), file.ext()));
             }, (existing, replacement) -> existing));
     }

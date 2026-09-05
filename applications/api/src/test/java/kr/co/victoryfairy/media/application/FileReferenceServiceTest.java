@@ -29,7 +29,7 @@ class FileReferenceServiceTest {
 
         var images = new FileReferenceService(files, references, urls).findImagesByRefId(RefType.DIARY, 3L);
 
-        assertThat(images).containsExactly(new kr.co.victoryfairy.shared.application.model.CommonDto.ImageDto(7L,
+        assertThat(images).containsExactly(new ImageDto(7L,
                 "image/diary/202608", "sample", "jpg", "https://signed.example/image.jpg"));
     }
 
