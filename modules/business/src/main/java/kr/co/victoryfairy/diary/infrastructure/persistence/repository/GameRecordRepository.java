@@ -7,13 +7,22 @@ import kr.co.victoryfairy.diary.infrastructure.persistence.entity.GameRecordEnti
 import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface GameRecordRepository extends JpaRepository<GameRecordEntity, Long> {
 
-    List<GameRecordEntity> findByMemberAndSeason(MemberEntity member, String season);
+    interface PowerView {
+        DiaryEnum.ViewType getViewType();
+        MatchEnum.ResultType getResultType();
+    }
+
+    @Query("select g.viewType as viewType, g.resultType as resultType from game_record g "
+            + "where g.member.id = :memberId and g.season = :season")
+    List<PowerView> findPowerByMemberIdAndSeason(@Param("memberId") Long memberId, @Param("season") String season);
 
     @EntityGraph(attributePaths = { "gameMatchEntity", "gameMatchEntity.homeTeamEntity", "stadiumEntity",
             "teamEntity" })

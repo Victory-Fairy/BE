@@ -36,10 +36,6 @@ public class GameRecordPersistenceAdapter implements GameRecordStore {
         return records.findByDiaryEntityId(diaryId).map(DiaryPersistenceMapper::toDomain);
     }
 
-    public List<GameRecord> findByMemberAndSeason(Long memberId, String season) {
-        return records.findByMemberAndSeason(members.getReferenceById(memberId), season).stream().map(DiaryPersistenceMapper::toDomain).toList();
-    }
-
     public List<GameRecord> findByMemberAndSeasonOrdered(Long memberId, String season) {
         return records.findByMemberIdAndSeasonOrderByGameMatchEntityMatchAtAsc(memberId, season).stream().map(DiaryPersistenceMapper::toDomain).toList();
     }

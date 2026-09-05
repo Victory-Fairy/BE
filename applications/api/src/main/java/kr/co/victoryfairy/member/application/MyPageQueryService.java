@@ -3,10 +3,10 @@ package kr.co.victoryfairy.member.application;
 import kr.co.victoryfairy.diary.domain.DiaryEnum;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.member.presentation.MyPageDomain;
-import kr.co.victoryfairy.diary.domain.GameRecord;
 import kr.co.victoryfairy.diary.domain.GameRecordStore;
 import kr.co.victoryfairy.member.domain.MemberStore;
 import kr.co.victoryfairy.member.domain.MemberQueryStore;
+import kr.co.victoryfairy.member.domain.MemberGameReader;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
@@ -32,6 +32,8 @@ public class MyPageQueryService {
     private final MemberQueryStore memberCustomRepository;
 
     private final GameRecordStore gameRecordRepository;
+
+    private final MemberGameReader memberGames;
 
     private final S3PresignedUrlService s3PresignedUrlService;
 
@@ -68,7 +70,7 @@ public class MyPageQueryService {
 
         var year = StringUtils.hasText(season) ? season : String.valueOf(LocalDate.now().getYear());
 
-        var recordList = gameRecordRepository.findByMemberAndSeason(memberEntity.id(), year);
+        var recordList = memberGames.findByMemberAndSeason(memberEntity.id(), year);
 
         var stadiumRecord = recordList.stream()
             .filter(record -> record.viewType() == DiaryEnum.ViewType.STADIUM)
@@ -296,7 +298,7 @@ public class MyPageQueryService {
         return new MyPageDomain.ReportResponse(stadiumViewDto, homeViewDto, visitStatisticsDto);
     }
 
-    private Short getPower(List<GameRecord> stadiumRecord, List<GameRecord> homeRecord) {
+    private Short getPower(List<MemberGameReader.Record> stadiumRecord, List<MemberGameReader.Record> homeRecord) {
         Short stadiumWinAvg = null;
         Short homeWinAvg = null;
 

@@ -5,7 +5,6 @@ import java.util.Optional;
 
 public interface GameRecordStore {
     Optional<GameRecord> findByDiaryId(Long diaryId);
-    List<GameRecord> findByMemberAndSeason(Long memberId, String season);
     List<GameRecord> findByMemberAndSeasonOrdered(Long memberId, String season);
     GameRecord save(GameRecord record);
     void delete(Long id);

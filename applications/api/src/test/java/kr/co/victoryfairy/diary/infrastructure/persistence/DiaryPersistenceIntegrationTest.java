@@ -3,6 +3,7 @@ package kr.co.victoryfairy.diary.infrastructure.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import java.time.LocalDateTime;
 import kr.co.victoryfairy.diary.application.GameRecordDomainService;
 import kr.co.victoryfairy.diary.domain.Diary;
@@ -15,6 +16,7 @@ import kr.co.victoryfairy.game.infrastructure.persistence.entity.StadiumEntity;
 import kr.co.victoryfairy.game.infrastructure.persistence.entity.TeamEntity;
 import kr.co.victoryfairy.member.domain.Member;
 import kr.co.victoryfairy.member.domain.MemberStore;
+import kr.co.victoryfairy.member.domain.MemberGameReader;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +24,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.hibernate.SessionFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -32,6 +35,7 @@ import org.testcontainers.utility.DockerImageName;
 @DirtiesContext
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = { "spring.profiles.active=test", "spring.jpa.hibernate.ddl-auto=validate",
+            "spring.jpa.properties.hibernate.generate_statistics=true",
             "spring.data.redis.repositories.enabled=false",
             "jwt.secret-key=test-only-secret-key-test-only-secret-key-test-only-secret-key-1234",
             "jwt.access-token-expire-minutes=30", "jwt.refresh-token-expire-days=7",
@@ -64,6 +68,41 @@ class DiaryPersistenceIntegrationTest {
     @Autowired MemberStore members;
     @Autowired EntityManager entityManager;
     @Autowired TransactionTemplate transactions;
+    @Autowired EntityManagerFactory entityManagerFactory;
+    @Autowired MemberGameReader memberGames;
+
+    @Test
+    void victory_power_reads_multiple_records_in_one_query() {
+        Long memberId = transactions.execute(status -> {
+            var member = members.saveMember(Member.normal("127.0.0.2", LocalDateTime.of(2026, 9, 5, 1, 0)));
+            var away = new TeamEntity(null, "두산", "두산");
+            var home = new TeamEntity(null, "롯데", "롯데");
+            entityManager.persist(away); entityManager.persist(home);
+            for (int i = 1; i <= 3; i++) {
+                var stadium = StadiumEntity.builder().fullName("구장" + i).build();
+                entityManager.persist(stadium);
+                String matchId = "2026090" + i + "DBLT0";
+                entityManager.persist(GameMatchEntity.builder().id(matchId).season("2026")
+                    .league(MatchEnum.LeagueType.KBO).matchAt(LocalDateTime.of(2026, 9, i, 18, 30))
+                    .awayTeamEntity(away).homeTeamEntity(home).stadiumEntity(stadium).awayScore((short) 3)
+                    .homeScore((short) 1).status(MatchEnum.MatchStatus.END).build());
+                entityManager.flush();
+                var diary = diaries.save(new Diary(null, member.id(), matchId, away.getId(), away.getName(),
+                        DiaryEnum.ViewType.STADIUM, null, null, null, false, null, null));
+                gameRecords.record(diary);
+            }
+            entityManager.flush();
+            entityManager.clear();
+            return member.id();
+        });
+        var statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.clear();
+
+        var powerRecords = transactions.execute(status -> memberGames.findByMemberAndSeason(memberId, "2026"));
+
+        assertThat(powerRecords).hasSize(3);
+        assertThat(statistics.getPrepareStatementCount()).isOne();
+    }
 
     @Test
     void generated_id_roundtrips_nullable_and_audit_fields_and_record_recovery_is_idempotent() {
