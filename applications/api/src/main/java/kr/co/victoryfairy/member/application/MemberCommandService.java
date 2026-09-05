@@ -2,9 +2,9 @@ package kr.co.victoryfairy.member.application;
 
 import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.member.presentation.MemberDomain;
-import kr.co.victoryfairy.media.infrastructure.persistence.entity.FileRefEntity;
-import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRefRepository;
-import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRepository;
+import kr.co.victoryfairy.media.domain.FileReference;
+import kr.co.victoryfairy.media.domain.FileReferenceRepository;
+import kr.co.victoryfairy.media.domain.MediaFileRepository;
 import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
 import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
 import kr.co.victoryfairy.game.infrastructure.persistence.repository.TeamRepository;
@@ -25,9 +25,9 @@ public class MemberCommandService {
 
     private final TeamRepository teamRepository;
 
-    private final FileRepository fileRepository;
+    private final MediaFileRepository fileRepository;
 
-    private final FileRefRepository fileRefRepository;
+    private final FileReferenceRepository fileRefRepository;
 
     @Transactional
     public void updateTeam(MemberDomain.MemberTeamUpdateRequest request) {
@@ -45,19 +45,12 @@ public class MemberCommandService {
     @Transactional
     public void updateMemberProfile(MemberDomain.MemberProfileUpdateRequest request) {
         var id = authenticatedMemberId();
-        var fileRefEntity = fileRefRepository.findByRefTypeAndRefIdAndIsUseTrue(RefType.PROFILE, id).orElse(null);
-        if (fileRefEntity != null) {
-            fileRefEntity.delete();
-        }
+        fileRefRepository.deactivateFirstActive(RefType.PROFILE, id);
 
         if (request.fileId() != null) {
-            var fileEntity = fileRepository.findById(request.fileId())
+            var file = fileRepository.findById(request.fileId())
                 .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-            fileRefRepository.save(FileRefEntity.builder()
-                .fileEntity(fileEntity)
-                .refId(id)
-                .refType(RefType.PROFILE)
-                .build());
+            fileRefRepository.save(FileReference.active(file, id, RefType.PROFILE));
         }
     }
 

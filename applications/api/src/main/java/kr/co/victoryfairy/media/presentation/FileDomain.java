@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.media.domain;
+package kr.co.victoryfairy.media.presentation;
 
 import kr.co.victoryfairy.shared.domain.RefType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,9 +21,6 @@ public interface FileDomain {
 
             @NotNull @Schema(description = "참조 타입", example = "PROFILE",
                     implementation = RefType.class) RefType fileRefType) {
-    }
-
-    record File(RefType refType, String name, String saveName, String path, String ext, Long size) {
     }
 
 }

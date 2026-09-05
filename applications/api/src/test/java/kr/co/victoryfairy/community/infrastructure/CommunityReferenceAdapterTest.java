@@ -11,10 +11,10 @@ import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.shared.application.model.CommonDto;
 import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
-import kr.co.victoryfairy.media.infrastructure.persistence.entity.FileEntity;
+import kr.co.victoryfairy.media.domain.MediaFile;
 import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberEntity;
 import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberInfoEntity;
-import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRepository;
+import kr.co.victoryfairy.media.domain.MediaFileRepository;
 import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
 import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
 import org.junit.jupiter.api.Test;
@@ -41,10 +41,10 @@ class CommunityReferenceAdapterTest {
 
     @Test
     void readsExistingFileIdsAndUrlsInOneBoundary() {
-        var fileRepository = mock(FileRepository.class);
+        var fileRepository = mock(MediaFileRepository.class);
         var presignedUrls = mock(S3PresignedUrlService.class);
-        var first = FileEntity.builder().id(20L).path("community").saveName("a").ext("png").build();
-        var second = FileEntity.builder().id(10L).path("community").saveName("b").ext("jpg").build();
+        var first = new MediaFile(20L, null, "a", "community", "png", null, true, null, null);
+        var second = new MediaFile(10L, null, "b", "community", "jpg", null, true, null, null);
         when(fileRepository.findAllById(List.of(20L, 10L))).thenReturn(List.of(first, second));
         when(presignedUrls.create("community", "a", "png")).thenReturn("url-20");
         when(presignedUrls.create("community", "b", "jpg")).thenReturn("url-10");
