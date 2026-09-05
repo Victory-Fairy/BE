@@ -73,6 +73,24 @@ class ArchitectureBoundaryTest {
                 .allSatisfy(path -> assertThat(root.resolve(path)).doesNotExist());
     }
 
+    @Test
+    void featureOwnedSourcesLiveWithTheirOwners() {
+        Path root = repositoryRoot();
+        assertThat(List.of(
+                "modules/business/src/main/java/kr/co/victoryfairy/diary/domain/DiaryModel.java",
+                "modules/business/src/main/java/kr/co/victoryfairy/diary/domain/ViewingRecordReader.java",
+                "applications/api/src/main/java/kr/co/victoryfairy/diary/application/admin/AdminDiaryQueryStore.java",
+                "applications/api/src/main/java/kr/co/victoryfairy/member/application/admin/AdminMemberQueryService.java",
+                "applications/api/src/main/java/kr/co/victoryfairy/game/application/CommonQueryService.java"))
+                .allSatisfy(path -> assertThat(root.resolve(path)).exists());
+        assertThat(List.of(
+                "applications/api/src/main/java/kr/co/victoryfairy/member/domain/MemberGameReader.java",
+                "applications/api/src/main/java/kr/co/victoryfairy/admin/application/AdminDiaryQueryService.java",
+                "applications/api/src/main/java/kr/co/victoryfairy/common/application/CommonQueryService.java",
+                "modules/business/src/main/java/kr/co/victoryfairy/shared/application/model/CommonDto.java"))
+                .allSatisfy(path -> assertThat(root.resolve(path)).doesNotExist());
+    }
+
     private static Path repositoryRoot() {
         Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (current != null && !Files.exists(current.resolve("settings.gradle.kts"))) {
