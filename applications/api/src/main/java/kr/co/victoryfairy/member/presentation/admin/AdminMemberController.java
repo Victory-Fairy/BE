@@ -1,9 +1,9 @@
-package kr.co.victoryfairy.admin.presentation;
+package kr.co.victoryfairy.member.presentation.admin;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.co.victoryfairy.admin.application.AdminDiaryQueryService;
+import kr.co.victoryfairy.member.application.admin.AdminMemberQueryService;
 import kr.co.victoryfairy.web.response.CustomResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -13,20 +13,20 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Tag(name = "Diary", description = "일기")
+@Tag(name = "Member", description = "회원")
 @RestController
-@RequestMapping("/admin/diary")
+@RequestMapping("/admin/member")
 @RequiredArgsConstructor
-public class AdminDiaryController {
+public class AdminMemberController {
 
-    private final AdminDiaryQueryService adminDiaryQueryService;
+    private final AdminMemberQueryService adminMemberQueryService;
 
     @SecurityRequirement(name = "accessToken")
-    @Operation(summary = "일기 목록 불러오기")
+    @Operation(summary = "회원 목록 불러오기")
     @GetMapping("/list")
-    public CustomResponse<List<AdminDiaryDto.DiaryListResponse>> findAll(
-            @Validated AdminDiaryDto.DiaryListRequest request) {
-        var result = adminDiaryQueryService.findAll(request);
+    public CustomResponse<List<AdminMemberDto.MemberListResponse>> findList(
+            @Validated AdminMemberDto.MemberListRequest request) {
+        var result = adminMemberQueryService.findList(request);
         return CustomResponse.ok(result.getContents(), result.getTotal());
     }
 

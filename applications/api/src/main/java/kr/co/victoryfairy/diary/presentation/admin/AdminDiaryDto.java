@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.admin.presentation;
+package kr.co.victoryfairy.diary.presentation.admin;
 
 import kr.co.victoryfairy.diary.domain.DiaryEnum;
 import kr.co.victoryfairy.game.domain.MatchEnum;

@@ -1,9 +1,8 @@
-package kr.co.victoryfairy.admin.application;
+package kr.co.victoryfairy.diary.application.admin;
 
 import kr.co.victoryfairy.shared.domain.RefType;
-import kr.co.victoryfairy.admin.presentation.AdminDiaryDto;
+import kr.co.victoryfairy.diary.presentation.admin.AdminDiaryDto;
 import kr.co.victoryfairy.diary.domain.DiaryModel;
-import kr.co.victoryfairy.admin.infrastructure.persistence.AdminDiaryQueryStore;
 import kr.co.victoryfairy.diary.domain.SeatUseStore;
 import kr.co.victoryfairy.diary.application.DiaryFoodDomainService;
 import kr.co.victoryfairy.diary.application.PartnerDomainService;

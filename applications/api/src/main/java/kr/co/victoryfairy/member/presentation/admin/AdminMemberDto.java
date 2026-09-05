@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.admin.presentation;
+package kr.co.victoryfairy.member.presentation.admin;
 
 import kr.co.victoryfairy.member.domain.MemberEnum;
 import io.swagger.v3.oas.annotations.media.Schema;

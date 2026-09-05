@@ -1,6 +1,6 @@
-package kr.co.victoryfairy.admin.application;
+package kr.co.victoryfairy.member.application.admin;
 
-import kr.co.victoryfairy.admin.presentation.AdminMemberDto;
+import kr.co.victoryfairy.member.presentation.admin.AdminMemberDto;
 import kr.co.victoryfairy.member.domain.MemberModel;
 import kr.co.victoryfairy.member.domain.MemberQueryStore;
 import kr.co.victoryfairy.configuration.MapStructConfig;

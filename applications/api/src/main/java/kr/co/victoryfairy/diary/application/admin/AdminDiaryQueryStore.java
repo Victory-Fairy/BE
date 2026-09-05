@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.admin.infrastructure.persistence;
+package kr.co.victoryfairy.diary.application.admin;
 
 import kr.co.victoryfairy.diary.domain.DiaryModel;
 import kr.co.victoryfairy.shared.domain.PageResult;

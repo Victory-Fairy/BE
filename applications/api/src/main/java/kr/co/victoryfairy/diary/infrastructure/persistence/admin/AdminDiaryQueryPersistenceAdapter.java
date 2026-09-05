@@ -1,10 +1,11 @@
-package kr.co.victoryfairy.admin.infrastructure.persistence;
+package kr.co.victoryfairy.diary.infrastructure.persistence.admin;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import kr.co.victoryfairy.diary.domain.DiaryModel;
+import kr.co.victoryfairy.diary.application.admin.AdminDiaryQueryStore;
 import kr.co.victoryfairy.diary.infrastructure.persistence.entity.DiaryEntity;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.shared.domain.PageResult;
