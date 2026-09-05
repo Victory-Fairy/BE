@@ -15,9 +15,9 @@ import kr.co.victoryfairy.diary.application.GameRecordDomainService;
 import kr.co.victoryfairy.game.crawler.service.KboLiveGameCrawler.Snapshot;
 import kr.co.victoryfairy.game.crawler.service.KboLiveGameCrawler.Target;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchCustomRepository;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchRepository;
+import kr.co.victoryfairy.game.domain.GameMatch;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
+import kr.co.victoryfairy.game.domain.StadiumReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -43,8 +43,6 @@ public class LiveGameSyncService {
 
     private static final String HOME_PITCHER = "home_pitcher";
 
-    private final GameMatchCustomRepository gameMatchCustomRepository;
-
     private final GameMatchRepository gameMatchRepository;
 
     private final RedisHandler redisHandler;
@@ -55,16 +53,17 @@ public class LiveGameSyncService {
 
     private final GameRecordDomainService gameRecordDomainService;
 
-    public LiveGameSyncService(GameMatchCustomRepository gameMatchCustomRepository,
-            GameMatchRepository gameMatchRepository, RedisHandler redisHandler,
-            KboGameCrawler gameCrawler, KboLiveGameCrawler crawler,
-            GameRecordDomainService gameRecordDomainService) {
-        this.gameMatchCustomRepository = gameMatchCustomRepository;
+    private final StadiumReader stadiumReader;
+
+    public LiveGameSyncService(GameMatchRepository gameMatchRepository, RedisHandler redisHandler,
+            KboGameCrawler gameCrawler, KboLiveGameCrawler crawler, GameRecordDomainService gameRecordDomainService,
+            StadiumReader stadiumReader) {
         this.gameMatchRepository = gameMatchRepository;
         this.redisHandler = redisHandler;
         this.gameCrawler = gameCrawler;
         this.crawler = crawler;
         this.gameRecordDomainService = gameRecordDomainService;
+        this.stadiumReader = stadiumReader;
     }
 
     public int sync() {
@@ -77,10 +76,10 @@ public class LiveGameSyncService {
     }
 
     private int sync(LocalDate gameDate, LocalDateTime now) {
-        var matches = gameMatchCustomRepository.findByMatchAt(gameDate, MatchEnum.LeagueType.KBO)
+        var matches = gameMatchRepository.findByDate(gameDate, MatchEnum.LeagueType.KBO)
             .stream()
             .filter(match -> shouldPoll(now, match.getMatchAt(), match.getStatus(), match.getIsMatchInfoCraw()))
-            .collect(Collectors.toMap(GameMatchEntity::getId, Function.identity()));
+            .collect(Collectors.toMap(GameMatch::getId, Function.identity()));
         if (matches.isEmpty()) {
             log.info("No live KBO matches to sync");
             return 0;
@@ -103,7 +102,7 @@ public class LiveGameSyncService {
     }
 
     public Optional<LocalDateTime> nextExecutionAt(LocalDate gameDate, LocalDateTime now, LocalDateTime notBefore) {
-        return gameMatchCustomRepository.findByMatchAt(gameDate, MatchEnum.LeagueType.KBO)
+        return gameMatchRepository.findByDate(gameDate, MatchEnum.LeagueType.KBO)
             .stream()
             .filter(match -> match.getStatus() != MatchEnum.MatchStatus.CANCELED)
             .filter(match -> match.getStatus() != MatchEnum.MatchStatus.END
@@ -126,13 +125,13 @@ public class LiveGameSyncService {
         return !now.isBefore(matchAt.minusMinutes(10));
     }
 
-    private void apply(GameMatchEntity match, Snapshot snapshot) {
+    private void apply(GameMatch match, Snapshot snapshot) {
         redisHandler.pushHash(match.getMatchAt().toLocalDate().format(DATE) + MATCH_CACHE_SUFFIX, match.getId(),
                 matchCache(match, snapshot));
-        GameMatchEntity savedMatch = saveStatus(match, snapshot);
+        GameMatch savedMatch = saveStatus(match, snapshot);
 
         if (snapshot.status() == MatchEnum.MatchStatus.END || snapshot.status() == MatchEnum.MatchStatus.CANCELED) {
-            gameRecordDomainService.recover(savedMatch);
+            gameRecordDomainService.recover(savedMatch.id());
         }
 
         if (snapshot.status() == MatchEnum.MatchStatus.PROGRESS) {
@@ -146,16 +145,12 @@ public class LiveGameSyncService {
         }
     }
 
-    private GameMatchEntity saveStatus(GameMatchEntity match, Snapshot snapshot) {
+    private GameMatch saveStatus(GameMatch match, Snapshot snapshot) {
         if (snapshot.status() == MatchEnum.MatchStatus.READY) {
             return match;
         }
-        return gameMatchRepository.save(match.toBuilder()
-            .status(snapshot.status())
-            .reason(snapshot.reason())
-            .awayScore(snapshot.awayScore())
-            .homeScore(snapshot.homeScore())
-            .build());
+        return gameMatchRepository
+            .save(match.updateLive(snapshot.status(), snapshot.reason(), snapshot.awayScore(), snapshot.homeScore()));
     }
 
     private void cacheLiveRecords(Snapshot snapshot) {
@@ -166,18 +161,19 @@ public class LiveGameSyncService {
         redisHandler.pushHash(HOME_PITCHER, snapshot.id(), records.homePitchers());
     }
 
-    private static Map<String, Object> matchCache(GameMatchEntity match, Snapshot snapshot) {
+    private Map<String, Object> matchCache(GameMatch match, Snapshot snapshot) {
         Map<String, Object> cache = new HashMap<>();
         cache.put("date", match.getMatchAt().toLocalDate().format(DATE));
         cache.put("time", match.getMatchAt().format(TIME));
-        cache.put("awayId", match.getAwayTeamEntity().getId());
+        cache.put("awayId", match.getAwayTeamId());
         cache.put("awayScore", snapshot.awayScore());
-        cache.put("homeId", match.getHomeTeamEntity().getId());
+        cache.put("homeId", match.getHomeTeamId());
         cache.put("homeScore", snapshot.homeScore());
         cache.put("status", snapshot.status());
         cache.put("statusDetail", snapshot.statusDetail());
-        cache.put("stadium", match.getStadiumEntity().getShortName());
-        cache.put("stadiumId", match.getStadiumEntity().getId());
+        var stadium = match.getStadiumId() == null ? null : stadiumReader.findById(match.getStadiumId()).orElse(null);
+        cache.put("stadium", stadium == null ? "" : stadium.shortName());
+        cache.put("stadiumId", match.getStadiumId());
         cache.put("reason", snapshot.reason());
         cache.put("league", match.getLeague());
         return cache;

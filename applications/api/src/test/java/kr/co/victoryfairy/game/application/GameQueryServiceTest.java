@@ -3,11 +3,20 @@ package kr.co.victoryfairy.game.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.domain.GameMatch;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
+import kr.co.victoryfairy.game.domain.GameRecordRepository;
+import kr.co.victoryfairy.game.domain.GameUserReader;
+import kr.co.victoryfairy.game.domain.Stadium;
+import kr.co.victoryfairy.game.domain.StadiumReader;
+import kr.co.victoryfairy.game.domain.Team;
+import kr.co.victoryfairy.game.domain.TeamReader;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,19 +25,6 @@ import java.util.Optional;
 import java.util.Set;
 import kr.co.victoryfairy.member.infrastructure.security.MemberAccount;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.diary.infrastructure.persistence.entity.DiaryEntity;
-import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
-import kr.co.victoryfairy.game.infrastructure.persistence.entity.StadiumEntity;
-import kr.co.victoryfairy.game.infrastructure.persistence.entity.TeamEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchCustomRepository;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchRepository;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.HitterRecordRepository;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.PitcherRecordRepository;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.StadiumRepository;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.TeamRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,18 +38,26 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @ExtendWith(MockitoExtension.class)
 class GameQueryServiceTest {
 
-    @Mock private TeamRepository teamRepository;
-    @Mock private StadiumRepository stadiumRepository;
-    @Mock private GameMatchRepository gameMatchRepository;
-    @Mock private GameMatchCustomRepository gameMatchCustomRepository;
-    @Mock private PitcherRecordRepository pitcherRecordRepository;
-    @Mock private HitterRecordRepository hitterRecordRepository;
-    @Mock private MemberRepository memberRepository;
-    @Mock private MemberInfoRepository memberInfoRepository;
-    @Mock private DiaryRepository diaryRepository;
-    @Mock private RedisHandler redisHandler;
+    @Mock
+    private TeamReader teamRepository;
 
-    @InjectMocks private GameQueryService gameQueryService;
+    @Mock
+    private StadiumReader stadiumRepository;
+
+    @Mock
+    private GameMatchRepository gameMatchRepository;
+
+    @Mock
+    private GameRecordRepository recordRepository;
+
+    @Mock
+    private GameUserReader gameUserReader;
+
+    @Mock
+    private RedisHandler redisHandler;
+
+    @InjectMocks
+    private GameQueryService gameQueryService;
 
     @AfterEach
     void clearRequest() {
@@ -66,54 +70,42 @@ class GameQueryServiceTest {
         var date = LocalDate.of(2026, 9, 3);
         var first = match("first", 18, 30);
         var second = match("second", 18, 30);
-        when(memberInfoRepository.findByMemberEntity_Id(787L)).thenReturn(Optional.empty());
+        when(gameUserReader.preferredTeamId(787L)).thenReturn(Optional.empty());
         when(redisHandler.getHashMap("20260903_match_list")).thenReturn(Map.of());
-        when(gameMatchCustomRepository.findByMatchAt(date, MatchEnum.LeagueType.KBO))
-            .thenReturn(List.of(first, second));
-        when(teamRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(
-            new TeamEntity(1L, "두산", "두산"),
-            new TeamEntity(2L, "LG", "LG")
-        ));
-        when(stadiumRepository.findAllById(Set.of(1L))).thenReturn(List.of(
-            StadiumEntity.builder().id(1L).shortName("잠실").build()
-        ));
-        when(diaryRepository.findByMemberIdAndGameMatchEntityIdIn(787L, List.of("first", "second")))
-            .thenReturn(List.of(DiaryEntity.builder().id(10L).gameMatchEntity(first).build()));
+        when(gameMatchRepository.findByDate(date, MatchEnum.LeagueType.KBO)).thenReturn(List.of(first, second));
+        when(teamRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(team(1L, "두산"), team(2L, "LG")));
+        when(stadiumRepository.findAllById(Set.of(1L)))
+            .thenReturn(List.of(new Stadium(1L, "잠실야구장", "잠실", "잠실", null, true, null, null)));
+        when(gameUserReader.diaryIdsByMatchId(787L, List.of("first", "second"))).thenReturn(Map.of("first", 10L));
 
         var response = gameQueryService.findList(date, MatchEnum.LeagueType.KBO);
 
         assertThat(response.matchList()).extracting(match -> match.id()).containsExactlyInAnyOrder("first", "second");
-        assertThat(response.matchList()).filteredOn(match -> match.id().equals("first"))
-            .allSatisfy(match -> {
-                assertThat(match.isWrited()).isTrue();
-                assertThat(match.diaryId()).isEqualTo(10L);
-            });
+        assertThat(response.matchList()).filteredOn(match -> match.id().equals("first")).allSatisfy(match -> {
+            assertThat(match.isWrited()).isTrue();
+            assertThat(match.diaryId()).isEqualTo(10L);
+        });
         verify(teamRepository).findAllById(Set.of(1L, 2L));
         verify(stadiumRepository).findAllById(Set.of(1L));
-        verify(diaryRepository).findByMemberIdAndGameMatchEntityIdIn(787L, List.of("first", "second"));
-        verify(diaryRepository, never()).findByMemberIdAndGameMatchEntityId(any(), anyString());
+        verify(gameUserReader).diaryIdsByMatchId(787L, List.of("first", "second"));
     }
 
     @Test
     void loadsCachedMatchTeamsInOneQueryAndDoesNotQueryDiariesOneByOne() {
         authenticate(787L);
         var date = LocalDate.of(2026, 9, 3);
-        when(memberInfoRepository.findByMemberEntity_Id(787L)).thenReturn(Optional.empty());
-        when(redisHandler.getHashMap("20260903_match_list")).thenReturn(Map.of(
-            "first", cachedMatch(1L, 2L),
-            "second", cachedMatch(1L, 3L)
-        ));
-        when(teamRepository.findAllById(Set.of(1L, 2L, 3L))).thenReturn(List.of(
-            new TeamEntity(1L, "두산", "두산"),
-            new TeamEntity(2L, "LG", "LG"),
-            new TeamEntity(3L, "한화", "한화")
-        ));
+        when(gameUserReader.preferredTeamId(787L)).thenReturn(Optional.empty());
+        when(redisHandler.getHashMap("20260903_match_list"))
+            .thenReturn(Map.of("first", cachedMatch(1L, 2L), "second", cachedMatch(1L, 3L)));
+        when(teamRepository.findAllById(Set.of(1L, 2L, 3L)))
+            .thenReturn(List.of(team(1L, "두산"), team(2L, "LG"), team(3L, "한화")));
+        when(gameUserReader.diaryIdsByMatchId(any(), anyCollection())).thenReturn(Map.of());
 
         var response = gameQueryService.findList(date, MatchEnum.LeagueType.KBO);
 
         assertThat(response.matchList()).extracting(match -> match.id()).containsExactlyInAnyOrder("first", "second");
         verify(teamRepository).findAllById(Set.of(1L, 2L, 3L));
-        verify(diaryRepository, never()).findByMemberIdAndGameMatchEntityId(any(), anyString());
+        verify(gameUserReader).diaryIdsByMatchId(any(), anyCollection());
     }
 
     private void authenticate(Long memberId) {
@@ -122,31 +114,19 @@ class GameQueryServiceTest {
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     }
 
-    private GameMatchEntity match(String id, int hour, int minute) {
-        return GameMatchEntity.builder()
-            .id(id)
-            .league(MatchEnum.LeagueType.KBO)
-            .matchAt(LocalDateTime.of(2026, 9, 3, hour, minute))
-            .awayTeamEntity(new TeamEntity(1L, "두산", "두산"))
-            .homeTeamEntity(new TeamEntity(2L, "LG", "LG"))
-            .stadiumEntity(StadiumEntity.builder().id(1L).shortName("잠실").build())
-            .status(MatchEnum.MatchStatus.END)
-            .awayScore((short) 3)
-            .homeScore((short) 2)
-            .build();
+    private GameMatch match(String id, int hour, int minute) {
+        return new GameMatch(id, MatchEnum.LeagueType.KBO, null, null, "2026",
+                LocalDateTime.of(2026, 9, 3, hour, minute), 1L, "두산", (short) 3, 2L, "LG", (short) 2, 1L,
+                MatchEnum.MatchStatus.END, null, false, false, true, null, null);
+    }
+
+    private Team team(Long id, String name) {
+        return new Team(id, name, name, null, null, null, MatchEnum.LeagueType.KBO, null, true, null, null);
     }
 
     private Map<String, Object> cachedMatch(Long awayId, Long homeId) {
-        return Map.of(
-            "league", "KBO",
-            "time", "18:30",
-            "stadium", "잠실",
-            "status", "END",
-            "statusDetail", "종료",
-            "awayId", awayId,
-            "homeId", homeId,
-            "awayScore", 3,
-            "homeScore", 2
-        );
+        return Map.of("league", "KBO", "time", "18:30", "stadium", "잠실", "status", "END", "statusDetail", "종료",
+                "awayId", awayId, "homeId", homeId, "awayScore", 3, "homeScore", 2);
     }
+
 }

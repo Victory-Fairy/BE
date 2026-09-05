@@ -42,7 +42,8 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                     awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
                     homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore, stadiumEntity,
                     gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
-                    gameMatchEntity.league))
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
             .from(gameMatchEntity)
             .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
             .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
@@ -62,7 +63,8 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                     awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
                     homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore, stadiumEntity,
                     gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
-                    gameMatchEntity.league, gameMatchEntity.league))
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
             .from(gameMatchEntity)
             .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
             .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
@@ -83,7 +85,8 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                     awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
                     homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore, stadiumEntity,
                     gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
-                    gameMatchEntity.league))
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
             .from(gameMatchEntity)
             .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
             .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
@@ -103,7 +106,8 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                     awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
                     homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore, stadiumEntity,
                     gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
-                    gameMatchEntity.league))
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
             .from(gameMatchEntity)
             .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
             .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
@@ -124,7 +128,8 @@ public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport imp
                     awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
                     homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore,
                     gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
-                    gameMatchEntity.league))
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
             .from(gameMatchEntity)
             .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
             .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))

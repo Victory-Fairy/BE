@@ -71,6 +71,14 @@ public class GameRecordDomainService {
     }
 
     @Transactional
+    public int recover(String gameMatchId) {
+        return diaryRepository.findByGameMatchEntityIdAndIsRatedFalse(gameMatchId)
+            .stream()
+            .mapToInt(diary -> record(diary) ? 1 : 0)
+            .sum();
+    }
+
+    @Transactional
     public int recoverAllTerminal() {
         return diaryRepository.findByIsRatedFalseAndGameMatchEntityStatusIn(TERMINAL_STATUSES)
             .stream()

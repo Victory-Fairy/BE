@@ -5,6 +5,7 @@ import kr.co.victoryfairy.member.infrastructure.persistence.entity.*;
 import kr.co.victoryfairy.shared.infrastructure.persistence.entity.BaseEntity;
 
 import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.domain.GameMatch;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -115,6 +116,25 @@ public class GameMatchEntity extends BaseEntity {
         this.status = source.status;
         this.reason = source.reason;
         update();
+    }
+
+    public void apply(GameMatch source, TeamEntity awayTeam, TeamEntity homeTeam, StadiumEntity stadium) {
+        this.league = source.league();
+        this.type = source.type();
+        this.series = source.series();
+        this.season = source.season();
+        this.matchAt = source.matchAt();
+        this.awayTeamEntity = awayTeam;
+        this.awayNm = source.awayName();
+        this.awayScore = source.awayScore();
+        this.homeTeamEntity = homeTeam;
+        this.homeNm = source.homeName();
+        this.homeScore = source.homeScore();
+        this.stadiumEntity = stadium;
+        this.status = source.status();
+        this.reason = source.reason();
+        this.isMatchInfoCraw = source.detailCrawled();
+        this.isSendPush = source.pushSent();
     }
 
 }
