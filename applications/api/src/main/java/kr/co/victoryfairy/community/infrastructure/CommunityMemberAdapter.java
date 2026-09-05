@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import io.dodn.springboot.core.enums.RefType;
+import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.community.application.CommunityMemberReader;
 import kr.co.victoryfairy.media.application.FileReferenceService;
-import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
-import kr.co.victoryfairy.storage.db.core.repository.MemberInfoRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
+import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberInfoEntity;
+import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
+import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

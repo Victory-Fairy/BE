@@ -3,7 +3,7 @@ package kr.co.victoryfairy.member.infrastructure.oauth;
 import tools.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.dodn.springboot.core.enums.MemberEnum;
+import kr.co.victoryfairy.member.domain.MemberEnum;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

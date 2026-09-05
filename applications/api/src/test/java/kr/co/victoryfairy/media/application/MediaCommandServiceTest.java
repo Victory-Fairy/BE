@@ -14,10 +14,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-import io.dodn.springboot.core.enums.RefType;
+import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.media.domain.FileDomain;
 import kr.co.victoryfairy.media.infrastructure.S3FileUploader;
-import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
+import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRepository;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.media.infrastructure.FileProperties;

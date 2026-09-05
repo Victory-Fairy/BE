@@ -5,11 +5,11 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-import io.dodn.springboot.core.enums.MatchEnum;
-import kr.co.victoryfairy.common.service.GameRecordDomainService;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.diary.application.GameRecordDomainService;
 import kr.co.victoryfairy.game.crawler.service.KboGameCrawler;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchCustomRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

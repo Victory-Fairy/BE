@@ -1,0 +1,121 @@
+package kr.co.victoryfairy.diary.application;
+
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.shared.application.model.CommonDto;
+import kr.co.victoryfairy.diary.infrastructure.persistence.entity.PartnerEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.TeamEntity;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.PartnerRepository;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.TeamRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+/**
+ * 동행자(파트너) 도메인 서비스
+ * <p>
+ * 일기에 기록된 동행자 관련 공통 비즈니스 로직을 처리합니다.
+ */
+@Service
+@RequiredArgsConstructor
+public class PartnerDomainService {
+
+    private final PartnerRepository partnerRepository;
+
+    private final TeamRepository teamRepository;
+
+    /**
+     * 동행자 목록 저장
+     * @param refType 참조 타입
+     * @param refId 참조 ID
+     * @param partnerList 동행자 정보 목록
+     */
+    @Transactional
+    public void savePartners(RefType refType, Long refId, List<CommonDto.PartnerSaveRequest> partnerList) {
+        if (partnerList == null || partnerList.isEmpty()) {
+            return;
+        }
+
+        var teamIds = partnerList.stream()
+            .map(CommonDto.PartnerSaveRequest::teamId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        var teamsById = teamRepository.findAllById(teamIds)
+            .stream()
+            .collect(Collectors.toMap(TeamEntity::getId, team -> team));
+
+        var partnerEntityList = partnerList.stream().map(partnerDto -> {
+            var partnerTeam = teamsById.get(partnerDto.teamId());
+            return PartnerEntity.builder()
+                .refId(refId)
+                .refType(refType)
+                .name(partnerDto.name())
+                .teamName(partnerTeam == null ? null : partnerTeam.getName())
+                .teamEntity(partnerTeam)
+                .build();
+        }).toList();
+        partnerRepository.saveAll(partnerEntityList);
+    }
+
+    /**
+     * 기존 동행자 목록 삭제 후 새로 저장
+     * @param refType 참조 타입
+     * @param refId 참조 ID
+     * @param partnerList 새로운 동행자 정보 목록
+     */
+    @Transactional
+    public void replacePartners(RefType refType, Long refId, List<CommonDto.PartnerSaveRequest> partnerList) {
+        deletePartners(refType, refId);
+        savePartners(refType, refId, partnerList);
+    }
+
+    /**
+     * 동행자 목록 삭제
+     * @param refType 참조 타입
+     * @param refId 참조 ID
+     */
+    @Transactional
+    public void deletePartners(RefType refType, Long refId) {
+        var existingPartners = partnerRepository.findByRefTypeAndRefId(refType, refId);
+        if (!existingPartners.isEmpty()) {
+            partnerRepository.deleteAll(existingPartners);
+        }
+    }
+
+    /**
+     * 동행자 목록 조회
+     * @param refType 참조 타입
+     * @param refId 참조 ID
+     * @return 동행자 응답 목록
+     */
+    public List<CommonDto.PartnerResponse> findPartnersByRefId(RefType refType, Long refId) {
+        return partnerRepository.findByRefTypeAndRefId(refType, refId)
+            .stream()
+            .map(entity -> new CommonDto.PartnerResponse(entity.getName(),
+                    entity.getTeamEntity() != null ? entity.getTeamEntity().getId() : null))
+            .toList();
+    }
+
+    /**
+     * 여러 참조 ID에 대한 동행자 이름 맵 조회
+     * @param refType 참조 타입
+     * @param refIds 참조 ID 목록
+     * @return refId -> 동행자 이름 목록 맵
+     */
+    public Map<Long, List<String>> findPartnerNameMapByRefIds(RefType refType, List<Long> refIds) {
+        if (refIds == null || refIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return partnerRepository.findByRefTypeAndRefIdIn(refType, refIds)
+            .stream()
+            .collect(Collectors.groupingBy(PartnerEntity::getRefId,
+                    Collectors.mapping(PartnerEntity::getName, Collectors.toList())));
+    }
+
+}

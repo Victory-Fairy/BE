@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.victoryfairy.common.presentation.CommonDomain;
 import kr.co.victoryfairy.common.application.CommonQueryService;
-import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.web.response.CustomResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

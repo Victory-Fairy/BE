@@ -4,16 +4,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import io.dodn.springboot.core.enums.MatchEnum;
-import kr.co.victoryfairy.common.service.GameRecordDomainService;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.diary.application.GameRecordDomainService;
 import kr.co.victoryfairy.game.crawler.service.KboLiveGameCrawler.Records;
 import kr.co.victoryfairy.game.crawler.service.KboLiveGameCrawler.Snapshot;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
-import kr.co.victoryfairy.storage.db.core.entity.StadiumEntity;
-import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.StadiumEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.TeamEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchCustomRepository;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 

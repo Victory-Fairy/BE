@@ -1,17 +1,17 @@
 package kr.co.victoryfairy.diary.application;
 
-import io.dodn.springboot.core.enums.MatchEnum;
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.diary.application.DiaryFoodDomainService;
 import kr.co.victoryfairy.media.application.FileReferenceService;
-import kr.co.victoryfairy.common.service.PartnerDomainService;
+import kr.co.victoryfairy.diary.application.PartnerDomainService;
 import kr.co.victoryfairy.diary.presentation.DiaryDomain;
 import kr.co.victoryfairy.game.presentation.MatchDomain;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
-import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
+import kr.co.victoryfairy.diary.infrastructure.persistence.model.DiaryModel;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryCustomRepository;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.SeatUseHistoryRepository;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;

@@ -1,11 +1,11 @@
 package kr.co.victoryfairy.common.application;
 
 import kr.co.victoryfairy.common.presentation.CommonDomain;
-import io.dodn.springboot.core.enums.MatchEnum;
-import kr.co.victoryfairy.storage.db.core.entity.SeatEntity;
-import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
-import kr.co.victoryfairy.storage.db.core.repository.SeatRepository;
-import kr.co.victoryfairy.storage.db.core.repository.TeamRepository;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.SeatEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.TeamEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.SeatRepository;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

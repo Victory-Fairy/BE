@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 import kr.co.victoryfairy.community.application.CommunityFileReader;
 import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
-import kr.co.victoryfairy.storage.db.core.entity.FileEntity;
-import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
+import kr.co.victoryfairy.media.infrastructure.persistence.entity.FileEntity;
+import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -7,16 +7,16 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.common.model.CommonDto;
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.shared.application.model.CommonDto;
 import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
-import kr.co.victoryfairy.storage.db.core.entity.FileEntity;
-import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
-import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
-import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberInfoRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
+import kr.co.victoryfairy.media.infrastructure.persistence.entity.FileEntity;
+import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberEntity;
+import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberInfoEntity;
+import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRepository;
+import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
+import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
 import org.junit.jupiter.api.Test;
 
 class CommunityReferenceAdapterTest {

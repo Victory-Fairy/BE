@@ -2,8 +2,8 @@ package kr.co.victoryfairy.game.crawler.service;
 
 import java.util.List;
 
-import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

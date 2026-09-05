@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.game.crawler.runner;
 
-import kr.co.victoryfairy.common.service.GameRecordDomainService;
+import kr.co.victoryfairy.diary.application.GameRecordDomainService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;

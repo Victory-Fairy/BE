@@ -1,10 +1,10 @@
 package kr.co.victoryfairy.media.application;
 
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.common.model.CommonDto;
-import kr.co.victoryfairy.storage.db.core.entity.FileRefEntity;
-import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
-import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.shared.application.model.CommonDto;
+import kr.co.victoryfairy.media.infrastructure.persistence.entity.FileRefEntity;
+import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRefRepository;
+import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRepository;
 import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

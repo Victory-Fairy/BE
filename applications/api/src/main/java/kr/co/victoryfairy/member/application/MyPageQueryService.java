@@ -1,10 +1,12 @@
 package kr.co.victoryfairy.member.application;
 
-import io.dodn.springboot.core.enums.DiaryEnum;
-import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.diary.domain.DiaryEnum;
+import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.member.presentation.MyPageDomain;
-import kr.co.victoryfairy.storage.db.core.entity.GameRecordEntity;
-import kr.co.victoryfairy.storage.db.core.repository.*;
+import kr.co.victoryfairy.diary.infrastructure.persistence.entity.GameRecordEntity;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.*;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.*;
+import kr.co.victoryfairy.member.infrastructure.persistence.repository.*;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;

@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.member.infrastructure.oauth;
 
-import io.dodn.springboot.core.enums.MemberEnum;
+import kr.co.victoryfairy.member.domain.MemberEnum;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import lombok.RequiredArgsConstructor;

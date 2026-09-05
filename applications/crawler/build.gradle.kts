@@ -9,7 +9,7 @@ tasks.named<Jar>("jar") {
 }
 
 dependencies {
-    implementation(project(":domain"))
+    implementation(project(":modules:business"))
     implementation(project(":infrastructure:redis"))
 
     testImplementation(project(":tests:api-docs"))

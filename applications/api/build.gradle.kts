@@ -31,7 +31,7 @@ tasks.named<Jar>("jar") {
 }
 
 dependencies {
-    implementation(project(":domain"))
+    implementation(project(":modules:business"))
     implementation(project(":infrastructure:redis"))
 
     implementation("org.springframework.boot:spring-boot-starter-flyway")

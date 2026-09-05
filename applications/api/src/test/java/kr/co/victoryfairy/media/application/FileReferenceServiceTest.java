@@ -6,11 +6,11 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.storage.db.core.entity.FileEntity;
-import kr.co.victoryfairy.storage.db.core.entity.FileRefEntity;
-import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
-import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.media.infrastructure.persistence.entity.FileEntity;
+import kr.co.victoryfairy.media.infrastructure.persistence.entity.FileRefEntity;
+import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRefRepository;
+import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRepository;
 import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ class FileReferenceServiceTest {
         var images = new FileReferenceService(fileRepository, fileRefRepository, urlService)
             .findImagesByRefId(RefType.DIARY, 3L);
 
-        assertThat(images).containsExactly(new kr.co.victoryfairy.common.model.CommonDto.ImageDto(7L,
+        assertThat(images).containsExactly(new kr.co.victoryfairy.shared.application.model.CommonDto.ImageDto(7L,
                 "image/diary/202608", "sample", "jpg", "https://signed.example/image.jpg"));
     }
 

@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import io.dodn.springboot.core.enums.MatchEnum;
-import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;

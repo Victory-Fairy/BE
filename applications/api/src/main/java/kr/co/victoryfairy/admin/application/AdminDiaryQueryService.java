@@ -1,16 +1,16 @@
 package kr.co.victoryfairy.admin.application;
 
-import io.dodn.springboot.core.enums.RefType;
+import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.admin.presentation.AdminDiaryDto;
-import kr.co.victoryfairy.storage.db.core.entity.DiaryFoodEntity;
-import kr.co.victoryfairy.storage.db.core.entity.PartnerEntity;
-import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryFoodRepository;
-import kr.co.victoryfairy.storage.db.core.repository.PartnerRepository;
-import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
+import kr.co.victoryfairy.diary.infrastructure.persistence.entity.DiaryFoodEntity;
+import kr.co.victoryfairy.diary.infrastructure.persistence.entity.PartnerEntity;
+import kr.co.victoryfairy.diary.infrastructure.persistence.model.DiaryModel;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryCustomRepository;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryFoodRepository;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.PartnerRepository;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.SeatUseHistoryRepository;
 import kr.co.victoryfairy.configuration.MapStructConfig;
-import kr.co.victoryfairy.storage.db.core.model.PageResult;
+import kr.co.victoryfairy.shared.infrastructure.persistence.model.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

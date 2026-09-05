@@ -1,7 +1,7 @@
 package kr.co.victoryfairy.admin.application;
 
 import kr.co.victoryfairy.admin.presentation.AdminAuthDto;
-import kr.co.victoryfairy.storage.db.core.repository.AdminRepository;
+import kr.co.victoryfairy.admin.infrastructure.persistence.repository.AdminRepository;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.AuthModel;

@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.admin.presentation;
 
-import io.dodn.springboot.core.enums.MemberEnum;
+import kr.co.victoryfairy.member.domain.MemberEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springdoc.core.annotations.ParameterObject;
 

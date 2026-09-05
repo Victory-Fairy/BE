@@ -3,10 +3,10 @@ package kr.co.victoryfairy.game.crawler.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import tools.jackson.databind.ObjectMapper;
-import io.dodn.springboot.core.enums.MatchEnum;
-import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
-import kr.co.victoryfairy.storage.db.core.entity.StadiumEntity;
-import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.StadiumEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.TeamEntity;
 import org.junit.jupiter.api.Test;
 
 class KboGameCrawlerTest {

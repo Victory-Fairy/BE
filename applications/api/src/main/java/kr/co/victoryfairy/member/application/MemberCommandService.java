@@ -1,13 +1,13 @@
 package kr.co.victoryfairy.member.application;
 
-import io.dodn.springboot.core.enums.RefType;
+import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.member.presentation.MemberDomain;
-import kr.co.victoryfairy.storage.db.core.entity.FileRefEntity;
-import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
-import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberInfoRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
-import kr.co.victoryfairy.storage.db.core.repository.TeamRepository;
+import kr.co.victoryfairy.media.infrastructure.persistence.entity.FileRefEntity;
+import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRefRepository;
+import kr.co.victoryfairy.media.infrastructure.persistence.repository.FileRepository;
+import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
+import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.TeamRepository;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;

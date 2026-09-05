@@ -8,12 +8,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDate;
 import java.util.List;
 
-import io.dodn.springboot.core.enums.MatchEnum;
-import kr.co.victoryfairy.common.service.GameRecordDomainService;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.diary.application.GameRecordDomainService;
 import kr.co.victoryfairy.game.crawler.service.KboGameCrawler;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchCustomRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.ApplicationArguments;

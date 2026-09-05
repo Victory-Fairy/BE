@@ -1,14 +1,14 @@
 package kr.co.victoryfairy.member.application;
 
-import io.dodn.springboot.core.enums.MemberEnum;
+import kr.co.victoryfairy.member.domain.MemberEnum;
 import kr.co.victoryfairy.member.presentation.MemberDomain;
 import kr.co.victoryfairy.member.infrastructure.oauth.OauthFactory;
 import kr.co.victoryfairy.redis.lock.DistributedLock;
 import kr.co.victoryfairy.redis.lock.LockName;
-import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
-import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
-import kr.co.victoryfairy.storage.db.core.repository.MemberInfoRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
+import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberEntity;
+import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberInfoEntity;
+import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
+import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.AuthModel;

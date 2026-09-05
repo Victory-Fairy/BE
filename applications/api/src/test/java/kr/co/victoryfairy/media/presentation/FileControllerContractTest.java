@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.media.presentation;
 
-import io.dodn.springboot.core.enums.RefType;
+import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.media.application.MediaCommandService;
 import kr.co.victoryfairy.media.domain.FileDomain;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,7 +1,7 @@
 package kr.co.victoryfairy.common.presentation;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.game.domain.MatchEnum;
 
 public interface CommonDomain {
 
