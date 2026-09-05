@@ -60,4 +60,12 @@ public class AdminEntity extends BaseEntity {
         this.lastConnectAt = lastConnectAt;
     }
 
+    public void updateFrom(AdminEntity source) {
+        adminId = source.adminId;
+        pwd = source.pwd;
+        lastConnectIp = source.lastConnectIp;
+        isUse = source.isUse;
+        lastConnectAt = source.lastConnectAt;
+    }
+
 }

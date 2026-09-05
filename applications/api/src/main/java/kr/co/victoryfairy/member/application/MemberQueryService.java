@@ -3,11 +3,9 @@ package kr.co.victoryfairy.member.application;
 import kr.co.victoryfairy.diary.domain.DiaryEnum;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.member.domain.MemberEnum;
+import kr.co.victoryfairy.member.domain.MemberGameReader;
+import kr.co.victoryfairy.member.domain.MemberStore;
 import kr.co.victoryfairy.member.presentation.MemberDomain;
-import kr.co.victoryfairy.diary.infrastructure.persistence.entity.GameRecordEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.GameRecordRepository;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
@@ -23,15 +21,13 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class MemberQueryService {
 
-    private final MemberRepository memberRepository;
+    private final MemberStore memberStore;
 
-    private final MemberInfoRepository memberInfoRepository;
-
-    private final GameRecordRepository gameRecordRepository;
+    private final MemberGameReader gameRecordReader;
 
     public MemberDomain.MemberCheckNickDuplicateResponse checkNickNmDuplicate(String nickNm) {
         authenticatedMemberId();
-        if (memberInfoRepository.findByNickNm(nickNm).isPresent()) {
+        if (memberStore.findProfileByNickname(nickNm).isPresent()) {
             return new MemberDomain.MemberCheckNickDuplicateResponse(MemberEnum.NickStatus.DUPLICATE, "중복된 닉네임입니다.");
         }
         return new MemberDomain.MemberCheckNickDuplicateResponse(MemberEnum.NickStatus.AVAILABLE, "사용 가능한 닉네임입니다.");
@@ -39,12 +35,11 @@ public class MemberQueryService {
 
     public MemberDomain.MemberHomeWinRateResponse findHomeWinRate() {
         var id = authenticatedMemberId();
-        var memberEntity = memberRepository.findById(id)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-        var recordList = gameRecordRepository.findByMemberAndSeason(memberEntity,
-                String.valueOf(LocalDate.now().getYear()));
+        if (!memberStore.memberExists(id))
+            throw new CustomException(MessageEnum.Data.FAIL_NO_RESULT);
+        var recordList = gameRecordReader.findByMemberAndSeason(id, String.valueOf(LocalDate.now().getYear()));
         var stadiumRecord = recordList.stream()
-            .filter(record -> record.getViewType() == DiaryEnum.ViewType.STADIUM)
+            .filter(record -> record.viewType() == DiaryEnum.ViewType.STADIUM)
             .toList();
 
         if (recordList.isEmpty() || stadiumRecord.isEmpty()) {
@@ -61,8 +56,8 @@ public class MemberQueryService {
         return new MemberDomain.MemberHomeWinRateResponse(winAvg, winCount, loseCount, drawCount, cancelCount);
     }
 
-    private short count(List<GameRecordEntity> records, MatchEnum.ResultType result) {
-        return (short) records.stream().filter(record -> record.getResultType() == result).count();
+    private short count(List<MemberGameReader.Record> records, MatchEnum.ResultType result) {
+        return (short) records.stream().filter(record -> record.result() == result).count();
     }
 
     private Long authenticatedMemberId() {

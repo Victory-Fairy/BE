@@ -6,38 +6,31 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository;
 import kr.co.victoryfairy.game.domain.GameUserReader;
-import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberInfoEntity;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
+import kr.co.victoryfairy.member.domain.MemberStore;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class GameUserPersistenceAdapter implements GameUserReader {
 
-    private final MemberInfoRepository members;
-
-    private final MemberRepository memberRepository;
+    private final MemberStore members;
 
     private final DiaryRepository diaries;
 
-    public GameUserPersistenceAdapter(MemberInfoRepository members, MemberRepository memberRepository,
-            DiaryRepository diaries) {
+    public GameUserPersistenceAdapter(MemberStore members, DiaryRepository diaries) {
         this.members = members;
-        this.memberRepository = memberRepository;
         this.diaries = diaries;
     }
 
     public Context context(Long memberId) {
-        var member = memberRepository.findById(memberId);
-        if (member.isEmpty())
+        if (!members.memberExists(memberId))
             return new Context(false, false, null);
-        var profile = members.findByMemberEntity(member.get());
+        var profile = members.findProfileByMemberId(memberId);
         return new Context(true, profile.isPresent(),
-                profile.map(MemberInfoEntity::getTeamEntity).map(team -> team.getId()).orElse(null));
+                profile.map(profileValue -> profileValue.teamId()).orElse(null));
     }
 
     public Optional<Long> preferredTeamId(Long memberId) {
-        return members.findByMemberEntity_Id(memberId).map(MemberInfoEntity::getTeamEntity).map(team -> team.getId());
+        return members.findProfileByMemberId(memberId).map(profile -> profile.teamId());
     }
 
     public Map<String, Long> diaryIdsByMatchId(Long memberId, Collection<String> matchIds) {

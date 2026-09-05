@@ -1,7 +1,7 @@
 package kr.co.victoryfairy.admin.application;
 
 import kr.co.victoryfairy.admin.presentation.AdminAuthDto;
-import kr.co.victoryfairy.admin.infrastructure.persistence.repository.AdminRepository;
+import kr.co.victoryfairy.admin.domain.AdminStore;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.AuthModel;
@@ -21,9 +21,9 @@ public class AdminAuthService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final AdminRepository adminRepository;
+    private final AdminStore adminRepository;
 
-    public AdminAuthService(JwtService jwtService, PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
+    public AdminAuthService(JwtService jwtService, PasswordEncoder passwordEncoder, AdminStore adminRepository) {
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.adminRepository = adminRepository;
@@ -43,15 +43,14 @@ public class AdminAuthService {
         var admin = adminRepository.findByAdminId(adminId)
             .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
-        if (!StringUtils.hasText(admin.getPwd()) || !passwordEncoder.matches(adminPwd, admin.getPwd()))
+        if (!StringUtils.hasText(admin.password()) || !passwordEncoder.matches(adminPwd, admin.password()))
             throw new CustomException(HttpStatus.BAD_REQUEST, MessageEnum.Auth.FAIL_LOGIN);
 
-        var adminDto = AuthModel.AdminDto.builder().id(admin.getId()).build();
+        var adminDto = AuthModel.AdminDto.builder().id(admin.id()).build();
 
         var accessTokenDto = jwtService.makeAccessToken(adminDto);
 
-        admin.updateLastLogin(CurrentRequest.getRemoteIp(), LocalDateTime.now());
-        adminRepository.save(admin);
+        adminRepository.save(admin.login(CurrentRequest.getRemoteIp(), LocalDateTime.now()));
         return new AdminAuthDto.LoginResponse(accessTokenDto.getAccessToken(), accessTokenDto.getRefreshToken());
     }
 

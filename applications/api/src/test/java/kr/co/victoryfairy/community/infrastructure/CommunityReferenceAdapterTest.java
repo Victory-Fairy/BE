@@ -12,26 +12,22 @@ import kr.co.victoryfairy.shared.application.model.CommonDto;
 import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
 import kr.co.victoryfairy.media.domain.MediaFile;
-import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberEntity;
-import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberInfoEntity;
+import kr.co.victoryfairy.member.domain.MemberProfile;
+import kr.co.victoryfairy.member.domain.MemberStore;
 import kr.co.victoryfairy.media.domain.MediaFileRepository;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
 import org.junit.jupiter.api.Test;
 
 class CommunityReferenceAdapterTest {
 
     @Test
     void readsCommunityAuthorFromExistingMemberAndProfileData() {
-        var memberRepository = mock(MemberRepository.class);
-        var memberInfoRepository = mock(MemberInfoRepository.class);
+        var members = mock(MemberStore.class);
         var fileReferences = mock(FileReferenceService.class);
-        var member = MemberEntity.builder().id(7L).build();
-        var info = MemberInfoEntity.builder().memberEntity(member).nickNm("작성자").build();
-        when(memberInfoRepository.findByMemberEntity_IdIn(List.of(7L))).thenReturn(List.of(info));
+        var info = new MemberProfile(8L, 7L, null, null, null, "작성자", null, null, null);
+        when(members.findProfiles(List.of(7L))).thenReturn(List.of(info));
         when(fileReferences.findImageMapByRefIds(RefType.PROFILE, List.of(7L)))
             .thenReturn(Map.of(7L, new CommonDto.ImageDto(1L, "profile", "saved", "png", "profile-url")));
-        var adapter = new CommunityMemberAdapter(memberRepository, memberInfoRepository, fileReferences);
+        var adapter = new CommunityMemberAdapter(members, fileReferences);
 
         var authors = adapter.findAuthors(List.of(7L));
 

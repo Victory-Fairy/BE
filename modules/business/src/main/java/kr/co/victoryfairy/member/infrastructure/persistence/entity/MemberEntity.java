@@ -60,4 +60,11 @@ public class MemberEntity extends BaseEntity {
         this.lastConnectAt = lastConnectAt;
     }
 
+    public void updateFrom(MemberEntity source) {
+        status = source.status;
+        lastConnectIp = source.lastConnectIp;
+        isUse = source.isUse;
+        lastConnectAt = source.lastConnectAt;
+    }
+
 }

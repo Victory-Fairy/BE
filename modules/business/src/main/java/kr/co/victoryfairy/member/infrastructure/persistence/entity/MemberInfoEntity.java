@@ -60,4 +60,12 @@ public class MemberInfoEntity {
     @Column(columnDefinition = "TIMESTAMP", insertable = false)
     private LocalDateTime updatedAt;
 
+    public void updateFrom(MemberInfoEntity source) {
+        teamEntity = source.teamEntity;
+        snsId = source.snsId;
+        email = source.email;
+        nickNm = source.nickNm;
+        snsType = source.snsType;
+    }
+
 }

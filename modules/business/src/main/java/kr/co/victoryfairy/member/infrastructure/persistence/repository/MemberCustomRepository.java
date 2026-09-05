@@ -1,7 +1,7 @@
 package kr.co.victoryfairy.member.infrastructure.persistence.repository;
 
-import kr.co.victoryfairy.member.infrastructure.persistence.model.MemberModel;
-import kr.co.victoryfairy.shared.infrastructure.persistence.model.PageResult;
+import kr.co.victoryfairy.member.domain.MemberModel;
+import kr.co.victoryfairy.shared.domain.PageResult;
 
 import java.util.Optional;
 

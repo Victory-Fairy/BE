@@ -1,7 +1,7 @@
 package kr.co.victoryfairy.diary.infrastructure.persistence.repository;
 
 import kr.co.victoryfairy.diary.infrastructure.persistence.model.DiaryModel;
-import kr.co.victoryfairy.shared.infrastructure.persistence.model.PageResult;
+import kr.co.victoryfairy.shared.domain.PageResult;
 
 import java.time.LocalDate;
 import java.util.List;

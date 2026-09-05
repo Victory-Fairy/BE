@@ -1,10 +1,10 @@
 package kr.co.victoryfairy.admin.application;
 
 import kr.co.victoryfairy.admin.presentation.AdminMemberDto;
-import kr.co.victoryfairy.member.infrastructure.persistence.model.MemberModel;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberCustomRepository;
+import kr.co.victoryfairy.member.domain.MemberModel;
+import kr.co.victoryfairy.member.domain.MemberQueryStore;
 import kr.co.victoryfairy.configuration.MapStructConfig;
-import kr.co.victoryfairy.shared.infrastructure.persistence.model.PageResult;
+import kr.co.victoryfairy.shared.domain.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ public class AdminMemberQueryService {
 
     private final Mapper mapper;
 
-    private final MemberCustomRepository memberCustomRepository;
+    private final MemberQueryStore memberCustomRepository;
 
     public PageResult<AdminMemberDto.MemberListResponse> findList(AdminMemberDto.MemberListRequest request) {
         var result = memberCustomRepository.findAll(mapper.toRequest(request));

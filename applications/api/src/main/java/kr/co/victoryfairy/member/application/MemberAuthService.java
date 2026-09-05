@@ -1,14 +1,13 @@
 package kr.co.victoryfairy.member.application;
 
 import kr.co.victoryfairy.member.domain.MemberEnum;
+import kr.co.victoryfairy.member.domain.Member;
+import kr.co.victoryfairy.member.domain.MemberProfile;
+import kr.co.victoryfairy.member.domain.MemberStore;
 import kr.co.victoryfairy.member.presentation.MemberDomain;
 import kr.co.victoryfairy.member.infrastructure.oauth.OauthFactory;
 import kr.co.victoryfairy.redis.lock.DistributedLock;
 import kr.co.victoryfairy.redis.lock.LockName;
-import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberEntity;
-import kr.co.victoryfairy.member.infrastructure.persistence.entity.MemberInfoEntity;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberInfoRepository;
-import kr.co.victoryfairy.member.infrastructure.persistence.repository.MemberRepository;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.member.infrastructure.security.AuthModel;
@@ -31,9 +30,7 @@ public class MemberAuthService {
 
     private final OauthFactory oauthFactory;
 
-    private final MemberRepository memberRepository;
-
-    private final MemberInfoRepository memberInfoRepository;
+    private final MemberStore memberStore;
 
     private final JwtService jwtService;
 
@@ -57,34 +54,27 @@ public class MemberAuthService {
     @Transactional
     @DistributedLock(value = LockName.MEMBER_REGISTER, key = "#snsType.name() + '_' + #memberSns.snsId()")
     public MemberDomain.MemberLoginResponse processLogin(MemberEnum.SnsType snsType, MemberDomain.MemberSns memberSns) {
-        var memberInfoEntity = memberInfoRepository.findBySnsTypeAndSnsId(snsType, memberSns.snsId()).orElse(null);
+        var memberProfile = memberStore.findProfile(snsType, memberSns.snsId()).orElse(null);
+        Member member;
 
-        if (memberInfoEntity == null) {
-            MemberEntity memberEntity = MemberEntity.builder()
-                .status(MemberEnum.Status.NORMAL)
-                .lastConnectIp(CurrentRequest.getRemoteIp())
-                .lastConnectAt(LocalDateTime.now())
-                .build();
-            memberRepository.save(memberEntity);
-            memberInfoEntity = MemberInfoEntity.builder()
-                .memberEntity(memberEntity)
-                .snsId(memberSns.snsId())
-                .snsType(snsType)
-                .email(memberSns.email())
-                .build();
-            memberInfoRepository.save(memberInfoEntity);
+        if (memberProfile == null) {
+            member = memberStore.saveMember(Member.normal(CurrentRequest.getRemoteIp(), LocalDateTime.now()));
+            memberProfile = memberStore.saveProfile(MemberProfile.social(member.id(), snsType, memberSns.snsId(),
+                    memberSns.email()));
+        }
+        else {
+            member = memberStore.findMember(memberProfile.memberId())
+                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
         }
 
-        var memberEntity = memberInfoEntity.getMemberEntity();
-        memberEntity.updateLastLogin(CurrentRequest.getRemoteIp(), LocalDateTime.now());
-        memberRepository.save(memberEntity);
+        member = memberStore.saveMember(member.login(CurrentRequest.getRemoteIp(), LocalDateTime.now()));
 
         var memberInfoDto = AuthModel.MemberInfoDto.builder()
-            .isNickNmAdded(StringUtils.hasText(memberInfoEntity.getNickNm()))
-            .isTeamAdded(memberInfoEntity.getTeamEntity() != null)
+            .isNickNmAdded(StringUtils.hasText(memberProfile.nickNm()))
+            .isTeamAdded(memberProfile.teamId() != null)
             .build();
 
-        var memberDto = AuthModel.MemberDto.builder().id(memberEntity.getId()).memberInfo(memberInfoDto).build();
+        var memberDto = AuthModel.MemberDto.builder().id(member.id()).memberInfo(memberInfoDto).build();
         var accessTokenDto = jwtService.makeAccessToken(memberDto);
         var memberInfo = new MemberDomain.MemberInfoResponse(snsType, memberSns.snsId(),
                 memberInfoDto.getIsNickNmAdded(), memberInfoDto.getIsTeamAdded());
