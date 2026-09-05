@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,11 @@ class ArchitectureBoundaryTest {
 
     private static final Pattern OUTER_FORBIDDEN = Pattern.compile(
             "\\b(?:jakarta\\.persistence|com\\.querydsl|org\\.springframework\\.data\\.jpa|[^\\s;]+\\.persistence\\.(?:entity|repository|model)(?:\\.|;))");
+
+    private static final Pattern DOMAIN_TYPE = Pattern.compile(
+            "\\bkr\\.co\\.victoryfairy\\.(admin|diary|game|media|member)\\.domain\\.([A-Z][A-Za-z0-9_]*)");
+
+    private static final Set<String> SHARED_DOMAIN_VALUES = Set.of("diary.DiaryEnum", "game.MatchEnum");
 
     @Test
     void sourceDependenciesPointInward() throws IOException {
@@ -43,6 +50,16 @@ class ArchitectureBoundaryTest {
                     : path.contains("/application/") || path.contains("/presentation/") ? OUTER_FORBIDDEN : null;
             if (forbidden != null && forbidden.matcher(code).find()) {
                 violations.add(root.relativize(source).toString());
+            }
+            if (path.contains("/domain/")) {
+                String owner = path.substring(0, path.indexOf("/domain/")).replaceFirst(".*/", "");
+                Matcher types = DOMAIN_TYPE.matcher(code);
+                while (types.find()) {
+                    String dependency = types.group(1) + "." + types.group(2);
+                    if (!owner.equals(types.group(1)) && !SHARED_DOMAIN_VALUES.contains(dependency)) {
+                        violations.add(root.relativize(source) + " -> " + dependency);
+                    }
+                }
             }
         }
         assertThat(violations).as("forbidden outward dependencies").isEmpty();

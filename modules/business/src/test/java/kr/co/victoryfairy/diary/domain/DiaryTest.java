@@ -3,7 +3,6 @@ package kr.co.victoryfairy.diary.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
-import kr.co.victoryfairy.game.domain.GameMatch;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import org.junit.jupiter.api.Test;
 
@@ -31,24 +30,16 @@ class DiaryTest {
 
     @Test
     void canceled_match_is_terminal_draw_without_scores() {
-        var match = match(MatchEnum.MatchStatus.CANCELED, null, null);
-
-        assertThat(Diary.result(match, 1L)).isEqualTo(MatchEnum.ResultType.DRAW);
-        assertThat(Diary.isRecordable(match)).isTrue();
+        assertThat(Diary.result(MatchEnum.MatchStatus.CANCELED, null)).isEqualTo(MatchEnum.ResultType.DRAW);
+        assertThat(Diary.isRecordable(MatchEnum.MatchStatus.CANCELED, null, null)).isTrue();
     }
 
     @Test
-    void ended_match_requires_both_scores_and_derives_the_selected_team_result() {
-        assertThat(Diary.isRecordable(match(MatchEnum.MatchStatus.END, (short) 2, null))).isFalse();
-        assertThat(Diary.result(match(MatchEnum.MatchStatus.END, (short) 2, (short) 1), 1L))
+    void ended_match_requires_both_scores_and_keeps_the_selected_team_result() {
+        assertThat(Diary.isRecordable(MatchEnum.MatchStatus.END, (short) 2, null)).isFalse();
+        assertThat(Diary.result(MatchEnum.MatchStatus.END, MatchEnum.ResultType.WIN))
             .isEqualTo(MatchEnum.ResultType.WIN);
-        assertThat(Diary.result(match(MatchEnum.MatchStatus.END, (short) 2, (short) 1), 2L))
+        assertThat(Diary.result(MatchEnum.MatchStatus.END, MatchEnum.ResultType.LOSS))
             .isEqualTo(MatchEnum.ResultType.LOSS);
-    }
-
-    private static GameMatch match(MatchEnum.MatchStatus status, Short awayScore, Short homeScore) {
-        return new GameMatch("match", MatchEnum.LeagueType.KBO, null, null, "2026", LocalDateTime.MIN, 1L,
-                "away", awayScore, 2L, "home", homeScore, 4L, status, null, false, false, true,
-                LocalDateTime.MIN, LocalDateTime.MIN);
     }
 }

@@ -19,7 +19,7 @@ public class GameRecordDomainService {
     @Transactional
     public boolean record(Diary diary) {
         var match = matches.findById(diary.gameMatchId()).orElseThrow();
-        if (!Diary.isRecordable(match)) return false;
+        if (!Diary.isRecordable(match.status(), match.awayScore(), match.homeScore())) return false;
         if (records.findByDiaryId(diary.id()).isPresent()) {
             if (!Boolean.TRUE.equals(diary.rated())) diaries.save(diary.markRated());
             return false;
@@ -29,7 +29,8 @@ public class GameRecordDomainService {
         String opponentName = away ? match.homeName() : match.awayName();
         records.save(new GameRecord(null, diary.memberId(), diary.id(), match.id(), diary.teamId(), diary.teamName(),
                 opponentId, opponentName, match.stadiumId(), null, diary.viewType(), match.status(),
-                Diary.result(match, diary.teamId()), match.season(), match.league(), match.matchAt(),
+                Diary.result(match.status(), match.result(diary.teamId().equals(match.homeTeamId()))), match.season(),
+                match.league(), match.matchAt(),
                 match.homeTeamId(), null, null));
         diaries.save(diary.markRated());
         return true;

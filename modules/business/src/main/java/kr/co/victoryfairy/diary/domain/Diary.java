@@ -1,7 +1,6 @@
 package kr.co.victoryfairy.diary.domain;
 
 import java.time.LocalDateTime;
-import kr.co.victoryfairy.game.domain.GameMatch;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 
 public record Diary(Long id, Long memberId, String gameMatchId, Long teamId, String teamName,
@@ -20,14 +19,14 @@ public record Diary(Long id, Long memberId, String gameMatchId, Long teamId, Str
                         createdAt, updatedAt);
     }
 
-    public static boolean isRecordable(GameMatch match) {
-        return match.status() == MatchEnum.MatchStatus.CANCELED
-                || match.status() == MatchEnum.MatchStatus.END && match.awayScore() != null && match.homeScore() != null;
+    public static boolean isRecordable(MatchEnum.MatchStatus status, Short awayScore, Short homeScore) {
+        return status == MatchEnum.MatchStatus.CANCELED
+                || status == MatchEnum.MatchStatus.END && awayScore != null && homeScore != null;
     }
 
-    public static MatchEnum.ResultType result(GameMatch match, Long teamId) {
-        if (match.status() == MatchEnum.MatchStatus.CANCELED)
+    public static MatchEnum.ResultType result(MatchEnum.MatchStatus status, MatchEnum.ResultType playedResult) {
+        if (status == MatchEnum.MatchStatus.CANCELED)
             return MatchEnum.ResultType.DRAW;
-        return match.result(teamId.equals(match.homeTeamId()));
+        return playedResult;
     }
 }
