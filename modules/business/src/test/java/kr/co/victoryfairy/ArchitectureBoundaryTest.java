@@ -65,6 +65,14 @@ class ArchitectureBoundaryTest {
         assertThat(violations).as("forbidden outward dependencies").isEmpty();
     }
 
+    @Test
+    void businessContainsOnlySharedFeatures() {
+        Path root = repositoryRoot().resolve("modules/business/src/main/java/kr/co/victoryfairy");
+
+        assertThat(List.of("admin", "media", "member", "game/infrastructure/persistence/GameUserPersistenceAdapter.java"))
+                .allSatisfy(path -> assertThat(root.resolve(path)).doesNotExist());
+    }
+
     private static Path repositoryRoot() {
         Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (current != null && !Files.exists(current.resolve("settings.gradle.kts"))) {
