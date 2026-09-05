@@ -1,6 +1,5 @@
-package kr.co.victoryfairy.diary.infrastructure.persistence.model;
+package kr.co.victoryfairy.diary.domain;
 
-import kr.co.victoryfairy.diary.domain.DiaryEnum;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import lombok.Getter;
 

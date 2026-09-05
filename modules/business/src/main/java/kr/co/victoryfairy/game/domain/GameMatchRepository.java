@@ -9,6 +9,8 @@ public interface GameMatchRepository {
 
     Optional<GameMatch> findById(String id);
 
+    Optional<GameMatch> findDiaryWriteById(String id);
+
     List<GameMatch> findByDate(LocalDate date, MatchEnum.LeagueType league);
 
     default List<GameMatch> findByDate(LocalDate date) {

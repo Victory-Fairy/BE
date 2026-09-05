@@ -5,6 +5,7 @@ import kr.co.victoryfairy.member.infrastructure.persistence.entity.*;
 import kr.co.victoryfairy.shared.infrastructure.persistence.entity.BaseEntity;
 
 import kr.co.victoryfairy.diary.domain.DiaryEnum;
+import kr.co.victoryfairy.diary.domain.Diary;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -72,6 +73,18 @@ public class DiaryEntity extends BaseEntity {
         this.weatherType = weather;
         this.content = content;
         update();
+    }
+
+    public void apply(Diary diary, MemberEntity member, GameMatchEntity match, TeamEntity team) {
+        this.member = member;
+        this.gameMatchEntity = match;
+        this.teamEntity = team;
+        this.teamName = diary.teamName();
+        this.viewType = diary.viewType();
+        this.weatherType = diary.weather();
+        this.moodType = diary.mood();
+        this.content = diary.content();
+        this.isRated = diary.rated();
     }
 
 }

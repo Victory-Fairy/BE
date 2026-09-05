@@ -2,18 +2,13 @@ package kr.co.victoryfairy.diary.application;
 
 import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.shared.application.model.CommonDto;
-import kr.co.victoryfairy.diary.infrastructure.persistence.entity.PartnerEntity;
-import kr.co.victoryfairy.game.infrastructure.persistence.entity.TeamEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.PartnerRepository;
-import kr.co.victoryfairy.game.infrastructure.persistence.repository.TeamRepository;
+import kr.co.victoryfairy.diary.domain.PartnerStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * 동행자(파트너) 도메인 서비스
@@ -24,9 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PartnerDomainService {
 
-    private final PartnerRepository partnerRepository;
-
-    private final TeamRepository teamRepository;
+    private final PartnerStore partnerStore;
 
     /**
      * 동행자 목록 저장
@@ -40,26 +33,8 @@ public class PartnerDomainService {
             return;
         }
 
-        var teamIds = partnerList.stream()
-            .map(CommonDto.PartnerSaveRequest::teamId)
-            .filter(Objects::nonNull)
-            .distinct()
-            .toList();
-        var teamsById = teamRepository.findAllById(teamIds)
-            .stream()
-            .collect(Collectors.toMap(TeamEntity::getId, team -> team));
-
-        var partnerEntityList = partnerList.stream().map(partnerDto -> {
-            var partnerTeam = teamsById.get(partnerDto.teamId());
-            return PartnerEntity.builder()
-                .refId(refId)
-                .refType(refType)
-                .name(partnerDto.name())
-                .teamName(partnerTeam == null ? null : partnerTeam.getName())
-                .teamEntity(partnerTeam)
-                .build();
-        }).toList();
-        partnerRepository.saveAll(partnerEntityList);
+        partnerStore.savePartners(refType, refId, partnerList.stream()
+            .map(value -> new PartnerStore.Partner(value.name(), value.teamId())).toList());
     }
 
     /**
@@ -81,10 +56,7 @@ public class PartnerDomainService {
      */
     @Transactional
     public void deletePartners(RefType refType, Long refId) {
-        var existingPartners = partnerRepository.findByRefTypeAndRefId(refType, refId);
-        if (!existingPartners.isEmpty()) {
-            partnerRepository.deleteAll(existingPartners);
-        }
+        partnerStore.deletePartners(refType, refId);
     }
 
     /**
@@ -94,11 +66,8 @@ public class PartnerDomainService {
      * @return 동행자 응답 목록
      */
     public List<CommonDto.PartnerResponse> findPartnersByRefId(RefType refType, Long refId) {
-        return partnerRepository.findByRefTypeAndRefId(refType, refId)
-            .stream()
-            .map(entity -> new CommonDto.PartnerResponse(entity.getName(),
-                    entity.getTeamEntity() != null ? entity.getTeamEntity().getId() : null))
-            .toList();
+        return partnerStore.find(refType, refId).stream()
+            .map(value -> new CommonDto.PartnerResponse(value.name(), value.teamId())).toList();
     }
 
     /**
@@ -112,10 +81,7 @@ public class PartnerDomainService {
             return Map.of();
         }
 
-        return partnerRepository.findByRefTypeAndRefIdIn(refType, refIds)
-            .stream()
-            .collect(Collectors.groupingBy(PartnerEntity::getRefId,
-                    Collectors.mapping(PartnerEntity::getName, Collectors.toList())));
+        return partnerStore.findNameMap(refType, refIds);
     }
 
 }

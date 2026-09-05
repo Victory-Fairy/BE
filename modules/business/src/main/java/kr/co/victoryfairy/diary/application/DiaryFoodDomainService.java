@@ -1,15 +1,13 @@
 package kr.co.victoryfairy.diary.application;
 
 import kr.co.victoryfairy.shared.domain.RefType;
-import kr.co.victoryfairy.diary.infrastructure.persistence.entity.DiaryFoodEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryFoodRepository;
+import kr.co.victoryfairy.diary.domain.DiaryFoodStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 음식 도메인 서비스
@@ -20,7 +18,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DiaryFoodDomainService {
 
-    private final DiaryFoodRepository diaryFoodRepository;
+    private final DiaryFoodStore diaryFoodStore;
 
     /**
      * 음식 목록 저장
@@ -34,10 +32,7 @@ public class DiaryFoodDomainService {
             return;
         }
 
-        var foodEntities = foodNameList.stream()
-            .map(food -> DiaryFoodEntity.builder().refId(refId).refType(refType).foodName(food).build())
-            .toList();
-        diaryFoodRepository.saveAll(foodEntities);
+        diaryFoodStore.saveFoods(refType, refId, foodNameList);
     }
 
     /**
@@ -59,10 +54,7 @@ public class DiaryFoodDomainService {
      */
     @Transactional
     public void deleteFoods(RefType refType, Long refId) {
-        var existingFoods = diaryFoodRepository.findByRefTypeAndRefId(refType, refId);
-        if (!existingFoods.isEmpty()) {
-            diaryFoodRepository.deleteAll(existingFoods);
-        }
+        diaryFoodStore.deleteFoods(refType, refId);
     }
 
     /**
@@ -72,10 +64,7 @@ public class DiaryFoodDomainService {
      * @return 음식 이름 목록
      */
     public List<String> findFoodNamesByRefId(RefType refType, Long refId) {
-        return diaryFoodRepository.findByRefTypeAndRefId(refType, refId)
-            .stream()
-            .map(DiaryFoodEntity::getFoodName)
-            .toList();
+        return diaryFoodStore.findNames(refType, refId);
     }
 
     /**
@@ -89,10 +78,7 @@ public class DiaryFoodDomainService {
             return Map.of();
         }
 
-        return diaryFoodRepository.findByRefTypeAndRefIdIn(refType, refIds)
-            .stream()
-            .collect(Collectors.groupingBy(DiaryFoodEntity::getRefId,
-                    Collectors.mapping(DiaryFoodEntity::getFoodName, Collectors.toList())));
+        return diaryFoodStore.findNames(refType, refIds);
     }
 
 }

@@ -6,7 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.diary.infrastructure.persistence.entity.DiaryEntity;
 import kr.co.victoryfairy.game.infrastructure.persistence.entity.QTeamEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.model.DiaryModel;
+import kr.co.victoryfairy.diary.domain.DiaryModel;
 import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryCustomRepository;
 import kr.co.victoryfairy.shared.infrastructure.persistence.PageUtils;
 import kr.co.victoryfairy.shared.domain.PageResult;

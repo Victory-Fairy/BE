@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.diary.application;
+package kr.co.victoryfairy.diary.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import kr.co.victoryfairy.shared.domain.RefType;
-import kr.co.victoryfairy.shared.application.model.CommonDto;
+import kr.co.victoryfairy.diary.domain.PartnerStore;
 import kr.co.victoryfairy.diary.infrastructure.persistence.entity.PartnerEntity;
 import kr.co.victoryfairy.game.infrastructure.persistence.entity.TeamEntity;
 import kr.co.victoryfairy.diary.infrastructure.persistence.repository.PartnerRepository;
@@ -15,7 +15,6 @@ import kr.co.victoryfairy.game.infrastructure.persistence.repository.TeamReposit
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -28,8 +27,11 @@ class PartnerDomainServiceTest {
     @Mock
     private TeamRepository teamRepository;
 
-    @InjectMocks
-    private PartnerDomainService service;
+    @Mock private kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryFoodRepository foods;
+    @Mock private kr.co.victoryfairy.diary.infrastructure.persistence.repository.SeatUseHistoryRepository seatUses;
+    @Mock private kr.co.victoryfairy.diary.infrastructure.persistence.repository.SeatReviewRepository reviews;
+    @Mock private kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository diaries;
+    @Mock private kr.co.victoryfairy.game.infrastructure.persistence.repository.SeatRepository seats;
 
     @Test
     void savesPartnersWithTeamsLoadedInOneBatch() {
@@ -37,8 +39,10 @@ class PartnerDomainServiceTest {
         var samsung = new TeamEntity(4L, "삼성", "삼성");
         when(teamRepository.findAllById(List.of(13L, 4L))).thenReturn(List.of(hanwha, samsung));
 
-        service.savePartners(RefType.DIARY, 6000L, List.of(new CommonDto.PartnerSaveRequest("건호", 13L),
-                new CommonDto.PartnerSaveRequest("재진", 4L), new CommonDto.PartnerSaveRequest("수민", null)));
+        var store = new DiaryRelationPersistenceAdapter(foods, partnerRepository, seatUses, reviews, diaries,
+                teamRepository, seats);
+        store.savePartners(RefType.DIARY, 6000L, List.of(new PartnerStore.Partner("건호", 13L),
+                new PartnerStore.Partner("재진", 4L), new PartnerStore.Partner("수민", null)));
 
         @SuppressWarnings("unchecked")
         var partners = ArgumentCaptor.forClass((Class<List<PartnerEntity>>) (Class<?>) List.class);

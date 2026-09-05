@@ -41,6 +41,10 @@ public class GamePersistenceAdapter implements GameMatchRepository {
         return matches.findById(id).map(GamePersistenceMapper::toDomain);
     }
 
+    public Optional<GameMatch> findDiaryWriteById(String id) {
+        return matches.findDiaryWriteById(id).map(GamePersistenceMapper::toDomain);
+    }
+
     public List<GameMatch> findByDate(LocalDate date, MatchEnum.LeagueType league) {
         return queries.findByMatchAt(date, league).stream().map(GamePersistenceMapper::toDomain).toList();
     }

@@ -1,13 +1,10 @@
 package kr.co.victoryfairy.diary.application;
 
-import java.util.List;
-
-import kr.co.victoryfairy.game.domain.MatchEnum;
-import kr.co.victoryfairy.diary.infrastructure.persistence.entity.DiaryEntity;
-import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.entity.GameRecordEntity;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository;
-import kr.co.victoryfairy.diary.infrastructure.persistence.repository.GameRecordRepository;
+import kr.co.victoryfairy.diary.domain.Diary;
+import kr.co.victoryfairy.diary.domain.DiaryStore;
+import kr.co.victoryfairy.diary.domain.GameRecord;
+import kr.co.victoryfairy.diary.domain.GameRecordStore;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,91 +12,36 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class GameRecordDomainService {
-
-    private static final List<MatchEnum.MatchStatus> TERMINAL_STATUSES = List.of(MatchEnum.MatchStatus.END,
-            MatchEnum.MatchStatus.CANCELED);
-
-    private final DiaryRepository diaryRepository;
-
-    private final GameRecordRepository gameRecordRepository;
+    private final DiaryStore diaries;
+    private final GameRecordStore records;
+    private final GameMatchRepository matches;
 
     @Transactional
-    public boolean record(DiaryEntity diary) {
-        GameMatchEntity match = diary.getGameMatchEntity();
-        if (!TERMINAL_STATUSES.contains(match.getStatus()) || !hasFinalResult(match)) {
+    public boolean record(Diary diary) {
+        var match = matches.findById(diary.gameMatchId()).orElseThrow();
+        if (!Diary.isRecordable(match)) return false;
+        if (records.findByDiaryId(diary.id()).isPresent()) {
+            if (!Boolean.TRUE.equals(diary.rated())) diaries.save(diary.markRated());
             return false;
         }
-
-        if (gameRecordRepository.findByDiaryEntityId(diary.getId()).isPresent()) {
-            if (!Boolean.TRUE.equals(diary.getIsRated())) {
-                diary.updateRated();
-                diaryRepository.save(diary);
-            }
-            return false;
-        }
-
-        var team = diary.getTeamEntity();
-        boolean isAway = match.getAwayTeamEntity().getId().equals(team.getId());
-        var opponent = isAway ? match.getHomeTeamEntity() : match.getAwayTeamEntity();
-
-        gameRecordRepository.save(GameRecordEntity.builder()
-            .member(diary.getMember())
-            .diaryEntity(diary)
-            .gameMatchEntity(match)
-            .teamEntity(team)
-            .teamName(team.getName())
-            .opponentTeamEntity(opponent)
-            .opponentTeamName(opponent.getName())
-            .stadiumEntity(match.getStadiumEntity())
-            .viewType(diary.getViewType())
-            .status(match.getStatus())
-            .resultType(result(match, isAway))
-            .season(match.getSeason())
-            .leagueType(match.getLeague())
-            .build());
-        diary.updateRated();
-        diaryRepository.save(diary);
+        boolean away = match.awayTeamId().equals(diary.teamId());
+        Long opponentId = away ? match.homeTeamId() : match.awayTeamId();
+        String opponentName = away ? match.homeName() : match.awayName();
+        records.save(new GameRecord(null, diary.memberId(), diary.id(), match.id(), diary.teamId(), diary.teamName(),
+                opponentId, opponentName, match.stadiumId(), null, diary.viewType(), match.status(),
+                Diary.result(match, diary.teamId()), match.season(), match.league(), match.matchAt(),
+                match.homeTeamId(), null, null));
+        diaries.save(diary.markRated());
         return true;
     }
 
     @Transactional
-    public int recover(GameMatchEntity match) {
-        return diaryRepository.findByGameMatchEntityAndIsRatedFalse(match)
-            .stream()
-            .mapToInt(diary -> record(diary) ? 1 : 0)
-            .sum();
-    }
-
-    @Transactional
-    public int recover(String gameMatchId) {
-        return diaryRepository.findByGameMatchEntityIdAndIsRatedFalse(gameMatchId)
-            .stream()
-            .mapToInt(diary -> record(diary) ? 1 : 0)
-            .sum();
+    public int recover(String matchId) {
+        return diaries.findUnratedByMatch(matchId).stream().mapToInt(diary -> record(diary) ? 1 : 0).sum();
     }
 
     @Transactional
     public int recoverAllTerminal() {
-        return diaryRepository.findByIsRatedFalseAndGameMatchEntityStatusIn(TERMINAL_STATUSES)
-            .stream()
-            .mapToInt(diary -> record(diary) ? 1 : 0)
-            .sum();
+        return diaries.findAllUnratedTerminal().stream().mapToInt(diary -> record(diary) ? 1 : 0).sum();
     }
-
-    private static boolean hasFinalResult(GameMatchEntity match) {
-        return match.getStatus() == MatchEnum.MatchStatus.CANCELED
-                || match.getAwayScore() != null && match.getHomeScore() != null;
-    }
-
-    private static MatchEnum.ResultType result(GameMatchEntity match, boolean isAway) {
-        if (match.getStatus() == MatchEnum.MatchStatus.CANCELED) {
-            return MatchEnum.ResultType.DRAW;
-        }
-
-        short myScore = isAway ? match.getAwayScore() : match.getHomeScore();
-        short opponentScore = isAway ? match.getHomeScore() : match.getAwayScore();
-        return myScore == opponentScore ? MatchEnum.ResultType.DRAW
-                : myScore > opponentScore ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS;
-    }
-
 }

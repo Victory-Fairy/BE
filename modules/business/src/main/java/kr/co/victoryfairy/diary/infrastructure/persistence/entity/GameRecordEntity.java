@@ -5,6 +5,7 @@ import kr.co.victoryfairy.member.infrastructure.persistence.entity.*;
 import kr.co.victoryfairy.shared.infrastructure.persistence.entity.BaseEntity;
 
 import kr.co.victoryfairy.diary.domain.DiaryEnum;
+import kr.co.victoryfairy.diary.domain.GameRecord;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -85,6 +86,23 @@ public class GameRecordEntity extends BaseEntity {
         this.opponentTeamEntity = opponentTeamEntity;
         this.opponentTeamName = opponentTeamEntity.getName();
         this.resultType = resultType;
+    }
+
+    public void apply(GameRecord record, MemberEntity member, DiaryEntity diary, GameMatchEntity match,
+            TeamEntity team, TeamEntity opponent, StadiumEntity stadium) {
+        this.member = member;
+        this.diaryEntity = diary;
+        this.gameMatchEntity = match;
+        this.teamEntity = team;
+        this.teamName = record.teamName();
+        this.opponentTeamEntity = opponent;
+        this.opponentTeamName = record.opponentTeamName();
+        this.stadiumEntity = stadium;
+        this.viewType = record.viewType();
+        this.status = record.status();
+        this.resultType = record.result();
+        this.season = record.season();
+        this.leagueType = record.league();
     }
 
 }
