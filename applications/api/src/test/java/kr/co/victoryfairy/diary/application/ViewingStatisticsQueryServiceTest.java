@@ -1,4 +1,4 @@
-package kr.co.victoryfairy.member.application;
+package kr.co.victoryfairy.diary.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -10,6 +10,9 @@ import java.util.List;
 import kr.co.victoryfairy.diary.domain.DiaryEnum;
 import kr.co.victoryfairy.diary.domain.GameRecord;
 import kr.co.victoryfairy.diary.domain.GameRecordStore;
+import kr.co.victoryfairy.diary.domain.ViewingRecordReader;
+import kr.co.victoryfairy.member.domain.Member;
+import kr.co.victoryfairy.member.domain.MemberEnum;
 import kr.co.victoryfairy.member.domain.MemberStore;
 import kr.co.victoryfairy.member.domain.MemberQueryStore;
 import kr.co.victoryfairy.game.domain.MatchEnum;
@@ -28,7 +31,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 @ExtendWith(MockitoExtension.class)
-class MyPageReportServiceTest {
+class ViewingStatisticsQueryServiceTest {
 
     @Mock
     private MemberStore memberRepository;
@@ -40,10 +43,13 @@ class MyPageReportServiceTest {
     private GameRecordStore gameRecordRepository;
 
     @Mock
+    private ViewingRecordReader viewingRecords;
+
+    @Mock
     private S3PresignedUrlService s3PresignedUrlService;
 
     @InjectMocks
-    private MyPageQueryService service;
+    private ViewingStatisticsQueryService service;
 
     @AfterEach
     void clearRequest() {
@@ -83,6 +89,43 @@ class MyPageReportServiceTest {
         assertThatThrownBy(() -> service.findReport("2026"))
             .isInstanceOf(CustomException.class)
             .hasMessage(MessageEnum.Data.FAIL_NO_RESULT.getDescKr());
+    }
+
+    @Test
+    void returnsNullVictoryPowerForAnUnauthenticatedRequest() {
+        assertThat(service.findVictoryPower("2026"))
+                .isEqualTo(new kr.co.victoryfairy.diary.presentation.ViewingStatisticsDomain.VictoryPowerResponse(null, null));
+    }
+
+    @Test
+    void rejectsAnUnauthenticatedReportRequest() {
+        assertThatThrownBy(() -> service.findReport("2026"))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(MessageEnum.Auth.FAIL_EXPIRE_AUTH.getDescKr());
+    }
+
+    @Test
+    void returnsNullReportSectionsForAnExistingMemberWithoutRecords() {
+        authenticate(787L);
+        when(gameRecordRepository.findByMemberAndSeasonOrdered(787L, "2026")).thenReturn(List.of());
+        when(memberRepository.memberExists(787L)).thenReturn(true);
+
+        assertThat(service.findReport("2026"))
+                .isEqualTo(new kr.co.victoryfairy.diary.presentation.ViewingStatisticsDomain.ReportResponse(null, null, null));
+    }
+
+    @Test
+    void preservesPowerRoundingAndLevelMapping() {
+        authenticate(787L);
+        when(memberRepository.findMember(787L)).thenReturn(java.util.Optional.of(
+                new Member(787L, MemberEnum.Status.NORMAL, null, true, null, null, null)));
+        when(viewingRecords.findByMemberAndSeason(787L, "2026")).thenReturn(List.of(
+                new ViewingRecordReader.Record(DiaryEnum.ViewType.STADIUM, MatchEnum.ResultType.WIN),
+                new ViewingRecordReader.Record(DiaryEnum.ViewType.STADIUM, MatchEnum.ResultType.LOSS),
+                new ViewingRecordReader.Record(DiaryEnum.ViewType.HOME, MatchEnum.ResultType.WIN)));
+
+        assertThat(service.findVictoryPower("2026"))
+                .isEqualTo(new kr.co.victoryfairy.diary.presentation.ViewingStatisticsDomain.VictoryPowerResponse((short) 4, (short) 75));
     }
 
     private void authenticate(Long memberId) {

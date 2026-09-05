@@ -16,7 +16,7 @@ import kr.co.victoryfairy.game.infrastructure.persistence.entity.StadiumEntity;
 import kr.co.victoryfairy.game.infrastructure.persistence.entity.TeamEntity;
 import kr.co.victoryfairy.member.domain.Member;
 import kr.co.victoryfairy.member.domain.MemberStore;
-import kr.co.victoryfairy.member.domain.MemberGameReader;
+import kr.co.victoryfairy.diary.domain.ViewingRecordReader;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -69,7 +69,7 @@ class DiaryPersistenceIntegrationTest {
     @Autowired EntityManager entityManager;
     @Autowired TransactionTemplate transactions;
     @Autowired EntityManagerFactory entityManagerFactory;
-    @Autowired MemberGameReader memberGames;
+    @Autowired ViewingRecordReader memberGames;
 
     @Test
     void victory_power_reads_multiple_records_in_one_query() {

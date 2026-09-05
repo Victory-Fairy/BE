@@ -1,15 +1,15 @@
-package kr.co.victoryfairy.member.infrastructure.persistence;
+package kr.co.victoryfairy.diary.infrastructure.persistence;
 
 import java.util.List;
-import kr.co.victoryfairy.member.domain.MemberGameReader;
+import kr.co.victoryfairy.diary.domain.ViewingRecordReader;
 import kr.co.victoryfairy.diary.infrastructure.persistence.repository.GameRecordRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class MemberGamePersistenceAdapter implements MemberGameReader {
+public class ViewingRecordPersistenceAdapter implements ViewingRecordReader {
 
     private final GameRecordRepository records;
-    public MemberGamePersistenceAdapter(GameRecordRepository records) {
+    public ViewingRecordPersistenceAdapter(GameRecordRepository records) {
         this.records = records;
     }
 
