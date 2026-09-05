@@ -30,22 +30,6 @@ public class MyPageController {
         return CustomResponse.ok(response);
     }
 
-    @Operation(summary = "승요 레벨")
-    @GetMapping("/victory-power")
-    public CustomResponse<MyPageDomain.VictoryPowerResponse> findVictoryPower(
-            @RequestParam(required = false) String season) {
-        var response = queryService.findVictoryPower(season);
-        return CustomResponse.ok(response);
-    }
-
-    @SecurityRequirement(name = "accessToken")
-    @Operation(summary = "관람 분석")
-    @GetMapping("/report")
-    public CustomResponse<MyPageDomain.ReportResponse> findReport(@RequestParam(required = false) String season) {
-        var response = queryService.findReport(season);
-        return CustomResponse.ok(response);
-    }
-
     @SecurityRequirement(name = "accessToken")
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping("/delete-account")

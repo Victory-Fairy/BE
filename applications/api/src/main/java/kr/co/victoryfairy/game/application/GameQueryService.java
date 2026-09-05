@@ -1,15 +1,18 @@
 package kr.co.victoryfairy.game.application;
 
 import tools.jackson.databind.ObjectMapper;
-import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.game.presentation.MatchDomain;
-import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
-import kr.co.victoryfairy.storage.db.core.entity.HitterRecordEntity;
-import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
-import kr.co.victoryfairy.storage.db.core.entity.PitcherRecordEntity;
-import kr.co.victoryfairy.storage.db.core.entity.StadiumEntity;
-import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
-import kr.co.victoryfairy.storage.db.core.repository.*;
+import kr.co.victoryfairy.game.domain.GameMatch;
+import kr.co.victoryfairy.game.domain.HitterRecord;
+import kr.co.victoryfairy.game.domain.PitcherRecord;
+import kr.co.victoryfairy.game.domain.Stadium;
+import kr.co.victoryfairy.game.domain.Team;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
+import kr.co.victoryfairy.game.domain.GameRecordRepository;
+import kr.co.victoryfairy.game.domain.GameUserReader;
+import kr.co.victoryfairy.game.domain.StadiumReader;
+import kr.co.victoryfairy.game.domain.TeamReader;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
@@ -30,23 +33,15 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class GameQueryService {
 
-    private final TeamRepository teamRepository;
+    private final TeamReader teamRepository;
 
-    private final StadiumRepository stadiumRepository;
+    private final StadiumReader stadiumRepository;
 
     private final GameMatchRepository gameMatchRepository;
 
-    private final GameMatchCustomRepository gameMatchCustomRepository;
+    private final GameRecordRepository recordRepository;
 
-    private final PitcherRecordRepository pitcherRecordRepository;
-
-    private final HitterRecordRepository hitterRecordRepository;
-
-    private final MemberRepository memberRepository;
-
-    private final MemberInfoRepository memberInfoRepository;
-
-    private final DiaryRepository diaryRepository;
+    private final GameUserReader gameUserReader;
 
     private final RedisHandler redisHandler;
 
@@ -57,10 +52,7 @@ public class GameQueryService {
     public MatchDomain.MatchListResponse findList(LocalDate date, MatchEnum.LeagueType league) {
         var memberId = CurrentRequest.getId();
 
-        var teamEntity = Optional.ofNullable(memberId)
-            .flatMap(memberInfoRepository::findByMemberEntity_Id)
-            .map(MemberInfoEntity::getTeamEntity)
-            .orElse(null);
+        var teamEntity = Optional.ofNullable(memberId).flatMap(gameUserReader::preferredTeamId).orElse(null);
 
         var formatDate = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
@@ -70,43 +62,31 @@ public class GameQueryService {
         var matchRedis = redisHandler.getHashMap(formatDate + "_match_list");
 
         if (matchRedis.isEmpty()) {
-            var matchEntities = gameMatchCustomRepository.findByMatchAt(date, league);
+            var matchEntities = gameMatchRepository.findByDate(date, league);
             log.debug("findList - date: {}, league: {}, matchEntities size: {}", date, league, matchEntities.size());
-            matchEntities = matchEntities
-                .stream()
-                .sorted(Comparator.comparing(entity -> entity.getMatchAt()))
-                .toList();
+            matchEntities = matchEntities.stream().sorted(Comparator.comparing(entity -> entity.getMatchAt())).toList();
 
             if (matchEntities.isEmpty()) {
                 return new MatchDomain.MatchListResponse(date, matchList);
             }
 
             var teamsById = findTeamsById(matchEntities.stream()
-                .flatMap(match -> Stream.of(match.getAwayTeamEntity(), match.getHomeTeamEntity()))
+                .flatMap(match -> Stream.of(match.getAwayTeamId(), match.getHomeTeamId()))
                 .filter(Objects::nonNull)
-                .map(TeamEntity::getId)
                 .collect(Collectors.toSet()));
             var stadiumsById = findStadiumsById(matchEntities.stream()
-                .map(GameMatchEntity::getStadiumEntity)
+                .map(GameMatch::getStadiumId)
                 .filter(Objects::nonNull)
-                .map(StadiumEntity::getId)
                 .collect(Collectors.toSet()));
-            var diaryIdsByMatchId = findDiaryIdsByMatchId(memberId, matchEntities.stream()
-                .map(GameMatchEntity::getId)
-                .toList());
+            var diaryIdsByMatchId = findDiaryIdsByMatchId(memberId,
+                    matchEntities.stream().map(GameMatch::getId).toList());
 
             matchList = matchEntities.stream().map(entity -> {
 
                 var matchAt = entity.getMatchAt();
-                var awayTeamEntity = entity.getAwayTeamEntity() != null
-                        ? teamsById.get(entity.getAwayTeamEntity().getId())
-                        : null;
-                var homeTeamEntity = entity.getHomeTeamEntity() != null
-                        ? teamsById.get(entity.getHomeTeamEntity().getId())
-                        : null;
-                var stadiumEntity = entity.getStadiumEntity() != null
-                        ? stadiumsById.get(entity.getStadiumEntity().getId())
-                        : null;
+                var awayTeamEntity = entity.getAwayTeamId() != null ? teamsById.get(entity.getAwayTeamId()) : null;
+                var homeTeamEntity = entity.getHomeTeamId() != null ? teamsById.get(entity.getHomeTeamId()) : null;
+                var stadiumEntity = entity.getStadiumId() != null ? stadiumsById.get(entity.getStadiumId()) : null;
 
                 var diaryId = diaryIdsByMatchId.get(entity.getId());
                 var isWrited = diaryId != null;
@@ -114,45 +94,38 @@ public class GameQueryService {
                 var awayScore = entity.getAwayScore();
                 var homeScore = entity.getHomeScore();
 
-                MatchEnum.ResultType awayResult = awayScore == null ? null
-                        : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                                : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-                MatchEnum.ResultType homeResult = homeScore == null ? null
-                        : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                                : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+                MatchEnum.ResultType awayResult = entity.result(false);
+                MatchEnum.ResultType homeResult = entity.result(true);
 
-                var awayTeamDto = awayTeamEntity != null
-                        ? new MatchDomain.TeamDto(awayTeamEntity.getId(), awayTeamEntity.getName(), awayScore, awayResult)
+                var awayTeamDto = awayTeamEntity != null ? new MatchDomain.TeamDto(awayTeamEntity.getId(),
+                        awayTeamEntity.getName(), awayScore, awayResult)
                         : new MatchDomain.TeamDto(null, entity.getAwayNm(), awayScore, awayResult);
 
-                var homeTeamDto = homeTeamEntity != null
-                        ? new MatchDomain.TeamDto(homeTeamEntity.getId(), homeTeamEntity.getName(), homeScore, homeResult)
+                var homeTeamDto = homeTeamEntity != null ? new MatchDomain.TeamDto(homeTeamEntity.getId(),
+                        homeTeamEntity.getName(), homeScore, homeResult)
                         : new MatchDomain.TeamDto(null, entity.getHomeNm(), homeScore, homeResult);
 
                 var stadiumName = stadiumEntity != null ? stadiumEntity.getShortName() : "";
 
                 return new MatchDomain.MatchListDto(entity.getId(), matchAt.toLocalDate(),
-                        matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumName,
-                        entity.getStatus(), entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)
-                                ? entity.getReason() : entity.getStatus().getDesc(),
+                        matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumName, entity.getStatus(),
+                        entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED) ? entity.getReason()
+                                : entity.getStatus().getDesc(),
                         awayTeamDto, homeTeamDto, isWrited, diaryId, entity.getLeague());
             }).sorted(Comparator.comparing((MatchDomain.MatchListDto m) -> !isMyTeamMatch(m, teamEntity))).toList();
 
             return new MatchDomain.MatchListResponse(date, matchList);
         }
 
-        var matchEntries = matchRedis.entrySet().stream()
+        var matchEntries = matchRedis.entrySet()
+            .stream()
             .filter(entry -> league == null || league.name().equals(entry.getValue().get("league")))
             .toList();
         var teamsById = findTeamsById(matchEntries.stream()
-            .flatMap(entry -> Stream.of(
-                Long.valueOf(String.valueOf(entry.getValue().get("awayId"))),
-                Long.valueOf(String.valueOf(entry.getValue().get("homeId")))
-            ))
+            .flatMap(entry -> Stream.of(Long.valueOf(String.valueOf(entry.getValue().get("awayId"))),
+                    Long.valueOf(String.valueOf(entry.getValue().get("homeId")))))
             .collect(Collectors.toSet()));
-        var diaryIdsByMatchId = findDiaryIdsByMatchId(memberId, matchEntries.stream()
-            .map(Map.Entry::getKey)
-            .toList());
+        var diaryIdsByMatchId = findDiaryIdsByMatchId(memberId, matchEntries.stream().map(Map.Entry::getKey).toList());
 
         for (Map.Entry<String, Map<String, Object>> entry : matchEntries) {
             Map<String, Object> matchData = entry.getValue();
@@ -212,22 +185,22 @@ public class GameQueryService {
         return new MatchDomain.MatchListResponse(date, matchList);
     }
 
-    private Map<Long, TeamEntity> findTeamsById(Collection<Long> teamIds) {
+    private Map<Long, Team> findTeamsById(Collection<Long> teamIds) {
         if (teamIds.isEmpty()) {
             return Map.of();
         }
 
-        return teamRepository.findAllById(teamIds).stream()
-            .collect(Collectors.toMap(TeamEntity::getId, team -> team));
+        return teamRepository.findAllById(teamIds).stream().collect(Collectors.toMap(Team::getId, team -> team));
     }
 
-    private Map<Long, StadiumEntity> findStadiumsById(Collection<Long> stadiumIds) {
+    private Map<Long, Stadium> findStadiumsById(Collection<Long> stadiumIds) {
         if (stadiumIds.isEmpty()) {
             return Map.of();
         }
 
-        return stadiumRepository.findAllById(stadiumIds).stream()
-            .collect(Collectors.toMap(StadiumEntity::getId, stadium -> stadium));
+        return stadiumRepository.findAllById(stadiumIds)
+            .stream()
+            .collect(Collectors.toMap(Stadium::getId, stadium -> stadium));
     }
 
     private Map<String, Long> findDiaryIdsByMatchId(Long memberId, Collection<String> matchIds) {
@@ -235,8 +208,7 @@ public class GameQueryService {
             return Map.of();
         }
 
-        return diaryRepository.findByMemberIdAndGameMatchEntityIdIn(memberId, matchIds).stream()
-            .collect(Collectors.toMap(diary -> diary.getGameMatchEntity().getId(), diary -> diary.getId()));
+        return Optional.ofNullable(gameUserReader.diaryIdsByMatchId(memberId, matchIds)).orElseGet(Map::of);
     }
 
     public MatchDomain.MatchInfoResponse findById(String id) {
@@ -245,7 +217,7 @@ public class GameQueryService {
         }
 
         var matchEntity = gameMatchRepository.findById(id)
-                .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
+            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
         // WBC는 Redis 캐시 사용 불가 → DB 직접 조회
         if (matchEntity.getLeague().equals(MatchEnum.LeagueType.WBC)) {
@@ -257,25 +229,18 @@ public class GameQueryService {
 
         if (matchRedis.isEmpty()) {
             var matchAt = matchEntity.getMatchAt();
-            var awayTeamEntity = matchEntity.getAwayTeamEntity() != null
-                    ? teamRepository.findById(matchEntity.getAwayTeamEntity().getId()).orElse(null)
-                    : null;
-            var homeTeamEntity = matchEntity.getHomeTeamEntity() != null
-                    ? teamRepository.findById(matchEntity.getHomeTeamEntity().getId()).orElse(null)
-                    : null;
-            var stadiumEntity = matchEntity.getStadiumEntity() != null
-                    ? stadiumRepository.findById(matchEntity.getStadiumEntity().getId()).orElse(null)
-                    : null;
+            var awayTeamEntity = matchEntity.getAwayTeamId() != null
+                    ? teamRepository.findById(matchEntity.getAwayTeamId()).orElse(null) : null;
+            var homeTeamEntity = matchEntity.getHomeTeamId() != null
+                    ? teamRepository.findById(matchEntity.getHomeTeamId()).orElse(null) : null;
+            var stadiumEntity = matchEntity.getStadiumId() != null
+                    ? stadiumRepository.findById(matchEntity.getStadiumId()).orElse(null) : null;
 
             var awayScore = matchEntity.getAwayScore();
             var homeScore = matchEntity.getHomeScore();
 
-            MatchEnum.ResultType awayResult = awayScore == null ? null
-                    : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                            : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-            MatchEnum.ResultType homeResult = homeScore == null ? null
-                    : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                            : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+            MatchEnum.ResultType awayResult = matchEntity.result(false);
+            MatchEnum.ResultType homeResult = matchEntity.result(true);
 
             var awayTeamDto = awayTeamEntity != null
                     ? new MatchDomain.TeamDto(awayTeamEntity.getId(), awayTeamEntity.getName(), awayScore, awayResult)
@@ -285,10 +250,8 @@ public class GameQueryService {
                     ? new MatchDomain.TeamDto(homeTeamEntity.getId(), homeTeamEntity.getName(), homeScore, homeResult)
                     : new MatchDomain.TeamDto(null, matchEntity.getHomeNm(), homeScore, homeResult);
 
-            var stadiumDto = stadiumEntity != null
-                    ? new MatchDomain.StadiumDto(stadiumEntity.getId(), stadiumEntity.getShortName(),
-                            stadiumEntity.getFullName())
-                    : null;
+            var stadiumDto = stadiumEntity != null ? new MatchDomain.StadiumDto(stadiumEntity.getId(),
+                    stadiumEntity.getShortName(), stadiumEntity.getFullName()) : null;
 
             // 취소된 경기는 취소 사유를 statusDetail로 반환
             var statusDetail = matchEntity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)
@@ -345,13 +308,11 @@ public class GameQueryService {
         var matchEntity = gameMatchRepository.findById(id)
             .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
 
-        var awayTeamEntity = matchEntity.getAwayTeamEntity() != null
-                ? teamRepository.findById(matchEntity.getAwayTeamEntity().getId()).orElse(null)
-                : null;
+        var awayTeamEntity = matchEntity.getAwayTeamId() != null
+                ? teamRepository.findById(matchEntity.getAwayTeamId()).orElse(null) : null;
 
-        var homeTeamEntity = matchEntity.getHomeTeamEntity() != null
-                ? teamRepository.findById(matchEntity.getHomeTeamEntity().getId()).orElse(null)
-                : null;
+        var homeTeamEntity = matchEntity.getHomeTeamId() != null
+                ? teamRepository.findById(matchEntity.getHomeTeamId()).orElse(null) : null;
 
         var awayPitcherRedis = redisHandler.getHashMapList("away_pitcher");
         var homePitcherRedis = redisHandler.getHashMapList("home_pitcher");
@@ -371,8 +332,8 @@ public class GameQueryService {
         List<MatchDomain.PitcherRecordDto> homePitchers = new ArrayList<>();
         List<MatchDomain.BatterRecordDto> homeBatters = new ArrayList<>();
 
-        List<PitcherRecordEntity> pitcherEntities = Collections.emptyList();
-        List<HitterRecordEntity> hitterEntities = Collections.emptyList();
+        List<PitcherRecord> pitcherEntities = Collections.emptyList();
+        List<HitterRecord> hitterEntities = Collections.emptyList();
 
         // redis 에 저장된 데이터가 없으면 DB 조회
         if (((awayPitcherRedis.isEmpty() || awayPitcherData == null)
@@ -380,8 +341,8 @@ public class GameQueryService {
                 || ((homePitcherRedis.isEmpty() || homePitcherData == null)
                         && (homeBatterRedis.isEmpty() || homeBatterData == null))) {
 
-            pitcherEntities = pitcherRecordRepository.findByGameMatchEntityId(id);
-            hitterEntities = hitterRecordRepository.findByGameMatchEntityId(id);
+            pitcherEntities = recordRepository.findPitchers(id);
+            hitterEntities = recordRepository.findHitters(id);
 
             var awayPitcherEntities = pitcherEntities.stream().filter(entity -> !entity.getHome()).toList();
 
@@ -491,13 +452,11 @@ public class GameQueryService {
             return new ArrayList<>();
         }
 
-        var memberEntity = memberRepository.findById(id)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var memberInfoEntity = memberInfoRepository.findByMemberEntity(memberEntity)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        if (memberInfoEntity.getTeamEntity() == null) {
+        var context = gameUserReader.context(id);
+        if (!context.memberExists() || !context.profileExists()) {
+            throw new CustomException(MessageEnum.Data.FAIL_NO_RESULT);
+        }
+        if (context.preferredTeamId() == null) {
             throw new CustomException(MessageEnum.Data.NO_INTEREST_TEAM);
         }
 
@@ -505,7 +464,7 @@ public class GameQueryService {
         var formatDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         var matchRedis = redisHandler.getHashMap(formatDate + "_match_list");
 
-        var matchEntity = gameMatchCustomRepository.findByTeamIdIn(memberInfoEntity.getTeamEntity().getId(), now);
+        var matchEntity = gameMatchRepository.findAllByTeam(context.preferredTeamId(), now);
 
         if (matchEntity.isEmpty()) {
             return new ArrayList<>();
@@ -514,39 +473,31 @@ public class GameQueryService {
         if (matchRedis.isEmpty()) {
             return matchEntity.stream().map(entity -> {
                 var matchAt = entity.getMatchAt();
-                var awayTeamEntity = entity.getAwayTeamEntity() != null
-                        ? teamRepository.findById(entity.getAwayTeamEntity().getId()).orElse(null)
-                        : null;
-                var homeTeamEntity = entity.getHomeTeamEntity() != null
-                        ? teamRepository.findById(entity.getHomeTeamEntity().getId()).orElse(null)
-                        : null;
-                var stadiumEntity = entity.getStadiumEntity() != null
-                        ? stadiumRepository.findById(entity.getStadiumEntity().getId()).orElse(null)
-                        : null;
-                var isWrited = diaryRepository.findByMemberIdAndGameMatchEntityId(id, entity.getId()).isPresent();
+                var awayTeamEntity = entity.getAwayTeamId() != null
+                        ? teamRepository.findById(entity.getAwayTeamId()).orElse(null) : null;
+                var homeTeamEntity = entity.getHomeTeamId() != null
+                        ? teamRepository.findById(entity.getHomeTeamId()).orElse(null) : null;
+                var stadiumEntity = entity.getStadiumId() != null
+                        ? stadiumRepository.findById(entity.getStadiumId()).orElse(null) : null;
+                var isWrited = gameUserReader.diaryIdsByMatchId(id, List.of(entity.getId()))
+                    .containsKey(entity.getId());
 
                 var awayScore = entity.getAwayScore();
                 var homeScore = entity.getHomeScore();
 
-                MatchEnum.ResultType awayResult = awayScore == null ? null
-                        : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                                : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-                MatchEnum.ResultType homeResult = homeScore == null ? null
-                        : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                                : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+                MatchEnum.ResultType awayResult = entity.result(false);
+                MatchEnum.ResultType homeResult = entity.result(true);
 
-                var awayTeamDto = awayTeamEntity != null
-                        ? new MatchDomain.TeamDto(awayTeamEntity.getId(), awayTeamEntity.getName(), awayScore, awayResult)
+                var awayTeamDto = awayTeamEntity != null ? new MatchDomain.TeamDto(awayTeamEntity.getId(),
+                        awayTeamEntity.getName(), awayScore, awayResult)
                         : new MatchDomain.TeamDto(null, entity.getAwayNm(), awayScore, awayResult);
 
-                var homeTeamDto = homeTeamEntity != null
-                        ? new MatchDomain.TeamDto(homeTeamEntity.getId(), homeTeamEntity.getName(), homeScore, homeResult)
+                var homeTeamDto = homeTeamEntity != null ? new MatchDomain.TeamDto(homeTeamEntity.getId(),
+                        homeTeamEntity.getName(), homeScore, homeResult)
                         : new MatchDomain.TeamDto(null, entity.getHomeNm(), homeScore, homeResult);
 
-                var stadiumDto = stadiumEntity != null
-                        ? new MatchDomain.StadiumDto(stadiumEntity.getId(), stadiumEntity.getShortName(),
-                                stadiumEntity.getFullName())
-                        : null;
+                var stadiumDto = stadiumEntity != null ? new MatchDomain.StadiumDto(stadiumEntity.getId(),
+                        stadiumEntity.getShortName(), stadiumEntity.getFullName()) : null;
                 return new MatchDomain.InterestTeamMatchInfoResponse(entity.getId(), matchAt.toLocalDate(),
                         matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumDto, entity.getStatus(),
                         entity.getStatus().getDesc(), awayTeamDto, homeTeamDto, isWrited);
@@ -573,7 +524,7 @@ public class GameQueryService {
             var awayEntity = teamRepository.findById(awayId).orElse(null);
             var homeEntity = teamRepository.findById(homeId).orElse(null);
             var stadiumEntity = stadiumRepository.findById(stadiumId).orElse(null);
-            var isWrited = diaryRepository.findByMemberIdAndGameMatchEntityId(id, entity.getId()).isPresent();
+            var isWrited = gameUserReader.diaryIdsByMatchId(id, List.of(entity.getId())).containsKey(entity.getId());
 
             var awayScore = awayScoreObj != null ? Short.valueOf(String.valueOf(awayScoreObj)) : null;
             var homeScore = homeScoreObj != null ? Short.valueOf(String.valueOf(homeScoreObj)) : null;
@@ -607,17 +558,14 @@ public class GameQueryService {
         var memberId = CurrentRequest.getId();
         var formatDate = date.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        var teamEntity = Optional.ofNullable(memberId)
-            .flatMap(memberInfoRepository::findByMemberEntity_Id)
-            .map(MemberInfoEntity::getTeamEntity)
-            .orElse(null);
+        var teamEntity = Optional.ofNullable(memberId).flatMap(gameUserReader::preferredTeamId).orElse(null);
 
         List<MatchDomain.MatchListDto> matchList = new ArrayList();
 
         var matchRedis = redisHandler.getHashMap(formatDate + "_match_list");
 
         if (matchRedis.isEmpty()) {
-            var matchEntities = gameMatchCustomRepository.findByMatchAt(date)
+            var matchEntities = gameMatchRepository.findByDate(date)
                 .stream()
                 .sorted(Comparator.comparing(entity -> entity.getMatchAt()))
                 .toList();
@@ -629,44 +577,36 @@ public class GameQueryService {
             matchList = matchEntities.stream().map(entity -> {
 
                 var matchAt = entity.getMatchAt();
-                var awayTeamEntity = entity.getAwayTeamEntity() != null
-                        ? teamRepository.findById(entity.getAwayTeamEntity().getId()).orElse(null)
-                        : null;
-                var homeTeamEntity = entity.getHomeTeamEntity() != null
-                        ? teamRepository.findById(entity.getHomeTeamEntity().getId()).orElse(null)
-                        : null;
-                var stadiumEntity = entity.getStadiumEntity() != null
-                        ? stadiumRepository.findById(entity.getStadiumEntity().getId()).orElse(null)
-                        : null;
+                var awayTeamEntity = entity.getAwayTeamId() != null
+                        ? teamRepository.findById(entity.getAwayTeamId()).orElse(null) : null;
+                var homeTeamEntity = entity.getHomeTeamId() != null
+                        ? teamRepository.findById(entity.getHomeTeamId()).orElse(null) : null;
+                var stadiumEntity = entity.getStadiumId() != null
+                        ? stadiumRepository.findById(entity.getStadiumId()).orElse(null) : null;
 
-                var diaryEntity = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, entity.getId());
-                var isWrited = diaryEntity.isPresent();
-                var diaryId = diaryEntity.map(d -> d.getId()).orElse(null);
+                var diaryId = gameUserReader.diaryIdsByMatchId(memberId, List.of(entity.getId())).get(entity.getId());
+                var isWrited = diaryId != null;
 
                 var awayScore = entity.getAwayScore();
                 var homeScore = entity.getHomeScore();
 
-                MatchEnum.ResultType awayResult = awayScore == null ? null
-                        : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                                : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-                MatchEnum.ResultType homeResult = homeScore == null ? null
-                        : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                                : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+                MatchEnum.ResultType awayResult = entity.result(false);
+                MatchEnum.ResultType homeResult = entity.result(true);
 
-                var awayTeamDto = awayTeamEntity != null
-                        ? new MatchDomain.TeamDto(awayTeamEntity.getId(), awayTeamEntity.getName(), awayScore, awayResult)
+                var awayTeamDto = awayTeamEntity != null ? new MatchDomain.TeamDto(awayTeamEntity.getId(),
+                        awayTeamEntity.getName(), awayScore, awayResult)
                         : new MatchDomain.TeamDto(null, entity.getAwayNm(), awayScore, awayResult);
 
-                var homeTeamDto = homeTeamEntity != null
-                        ? new MatchDomain.TeamDto(homeTeamEntity.getId(), homeTeamEntity.getName(), homeScore, homeResult)
+                var homeTeamDto = homeTeamEntity != null ? new MatchDomain.TeamDto(homeTeamEntity.getId(),
+                        homeTeamEntity.getName(), homeScore, homeResult)
                         : new MatchDomain.TeamDto(null, entity.getHomeNm(), homeScore, homeResult);
 
                 var stadiumName = stadiumEntity != null ? stadiumEntity.getShortName() : "";
 
                 return new MatchDomain.MatchListDto(entity.getId(), matchAt.toLocalDate(),
-                        matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumName,
-                        entity.getStatus(), entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)
-                                ? entity.getReason() : entity.getStatus().getDesc(),
+                        matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumName, entity.getStatus(),
+                        entity.getStatus().equals(MatchEnum.MatchStatus.CANCELED) ? entity.getReason()
+                                : entity.getStatus().getDesc(),
                         awayTeamDto, homeTeamDto, isWrited, diaryId, entity.getLeague());
             }).sorted(Comparator.comparing((MatchDomain.MatchListDto m) -> !isMyTeamMatch(m, teamEntity))).toList();
 
@@ -691,9 +631,8 @@ public class GameQueryService {
 
             var awayEntity = teamRepository.findById(awayId).orElse(null);
             var homeEntity = teamRepository.findById(homeId).orElse(null);
-            var diaryEntity = diaryRepository.findByMemberIdAndGameMatchEntityId(memberId, id);
-            var isWrited = diaryEntity.isPresent();
-            var diaryId = diaryEntity.map(d -> d.getId()).orElse(null);
+            var diaryId = gameUserReader.diaryIdsByMatchId(memberId, List.of(id)).get(id);
+            var isWrited = diaryId != null;
 
             var awayScore = awayScoreObj != null ? Short.valueOf(String.valueOf(awayScoreObj)) : null;
             var homeScore = homeScoreObj != null ? Short.valueOf(String.valueOf(homeScoreObj)) : null;
@@ -732,37 +671,30 @@ public class GameQueryService {
         return new MatchDomain.TodayMatchListResponse(matchList);
     }
 
-    private boolean isMyTeamMatch(MatchDomain.MatchListDto match, TeamEntity teamEntity) {
-        if (teamEntity == null) {
+    private boolean isMyTeamMatch(MatchDomain.MatchListDto match, Long teamId) {
+        if (teamId == null) {
             return false;
         }
-        Long myTeamId = teamEntity.getId();
+        Long myTeamId = teamId;
         boolean awayMatches = match.awayTeam() != null && myTeamId.equals(match.awayTeam().id());
         boolean homeMatches = match.homeTeam() != null && myTeamId.equals(match.homeTeam().id());
         return awayMatches || homeMatches;
     }
 
-    private MatchDomain.MatchInfoResponse findByIdFromDb(GameMatchEntity matchEntity) {
+    private MatchDomain.MatchInfoResponse findByIdFromDb(GameMatch matchEntity) {
         var matchAt = matchEntity.getMatchAt();
-        var awayTeamEntity = matchEntity.getAwayTeamEntity() != null
-                ? teamRepository.findById(matchEntity.getAwayTeamEntity().getId()).orElse(null)
-                : null;
-        var homeTeamEntity = matchEntity.getHomeTeamEntity() != null
-                ? teamRepository.findById(matchEntity.getHomeTeamEntity().getId()).orElse(null)
-                : null;
-        var stadiumEntity = matchEntity.getStadiumEntity() != null
-                ? stadiumRepository.findById(matchEntity.getStadiumEntity().getId()).orElse(null)
-                : null;
+        var awayTeamEntity = matchEntity.getAwayTeamId() != null
+                ? teamRepository.findById(matchEntity.getAwayTeamId()).orElse(null) : null;
+        var homeTeamEntity = matchEntity.getHomeTeamId() != null
+                ? teamRepository.findById(matchEntity.getHomeTeamId()).orElse(null) : null;
+        var stadiumEntity = matchEntity.getStadiumId() != null
+                ? stadiumRepository.findById(matchEntity.getStadiumId()).orElse(null) : null;
 
         var awayScore = matchEntity.getAwayScore();
         var homeScore = matchEntity.getHomeScore();
 
-        MatchEnum.ResultType awayResult = awayScore == null ? null
-                : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                        : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-        MatchEnum.ResultType homeResult = homeScore == null ? null
-                : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                        : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+        MatchEnum.ResultType awayResult = matchEntity.result(false);
+        MatchEnum.ResultType homeResult = matchEntity.result(true);
 
         var awayTeamDto = awayTeamEntity != null
                 ? new MatchDomain.TeamDto(awayTeamEntity.getId(), awayTeamEntity.getName(), awayScore, awayResult)
@@ -772,17 +704,15 @@ public class GameQueryService {
                 ? new MatchDomain.TeamDto(homeTeamEntity.getId(), homeTeamEntity.getName(), homeScore, homeResult)
                 : new MatchDomain.TeamDto(null, matchEntity.getHomeNm(), homeScore, homeResult);
 
-        var stadiumDto = stadiumEntity != null
-                ? new MatchDomain.StadiumDto(stadiumEntity.getId(), stadiumEntity.getShortName(),
-                        stadiumEntity.getFullName())
-                : null;
+        var stadiumDto = stadiumEntity != null ? new MatchDomain.StadiumDto(stadiumEntity.getId(),
+                stadiumEntity.getShortName(), stadiumEntity.getFullName()) : null;
 
         var statusDetail = matchEntity.getStatus().equals(MatchEnum.MatchStatus.CANCELED)
                 && matchEntity.getReason() != null ? matchEntity.getReason() : matchEntity.getStatus().getDesc();
 
         return new MatchDomain.MatchInfoResponse(matchEntity.getId(), matchAt.toLocalDate(),
-                matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumDto, matchEntity.getStatus(),
-                statusDetail, awayTeamDto, homeTeamDto, matchEntity.getLeague());
+                matchAt.format(DateTimeFormatter.ofPattern("HH:mm")), stadiumDto, matchEntity.getStatus(), statusDetail,
+                awayTeamDto, homeTeamDto, matchEntity.getLeague());
     }
 
 }

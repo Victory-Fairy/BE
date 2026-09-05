@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.contract;
 
-import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.game.domain.MatchEnum;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;

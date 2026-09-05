@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.game.presentation;
 
-import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.game.domain.MatchEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;

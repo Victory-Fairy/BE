@@ -1,0 +1,168 @@
+package kr.co.victoryfairy.game.infrastructure.persistence.repository.impl;
+
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringTemplate;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
+import kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchCustomRepository;
+import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static kr.co.victoryfairy.game.infrastructure.persistence.entity.QGameMatchEntity.gameMatchEntity;
+import static kr.co.victoryfairy.game.infrastructure.persistence.entity.QStadiumEntity.stadiumEntity;
+import static kr.co.victoryfairy.game.infrastructure.persistence.entity.QTeamEntity.teamEntity;
+
+import kr.co.victoryfairy.game.infrastructure.persistence.entity.QTeamEntity;
+
+@Repository
+public class GameMatchCustomRepositoryImpl extends QuerydslRepositorySupport implements GameMatchCustomRepository {
+
+    private final JPAQueryFactory jpaQueryFactory;
+
+    public GameMatchCustomRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
+        super(GameMatchEntity.class);
+        this.jpaQueryFactory = jpaQueryFactory;
+    }
+
+    @Override
+    public List<GameMatchEntity> findByMatchAt(LocalDate matchAt) {
+        QTeamEntity awayTeam = new QTeamEntity("awayTeam");
+        QTeamEntity homeTeam = new QTeamEntity("homeTeam");
+
+        return jpaQueryFactory
+            .select(Projections.fields(GameMatchEntity.class, gameMatchEntity.id, gameMatchEntity.type,
+                    gameMatchEntity.series, gameMatchEntity.season, gameMatchEntity.matchAt,
+                    awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
+                    homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore, stadiumEntity,
+                    gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
+            .from(gameMatchEntity)
+            .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
+            .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
+            .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
+            .where(this.eqMatchAt(matchAt))
+            .fetch();
+    }
+
+    @Override
+    public List<GameMatchEntity> findByMatchAt(LocalDate matchAt, MatchEnum.LeagueType league) {
+        QTeamEntity awayTeam = new QTeamEntity("awayTeam");
+        QTeamEntity homeTeam = new QTeamEntity("homeTeam");
+
+        return jpaQueryFactory
+            .select(Projections.fields(GameMatchEntity.class, gameMatchEntity.id, gameMatchEntity.type,
+                    gameMatchEntity.series, gameMatchEntity.season, gameMatchEntity.matchAt,
+                    awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
+                    homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore, stadiumEntity,
+                    gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
+            .from(gameMatchEntity)
+            .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
+            .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
+            .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
+            .where(this.eqMatchAt(matchAt), this.eqLeague(league))
+            .where(gameMatchEntity.isUse.eq(true))
+            .fetch();
+    }
+
+    @Override
+    public Optional<GameMatchEntity> findByTeamId(Long teamId, LocalDate matchAt) {
+        QTeamEntity awayTeam = new QTeamEntity("awayTeam");
+        QTeamEntity homeTeam = new QTeamEntity("homeTeam");
+
+        return Optional.ofNullable(jpaQueryFactory
+            .select(Projections.fields(GameMatchEntity.class, gameMatchEntity.id, gameMatchEntity.type,
+                    gameMatchEntity.series, gameMatchEntity.season, gameMatchEntity.matchAt,
+                    awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
+                    homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore, stadiumEntity,
+                    gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
+            .from(gameMatchEntity)
+            .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
+            .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
+            .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
+            .where(this.eqTeamId(teamId).and(this.eqMatchAt(matchAt)))
+            .fetchOne());
+    }
+
+    @Override
+    public List<GameMatchEntity> findByTeamIdIn(Long teamId, LocalDate matchAt) {
+        QTeamEntity awayTeam = new QTeamEntity("awayTeam");
+        QTeamEntity homeTeam = new QTeamEntity("homeTeam");
+
+        return jpaQueryFactory
+            .select(Projections.fields(GameMatchEntity.class, gameMatchEntity.id, gameMatchEntity.type,
+                    gameMatchEntity.series, gameMatchEntity.season, gameMatchEntity.matchAt,
+                    awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
+                    homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore, stadiumEntity,
+                    gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
+            .from(gameMatchEntity)
+            .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
+            .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
+            .leftJoin(stadiumEntity).on(gameMatchEntity.stadiumEntity.id.eq(stadiumEntity.id))
+            .where(this.eqTeamId(teamId).and(this.eqMatchAt(matchAt)))
+            .fetch();
+    }
+
+    @Override
+    public List<GameMatchEntity> findByYearAndMonthAndEqLeague(String year, String month,
+            MatchEnum.LeagueType leagueType) {
+        QTeamEntity awayTeam = new QTeamEntity("awayTeam");
+        QTeamEntity homeTeam = new QTeamEntity("homeTeam");
+
+        return jpaQueryFactory
+            .select(Projections.fields(GameMatchEntity.class, gameMatchEntity.id, gameMatchEntity.type,
+                    gameMatchEntity.series, gameMatchEntity.season, gameMatchEntity.matchAt,
+                    awayTeam.as("awayTeamEntity"), gameMatchEntity.awayNm, gameMatchEntity.awayScore,
+                    homeTeam.as("homeTeamEntity"), gameMatchEntity.homeNm, gameMatchEntity.homeScore,
+                    gameMatchEntity.status, gameMatchEntity.reason, gameMatchEntity.isMatchInfoCraw,
+                    gameMatchEntity.isSendPush, gameMatchEntity.league, gameMatchEntity.isUse,
+                    gameMatchEntity.createdAt, gameMatchEntity.updatedAt))
+            .from(gameMatchEntity)
+            .leftJoin(awayTeam).on(gameMatchEntity.awayTeamEntity.id.eq(awayTeam.id))
+            .leftJoin(homeTeam).on(gameMatchEntity.homeTeamEntity.id.eq(homeTeam.id))
+            .where(this.eqMatchAt(year, month).and(gameMatchEntity.league.eq(leagueType)))
+            .fetch();
+    }
+
+    private BooleanExpression eqMatchAt(LocalDate matchAt) {
+        if (matchAt == null) {
+            return null;
+        }
+
+        return gameMatchEntity.matchAt.goe(matchAt.atStartOfDay())
+            .and(gameMatchEntity.matchAt.lt(matchAt.plusDays(1).atStartOfDay()));
+    }
+
+    private BooleanExpression eqTeamId(Long teamId) {
+        return teamId == null ? null
+                : gameMatchEntity.awayTeamEntity.id.eq(teamId).or(gameMatchEntity.homeTeamEntity.id.eq(teamId));
+    }
+
+    private BooleanExpression eqMatchAt(String year, String month) {
+        if (year == null || month == null) {
+            return null;
+        }
+
+        StringTemplate dbDate = Expressions.stringTemplate("DATE_FORMAT({0}, '%Y-%m')", gameMatchEntity.matchAt);
+
+        return dbDate.eq(year + "-" + month);
+    }
+
+    private BooleanExpression eqLeague(MatchEnum.LeagueType league) {
+        return league != null ? gameMatchEntity.league.eq(league) : null;
+    }
+
+}

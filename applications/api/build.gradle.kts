@@ -31,7 +31,7 @@ tasks.named<Jar>("jar") {
 }
 
 dependencies {
-    implementation(project(":domain"))
+    implementation(project(":modules:business"))
     implementation(project(":infrastructure:redis"))
 
     implementation("org.springframework.boot:spring-boot-starter-flyway")
@@ -57,6 +57,11 @@ dependencies {
 
     compileOnly("org.mapstruct:mapstruct:1.5.5.Final")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+
+    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+    annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta")
+    annotationProcessor("jakarta.annotation:jakarta.annotation-api")
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
 
     implementation("org.springframework.security:spring-security-crypto")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")

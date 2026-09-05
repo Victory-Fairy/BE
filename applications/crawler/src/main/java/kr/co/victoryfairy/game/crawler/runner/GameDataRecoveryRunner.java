@@ -5,11 +5,11 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-import io.dodn.springboot.core.enums.MatchEnum;
-import kr.co.victoryfairy.common.service.GameRecordDomainService;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.diary.application.GameRecordDomainService;
 import kr.co.victoryfairy.game.crawler.service.KboGameCrawler;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchCustomRepository;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +36,7 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
 
     private final KboGameCrawler crawler;
 
-    private final GameMatchCustomRepository gameMatchCustomRepository;
+    private final GameMatchRepository gameMatchRepository;
 
     private final GameRecordDomainService gameRecordDomainService;
 
@@ -44,9 +44,9 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
 
     public GameDataRecoveryRunner(@Value("${game-recovery.from:}") String from,
             @Value("${game-recovery.to:}") String to, @Value("${game-recovery.days-ago:0}") int daysAgo,
-            @Value("${game-recovery.dry-run:true}") boolean dryRun,
-            KboGameCrawler crawler, GameMatchCustomRepository gameMatchCustomRepository,
-            GameRecordDomainService gameRecordDomainService, RedisHandler redisHandler) {
+            @Value("${game-recovery.dry-run:true}") boolean dryRun, KboGameCrawler crawler,
+            GameMatchRepository gameMatchRepository, GameRecordDomainService gameRecordDomainService,
+            RedisHandler redisHandler) {
         var range = resolveDateRange(from, to, daysAgo, LocalDate.now(KOREA));
         this.from = range.from();
         this.to = range.to();
@@ -55,7 +55,7 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
         }
         this.dryRun = dryRun;
         this.crawler = crawler;
-        this.gameMatchCustomRepository = gameMatchCustomRepository;
+        this.gameMatchRepository = gameMatchRepository;
         this.gameRecordDomainService = gameRecordDomainService;
         this.redisHandler = redisHandler;
     }
@@ -87,14 +87,13 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
         }
 
         for (YearMonth month = YearMonth.from(from); !month.isAfter(YearMonth.from(to)); month = month.plusMonths(1)) {
-            crawler.crawMatchListByMonth(String.valueOf(month.getYear()),
-                    String.format("%02d", month.getMonthValue()));
+            crawler.crawMatchListByMonth(String.valueOf(month.getYear()), String.format("%02d", month.getMonthValue()));
         }
 
         int details = 0;
         int diaryRecords = 0;
         for (LocalDate date = from; !date.isAfter(to); date = date.plusDays(1)) {
-            for (var match : gameMatchCustomRepository.findByMatchAt(date, MatchEnum.LeagueType.KBO)) {
+            for (var match : gameMatchRepository.findByDate(date, MatchEnum.LeagueType.KBO)) {
                 if (match.getStatus() != MatchEnum.MatchStatus.END
                         && match.getStatus() != MatchEnum.MatchStatus.CANCELED) {
                     continue;
@@ -104,7 +103,7 @@ public class GameDataRecoveryRunner implements ApplicationRunner {
                     crawler.crawMatchDetailById(match.getId());
                     details++;
                 }
-                diaryRecords += gameRecordDomainService.recover(match);
+                diaryRecords += gameRecordDomainService.recover(match.id());
             }
             redisHandler.deleteHash(date.format(CACHE_DATE) + "_match_list");
         }

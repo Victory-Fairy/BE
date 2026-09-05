@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.web.error;
 
-import kr.co.victoryfairy.storage.db.core.logging.SqlLoggingHolder;
+import kr.co.victoryfairy.shared.infrastructure.persistence.logging.SqlLoggingHolder;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.web.response.CustomResponse;

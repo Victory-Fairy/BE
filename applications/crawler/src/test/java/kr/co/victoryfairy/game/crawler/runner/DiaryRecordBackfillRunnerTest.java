@@ -2,7 +2,7 @@ package kr.co.victoryfairy.game.crawler.runner;
 
 import static org.mockito.Mockito.verify;
 
-import kr.co.victoryfairy.common.service.GameRecordDomainService;
+import kr.co.victoryfairy.diary.application.GameRecordDomainService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.ApplicationArguments;

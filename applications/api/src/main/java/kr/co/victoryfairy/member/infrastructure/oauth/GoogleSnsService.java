@@ -1,7 +1,7 @@
 package kr.co.victoryfairy.member.infrastructure.oauth;
 
 import tools.jackson.databind.ObjectMapper;
-import io.dodn.springboot.core.enums.MemberEnum;
+import kr.co.victoryfairy.member.domain.MemberEnum;
 import kr.co.victoryfairy.member.presentation.MemberDomain;
 import kr.co.victoryfairy.member.infrastructure.oauth.model.AuthToken;
 import kr.co.victoryfairy.member.infrastructure.oauth.model.GoogleResponseWrapper;

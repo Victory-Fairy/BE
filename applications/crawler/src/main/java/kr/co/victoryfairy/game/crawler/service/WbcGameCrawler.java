@@ -2,14 +2,14 @@ package kr.co.victoryfairy.game.crawler.service;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import io.dodn.springboot.core.enums.MatchEnum;
-import io.dodn.springboot.core.enums.WbcEnum;
-import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
-import kr.co.victoryfairy.storage.db.core.entity.StadiumEntity;
-import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
-import kr.co.victoryfairy.storage.db.core.repository.StadiumRepository;
-import kr.co.victoryfairy.storage.db.core.repository.TeamRepository;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.domain.WbcEnum;
+import kr.co.victoryfairy.game.domain.GameMatch;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
+import kr.co.victoryfairy.game.domain.Stadium;
+import kr.co.victoryfairy.game.domain.StadiumReader;
+import kr.co.victoryfairy.game.domain.Team;
+import kr.co.victoryfairy.game.domain.TeamReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -26,18 +26,18 @@ public class WbcGameCrawler {
 
     private static final int WBC_SPORT_ID = 51;
 
-    private final TeamRepository teamRepository;
+    private final TeamReader teamRepository;
 
     private final GameMatchRepository gameMatchRepository;
 
-    private final StadiumRepository stadiumRepository;
+    private final StadiumReader stadiumRepository;
 
     private final RestTemplate restTemplate;
 
     private final ObjectMapper objectMapper;
 
-    public WbcGameCrawler(TeamRepository teamRepository, GameMatchRepository gameMatchRepository,
-            StadiumRepository stadiumRepository) {
+    public WbcGameCrawler(TeamReader teamRepository, GameMatchRepository gameMatchRepository,
+            StadiumReader stadiumRepository) {
         this.teamRepository = teamRepository;
         this.gameMatchRepository = gameMatchRepository;
         this.stadiumRepository = stadiumRepository;
@@ -67,14 +67,14 @@ public class WbcGameCrawler {
             gameMatchRepository.deleteByLeagueAndSeason(MatchEnum.LeagueType.WBC, sYear);
 
             JsonNode dates = root.get("dates");
-            List<GameMatchEntity> gameEntities = new ArrayList<>();
+            List<GameMatch> gameEntities = new ArrayList<>();
 
             if (dates != null && dates.isArray()) {
                 for (JsonNode dateNode : dates) {
                     JsonNode games = dateNode.get("games");
                     if (games != null && games.isArray()) {
                         for (JsonNode game : games) {
-                            GameMatchEntity entity = parseGame(game, sYear);
+                            GameMatch entity = parseGame(game, sYear);
                             if (entity != null) {
                                 gameEntities.add(entity);
                             }
@@ -110,7 +110,7 @@ public class WbcGameCrawler {
         }
     }
 
-    private GameMatchEntity parseGame(JsonNode game, String season) {
+    private GameMatch parseGame(JsonNode game, String season) {
         try {
             // 본선 경기만 필터링 (Pool, Quarterfinal, Semifinal, Championship)
             String description = getTextOrNull(game, "description");
@@ -146,34 +146,24 @@ public class WbcGameCrawler {
             WbcEnum.Country awayCountry = WbcEnum.Country.fromName(awayTeamName);
             WbcEnum.Country homeCountry = WbcEnum.Country.fromName(homeTeamName);
 
-            TeamEntity awayTeam = findTeamByCountry(awayCountry);
-            TeamEntity homeTeam = findTeamByCountry(homeCountry);
+            Team awayTeam = findTeamByCountry(awayCountry);
+            Team homeTeam = findTeamByCountry(homeCountry);
 
             String awayNmKor = awayCountry != null ? awayCountry.getKoreanName() : awayTeamName;
             String homeNmKor = homeCountry != null ? homeCountry.getKoreanName() : homeTeamName;
 
             // 경기장 매핑
-            StadiumEntity stadium = null;
+            Stadium stadium = null;
             JsonNode venue = game.get("venue");
             if (venue != null && venue.has("id")) {
                 int venueId = venue.get("id").asInt();
                 stadium = stadiumRepository.findByExternalId(venueId).orElse(null);
             }
 
-            return GameMatchEntity.builder()
-                .id(gameId)
-                .league(MatchEnum.LeagueType.WBC)
-                .homeTeamEntity(homeTeam)
-                .awayTeamEntity(awayTeam)
-                .homeNm(homeNmKor)
-                .awayNm(awayNmKor)
-                .homeScore(homeScore)
-                .awayScore(awayScore)
-                .stadiumEntity(stadium)
-                .status(matchStatus)
-                .season(season)
-                .matchAt(gameDateTime.toLocalDateTime())
-                .build();
+            return new GameMatch(gameId, MatchEnum.LeagueType.WBC, null, null, season, gameDateTime.toLocalDateTime(),
+                    awayTeam == null ? null : awayTeam.id(), awayNmKor, awayScore,
+                    homeTeam == null ? null : homeTeam.id(), homeNmKor, homeScore,
+                    stadium == null ? null : stadium.id(), matchStatus, null, false, false, true, null, null);
         }
         catch (Exception e) {
             return null;
@@ -200,7 +190,7 @@ public class WbcGameCrawler {
         return MatchEnum.MatchStatus.READY;
     }
 
-    private TeamEntity findTeamByCountry(WbcEnum.Country country) {
+    private Team findTeamByCountry(WbcEnum.Country country) {
         if (country != null) {
             return teamRepository.findByCountryCode(country.getCode()).orElse(null);
         }

@@ -1,7 +1,7 @@
 package kr.co.victoryfairy.diary.presentation;
 
-import io.dodn.springboot.core.enums.DiaryEnum;
-import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.diary.domain.DiaryEnum;
+import kr.co.victoryfairy.game.domain.MatchEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.victoryfairy.game.presentation.MatchDomain;
 

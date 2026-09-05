@@ -13,7 +13,7 @@ plugins {
 
 rootProject.name = "BE"
 
-include("domain")
+include("modules:business")
 include("applications:api")
 include("applications:crawler")
 include("tests:api-docs")

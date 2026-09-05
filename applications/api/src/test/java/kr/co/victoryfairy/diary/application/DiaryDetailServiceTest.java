@@ -7,20 +7,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import io.dodn.springboot.core.enums.DiaryEnum;
-import io.dodn.springboot.core.enums.MatchEnum;
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
-import kr.co.victoryfairy.common.service.PartnerDomainService;
+import kr.co.victoryfairy.diary.domain.DiaryEnum;
+import kr.co.victoryfairy.diary.domain.Diary;
+import kr.co.victoryfairy.diary.domain.DiaryStore;
+import kr.co.victoryfairy.diary.domain.DiaryQueryStore;
+import kr.co.victoryfairy.diary.domain.SeatUseStore;
+import kr.co.victoryfairy.game.domain.GameMatch;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.diary.application.DiaryFoodDomainService;
+import kr.co.victoryfairy.diary.application.PartnerDomainService;
 import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.member.infrastructure.security.MemberAccount;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.storage.db.core.entity.DiaryEntity;
-import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
-import kr.co.victoryfairy.storage.db.core.entity.TeamEntity;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
-import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,13 +35,16 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 class DiaryDetailServiceTest {
 
     @Mock
-    private DiaryRepository diaryRepository;
+    private DiaryStore diaryRepository;
 
     @Mock
-    private DiaryCustomRepository diaryCustomRepository;
+    private DiaryQueryStore diaryCustomRepository;
 
     @Mock
-    private SeatUseHistoryRepository seatUseHistoryRepository;
+    private SeatUseStore seatUseHistoryRepository;
+
+    @Mock
+    private GameMatchRepository matches;
 
     @Mock
     private FileReferenceService fileReferenceService;
@@ -66,26 +69,13 @@ class DiaryDetailServiceTest {
     @Test
     void returnsDiaryDetailFromTheDetailFetchPath() {
         authenticate(787L);
-        var myTeam = new TeamEntity(13L, "한화", "한화");
-        var opponent = new TeamEntity(4L, "삼성", "삼성");
-        var match = GameMatchEntity.builder()
-            .id("20260903HHLT0")
-            .league(MatchEnum.LeagueType.KBO)
-            .matchAt(LocalDateTime.of(2026, 9, 3, 18, 30))
-            .awayTeamEntity(opponent)
-            .homeTeamEntity(myTeam)
-            .awayScore((short) 1)
-            .homeScore((short) 3)
-            .status(MatchEnum.MatchStatus.END)
-            .build();
-        var diary = DiaryEntity.builder()
-            .id(6000L)
-            .gameMatchEntity(match)
-            .teamEntity(myTeam)
-            .viewType(DiaryEnum.ViewType.HOME)
-            .content("승리 일기")
-            .build();
-        when(diaryRepository.findDetailByMemberIdAndId(787L, 6000L)).thenReturn(Optional.of(diary));
+        var match = new GameMatch("20260903HHLT0", MatchEnum.LeagueType.KBO, null, null, "2026",
+                LocalDateTime.of(2026, 9, 3, 18, 30), 4L, "삼성", (short) 1, 13L, "한화", (short) 3,
+                1L, MatchEnum.MatchStatus.END, null, false, false, true, null, null);
+        var diary = new Diary(6000L, 787L, match.id(), 13L, "한화", DiaryEnum.ViewType.HOME, null, null,
+                "승리 일기", false, null, null);
+        when(diaryRepository.findDetailByMemberAndId(787L, 6000L)).thenReturn(Optional.of(diary));
+        when(matches.findById(match.id())).thenReturn(Optional.of(match));
         when(diaryFoodService.findFoodNamesByRefId(RefType.DIARY, 6000L)).thenReturn(List.of());
         when(fileReferenceService.findImagesByRefId(RefType.DIARY, 6000L)).thenReturn(List.of());
         when(partnerService.findPartnersByRefId(RefType.DIARY, 6000L)).thenReturn(List.of());

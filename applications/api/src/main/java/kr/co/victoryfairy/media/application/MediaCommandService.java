@@ -1,10 +1,10 @@
 package kr.co.victoryfairy.media.application;
 
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.media.domain.FileDomain;
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.media.domain.MediaFile;
+import kr.co.victoryfairy.media.domain.MediaFileRepository;
+import kr.co.victoryfairy.media.presentation.FileDomain;
 import kr.co.victoryfairy.media.infrastructure.S3FileUploader;
-import kr.co.victoryfairy.storage.db.core.entity.FileEntity;
-import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
 import kr.co.victoryfairy.web.response.MessageEnum;
 import kr.co.victoryfairy.web.error.CustomException;
 import kr.co.victoryfairy.media.infrastructure.FileProperties;
@@ -39,13 +39,13 @@ public class MediaCommandService {
 
     private final FileProperties fileProperties;
 
-    private final FileRepository fileRepository;
+    private final MediaFileRepository fileRepository;
 
     private final Optional<S3FileUploader> s3FileUploader;
 
     private final S3PresignedUrlService s3PresignedUrlService;
 
-    public MediaCommandService(FileProperties fileProperties, FileRepository fileRepository,
+    public MediaCommandService(FileProperties fileProperties, MediaFileRepository fileRepository,
             Optional<S3FileUploader> s3FileUploader, S3PresignedUrlService s3PresignedUrlService) {
         this.fileProperties = fileProperties;
         this.fileRepository = fileRepository;
@@ -63,26 +63,16 @@ public class MediaCommandService {
         if (fileDomains.isEmpty())
             return null;
 
-        var fileEntities = fileDomains.stream()
-            .map(file -> FileEntity.builder()
-                .name(file.name())
-                .saveName(file.saveName())
-                .path(file.path())
-                .ext(file.ext())
-                .size(file.size())
-                .build())
-            .toList();
-        fileRepository.saveAll(fileEntities);
+        var savedFiles = fileRepository.createAll(fileDomains);
 
-        return fileEntities.stream()
-            .map(entity -> new FileDomain.Response(entity.getId(), entity.getName(), entity.getSaveName(),
-                    entity.getPath(), entity.getExt(),
-                    s3PresignedUrlService.create(entity.getPath(), entity.getSaveName(), entity.getExt())))
+        return savedFiles.stream()
+            .map(file -> new FileDomain.Response(file.id(), file.name(), file.saveName(), file.path(), file.ext(),
+                    s3PresignedUrlService.create(file.path(), file.saveName(), file.ext())))
             .toList();
     }
 
-    private List<FileDomain.File> convertFile(RefType refType, List<MultipartFile> multipartFiles) {
-        List<FileDomain.File> files = new ArrayList<>();
+    private List<MediaFile> convertFile(RefType refType, List<MultipartFile> multipartFiles) {
+        List<MediaFile> files = new ArrayList<>();
 
         // saveName 만들기
         multipartFiles.forEach(file -> {
@@ -102,8 +92,8 @@ public class MediaCommandService {
                 path = path.replaceAll("\\\\", "/");
             }
 
-            FileDomain.File fileDomain = new FileDomain.File(refType, file.getOriginalFilename(), saveName, path,
-                    getExtension(file), file.getSize());
+            MediaFile fileDomain = MediaFile.newFile(file.getOriginalFilename(), saveName, path, getExtension(file),
+                    file.getSize());
             files.add(fileDomain);
         });
 

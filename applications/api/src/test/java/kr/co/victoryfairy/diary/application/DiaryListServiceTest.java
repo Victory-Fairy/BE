@@ -1,16 +1,16 @@
 package kr.co.victoryfairy.diary.application;
 
-import io.dodn.springboot.core.enums.MatchEnum;
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.common.model.CommonDto;
-import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.media.application.ImageDto;
+import kr.co.victoryfairy.diary.application.DiaryFoodDomainService;
 import kr.co.victoryfairy.media.application.FileReferenceService;
-import kr.co.victoryfairy.common.service.PartnerDomainService;
+import kr.co.victoryfairy.diary.application.PartnerDomainService;
 import kr.co.victoryfairy.redis.handler.RedisHandler;
-import kr.co.victoryfairy.storage.db.core.model.DiaryModel;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryCustomRepository;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
-import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
+import kr.co.victoryfairy.diary.domain.DiaryModel;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryCustomRepository;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.DiaryRepository;
+import kr.co.victoryfairy.diary.infrastructure.persistence.repository.SeatUseHistoryRepository;
 import kr.co.victoryfairy.member.infrastructure.security.MemberAccount;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -153,8 +153,8 @@ class DiaryListServiceTest {
                 MatchEnum.MatchStatus.END, 1L, "원정", (short) 1, 13L, "한화", (short) 2, createdAt);
     }
 
-    private CommonDto.ImageDto image(Long id, String name) {
-        return new CommonDto.ImageDto(id, "image/diary/202608", name, "jpg", "https://example.test/" + name);
+    private ImageDto image(Long id, String name) {
+        return new ImageDto(id, "image/diary/202608", name, "jpg", "https://example.test/" + name);
     }
 
 }
