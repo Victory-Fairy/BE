@@ -45,6 +45,11 @@ public class GamePersistenceAdapter implements GameMatchRepository {
         return queries.findByMatchAt(date, league).stream().map(GamePersistenceMapper::toDomain).toList();
     }
 
+    @Override
+    public List<GameMatch> findByDate(LocalDate date) {
+        return queries.findByMatchAt(date).stream().map(GamePersistenceMapper::toDomain).toList();
+    }
+
     public Optional<GameMatch> findByTeam(Long teamId, LocalDate date) {
         return queries.findByTeamId(teamId, date).map(GamePersistenceMapper::toDomain);
     }

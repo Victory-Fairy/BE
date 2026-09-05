@@ -94,12 +94,8 @@ public class GameQueryService {
                 var awayScore = entity.getAwayScore();
                 var homeScore = entity.getHomeScore();
 
-                MatchEnum.ResultType awayResult = awayScore == null ? null
-                        : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                                : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-                MatchEnum.ResultType homeResult = homeScore == null ? null
-                        : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                                : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+                MatchEnum.ResultType awayResult = entity.result(false);
+                MatchEnum.ResultType homeResult = entity.result(true);
 
                 var awayTeamDto = awayTeamEntity != null ? new MatchDomain.TeamDto(awayTeamEntity.getId(),
                         awayTeamEntity.getName(), awayScore, awayResult)
@@ -243,12 +239,8 @@ public class GameQueryService {
             var awayScore = matchEntity.getAwayScore();
             var homeScore = matchEntity.getHomeScore();
 
-            MatchEnum.ResultType awayResult = awayScore == null ? null
-                    : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                            : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-            MatchEnum.ResultType homeResult = homeScore == null ? null
-                    : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                            : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+            MatchEnum.ResultType awayResult = matchEntity.result(false);
+            MatchEnum.ResultType homeResult = matchEntity.result(true);
 
             var awayTeamDto = awayTeamEntity != null
                     ? new MatchDomain.TeamDto(awayTeamEntity.getId(), awayTeamEntity.getName(), awayScore, awayResult)
@@ -493,12 +485,8 @@ public class GameQueryService {
                 var awayScore = entity.getAwayScore();
                 var homeScore = entity.getHomeScore();
 
-                MatchEnum.ResultType awayResult = awayScore == null ? null
-                        : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                                : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-                MatchEnum.ResultType homeResult = homeScore == null ? null
-                        : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                                : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+                MatchEnum.ResultType awayResult = entity.result(false);
+                MatchEnum.ResultType homeResult = entity.result(true);
 
                 var awayTeamDto = awayTeamEntity != null ? new MatchDomain.TeamDto(awayTeamEntity.getId(),
                         awayTeamEntity.getName(), awayScore, awayResult)
@@ -602,12 +590,8 @@ public class GameQueryService {
                 var awayScore = entity.getAwayScore();
                 var homeScore = entity.getHomeScore();
 
-                MatchEnum.ResultType awayResult = awayScore == null ? null
-                        : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                                : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-                MatchEnum.ResultType homeResult = homeScore == null ? null
-                        : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                                : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+                MatchEnum.ResultType awayResult = entity.result(false);
+                MatchEnum.ResultType homeResult = entity.result(true);
 
                 var awayTeamDto = awayTeamEntity != null ? new MatchDomain.TeamDto(awayTeamEntity.getId(),
                         awayTeamEntity.getName(), awayScore, awayResult)
@@ -709,10 +693,8 @@ public class GameQueryService {
         var awayScore = matchEntity.getAwayScore();
         var homeScore = matchEntity.getHomeScore();
 
-        MatchEnum.ResultType awayResult = awayScore == null ? null : (awayScore == homeScore ? MatchEnum.ResultType.DRAW
-                : (awayScore > homeScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
-        MatchEnum.ResultType homeResult = homeScore == null ? null : (homeScore == awayScore ? MatchEnum.ResultType.DRAW
-                : (homeScore > awayScore) ? MatchEnum.ResultType.WIN : MatchEnum.ResultType.LOSS);
+        MatchEnum.ResultType awayResult = matchEntity.result(false);
+        MatchEnum.ResultType homeResult = matchEntity.result(true);
 
         var awayTeamDto = awayTeamEntity != null
                 ? new MatchDomain.TeamDto(awayTeamEntity.getId(), awayTeamEntity.getName(), awayScore, awayResult)

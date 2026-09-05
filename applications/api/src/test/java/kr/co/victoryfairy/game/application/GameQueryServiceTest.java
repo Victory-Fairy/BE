@@ -108,6 +108,33 @@ class GameQueryServiceTest {
         verify(gameUserReader).diaryIdsByMatchId(any(), anyCollection());
     }
 
+    @Test
+    void databaseMatchListUsesDomainResultIncludingUnknownScores() {
+        var date = LocalDate.of(2026, 9, 3);
+        var decided = match("decided", 18, 30);
+        var unknown = new GameMatch("unknown", MatchEnum.LeagueType.KBO, null, null, "2026",
+                LocalDateTime.of(2026, 9, 3, 19, 0), 1L, "두산", (short) 3, 2L, "LG", null, 1L,
+                MatchEnum.MatchStatus.READY, null, false, false, true, null, null);
+        when(redisHandler.getHashMap("20260903_match_list")).thenReturn(Map.of());
+        when(gameMatchRepository.findByDate(date, MatchEnum.LeagueType.KBO)).thenReturn(List.of(decided, unknown));
+        when(teamRepository.findAllById(Set.of(1L, 2L))).thenReturn(List.of(team(1L, "두산"), team(2L, "LG")));
+        when(stadiumRepository.findAllById(Set.of(1L)))
+            .thenReturn(List.of(new Stadium(1L, "잠실야구장", "잠실", "잠실", null, true, null, null)));
+
+        var response = gameQueryService.findList(date, MatchEnum.LeagueType.KBO);
+
+        assertThat(response.matchList()).filteredOn(match -> match.id().equals("decided")).singleElement()
+            .satisfies(match -> {
+                assertThat(match.awayTeam().result()).isEqualTo(MatchEnum.ResultType.WIN);
+                assertThat(match.homeTeam().result()).isEqualTo(MatchEnum.ResultType.LOSS);
+            });
+        assertThat(response.matchList()).filteredOn(match -> match.id().equals("unknown")).singleElement()
+            .satisfies(match -> {
+                assertThat(match.awayTeam().result()).isNull();
+                assertThat(match.homeTeam().result()).isNull();
+            });
+    }
+
     private void authenticate(Long memberId) {
         var request = new MockHttpServletRequest();
         request.setAttribute("accountByToken", MemberAccount.builder().id(memberId).build());

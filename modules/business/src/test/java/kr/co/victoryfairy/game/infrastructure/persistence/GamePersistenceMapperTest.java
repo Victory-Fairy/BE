@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
 import java.util.List;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.game.infrastructure.persistence.entity.GameMatchEntity;
@@ -79,6 +80,20 @@ class GamePersistenceMapperTest {
         assertThat(saved.pushSent()).isTrue();
         assertThat(saved.createdAt()).isEqualTo(createdAt);
         verify(rows, never()).findById(any());
+    }
+
+    @Test
+    void dateOnlyReadUsesTheOriginalUnfilteredQuery() {
+        var rows = mock(kr.co.victoryfairy.game.infrastructure.persistence.repository.GameMatchRepository.class);
+        var queries = mock(GameMatchCustomRepository.class);
+        var adapter = new GamePersistenceAdapter(rows, queries, mock(TeamRepository.class),
+                mock(StadiumRepository.class));
+        var date = LocalDate.of(2026, 9, 5);
+
+        adapter.findByDate(date);
+
+        verify(queries).findByMatchAt(date);
+        verify(queries, never()).findByMatchAt(date, null);
     }
 
 }
