@@ -1,10 +1,9 @@
 package kr.co.victoryfairy.media.application;
 
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.common.model.CommonDto;
-import kr.co.victoryfairy.storage.db.core.entity.FileRefEntity;
-import kr.co.victoryfairy.storage.db.core.repository.FileRefRepository;
-import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.media.domain.FileReference;
+import kr.co.victoryfairy.media.domain.FileReferenceRepository;
+import kr.co.victoryfairy.media.domain.MediaFileRepository;
 import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,9 +18,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FileReferenceService {
 
-    private final FileRepository fileRepository;
+    private final MediaFileRepository fileRepository;
 
-    private final FileRefRepository fileRefRepository;
+    private final FileReferenceRepository fileRefRepository;
 
     private final S3PresignedUrlService s3PresignedUrlService;
 
@@ -37,11 +36,11 @@ public class FileReferenceService {
             return;
         }
 
-        var fileEntities = fileRepository.findAllById(fileIds);
-        var fileRefEntities = fileEntities.stream()
-            .map(file -> FileRefEntity.builder().fileEntity(file).refId(refId).refType(refType).build())
+        var files = fileRepository.findAllById(fileIds);
+        var references = files.stream()
+            .map(file -> FileReference.active(file, refId, refType))
             .toList();
-        fileRefRepository.saveAll(fileRefEntities);
+        fileRefRepository.saveReferences(references);
     }
 
     /**
@@ -63,9 +62,9 @@ public class FileReferenceService {
      */
     @Transactional
     public void deleteFileRefs(RefType refType, Long refId) {
-        var existingFileRefs = fileRefRepository.findAllByRefTypeAndRefIdAndIsUseTrue(refType, refId);
+        var existingFileRefs = fileRefRepository.findActive(refType, refId);
         if (!existingFileRefs.isEmpty()) {
-            fileRefRepository.deleteAll(existingFileRefs);
+            fileRefRepository.deleteAll(existingFileRefs.stream().map(FileReference::id).toList());
         }
     }
 
@@ -75,11 +74,11 @@ public class FileReferenceService {
      * @param refId 참조 ID
      * @return 이미지 DTO 목록
      */
-    public List<CommonDto.ImageDto> findImagesByRefId(RefType refType, Long refId) {
-        return fileRefRepository.findAllByRefTypeAndRefIdAndIsUseTrue(refType, refId).stream().map(ref -> {
-            var file = ref.getFileEntity();
-            return new CommonDto.ImageDto(file.getId(), file.getPath(), file.getSaveName(), file.getExt(),
-                    s3PresignedUrlService.create(file.getPath(), file.getSaveName(), file.getExt()));
+    public List<ImageDto> findImagesByRefId(RefType refType, Long refId) {
+        return fileRefRepository.findActive(refType, refId).stream().map(ref -> {
+            var file = ref.file();
+            return new ImageDto(file.id(), file.path(), file.saveName(), file.ext(),
+                    s3PresignedUrlService.create(file.path(), file.saveName(), file.ext()));
         }).toList();
     }
 
@@ -89,17 +88,17 @@ public class FileReferenceService {
      * @param refIds 참조 ID 목록
      * @return refId -> ImageDto 맵 (첫 번째 파일만)
      */
-    public Map<Long, CommonDto.ImageDto> findImageMapByRefIds(RefType refType, List<Long> refIds) {
+    public Map<Long, ImageDto> findImageMapByRefIds(RefType refType, List<Long> refIds) {
         if (refIds == null || refIds.isEmpty()) {
             return Map.of();
         }
 
-        return fileRefRepository.findByRefTypeAndRefIdInAndIsUseTrue(refType, refIds)
+        return fileRefRepository.findActive(refType, refIds)
             .stream()
-            .collect(Collectors.toMap(FileRefEntity::getRefId, ref -> {
-                var file = ref.getFileEntity();
-                return new CommonDto.ImageDto(file.getId(), file.getPath(), file.getSaveName(), file.getExt(),
-                        s3PresignedUrlService.create(file.getPath(), file.getSaveName(), file.getExt()));
+            .collect(Collectors.toMap(FileReference::refId, ref -> {
+                var file = ref.file();
+                return new ImageDto(file.id(), file.path(), file.saveName(), file.ext(),
+                        s3PresignedUrlService.create(file.path(), file.saveName(), file.ext()));
             }, (existing, replacement) -> existing));
     }
 

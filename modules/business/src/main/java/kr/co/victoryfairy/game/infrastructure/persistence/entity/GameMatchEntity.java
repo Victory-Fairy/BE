@@ -1,0 +1,139 @@
+package kr.co.victoryfairy.game.infrastructure.persistence.entity;
+
+import kr.co.victoryfairy.diary.infrastructure.persistence.entity.*;
+import kr.co.victoryfairy.shared.infrastructure.persistence.entity.BaseEntity;
+
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.domain.GameMatch;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.DynamicUpdate;
+
+import java.time.LocalDateTime;
+
+@Entity(name = "game_match")
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@DynamicUpdate
+public class GameMatchEntity extends BaseEntity {
+
+    @Id
+    private String id;
+
+    @Column(length = 10, nullable = false)
+    @Comment("리그")
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private MatchEnum.LeagueType league = MatchEnum.LeagueType.KBO;
+
+    @Column
+    @Comment("경기 타입")
+    @Enumerated(EnumType.STRING)
+    private MatchEnum.MatchType type;
+
+    @Column
+    @Comment("시리즈 타입")
+    @Enumerated(EnumType.STRING)
+    private MatchEnum.SeriesType series;
+
+    @Comment("시즌")
+    private String season;
+
+    @Column
+    @Comment("경기 일자")
+    private LocalDateTime matchAt;
+
+    @Comment("어웨이")
+    @JoinColumn(name = "away_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private TeamEntity awayTeamEntity;
+
+    @Column
+    @Comment("어웨이 팀명")
+    private String awayNm;
+
+    @Column
+    @Comment("어웨이 점수")
+    private Short awayScore;
+
+    @Comment("홈")
+    @JoinColumn(name = "home_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private TeamEntity homeTeamEntity;
+
+    @Column
+    @Comment("홈 팀명")
+    private String homeNm;
+
+    @Column
+    @Comment("홈 스코어")
+    private Short homeScore;
+
+    @Comment("경기장")
+    @JoinColumn(name = "stadium_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private StadiumEntity stadiumEntity;
+
+    @Column
+    @Comment("경기 상태")
+    @Enumerated(EnumType.STRING)
+    private MatchEnum.MatchStatus status;
+
+    @Column
+    @Comment("사유")
+    private String reason;
+
+    @Comment("경기 내용 크롤링 여부")
+    @Column(columnDefinition = "bit(1) DEFAULT b'0'")
+    @Builder.Default
+    private Boolean isMatchInfoCraw = false;
+
+    @Comment("경기 시작 알림 발송 여부")
+    @Column(columnDefinition = "bit(1) DEFAULT b'0'")
+    @Builder.Default
+    private Boolean isSendPush = false;
+
+    public void syncSchedule(GameMatchEntity source) {
+        this.league = source.league;
+        this.type = source.type;
+        this.series = source.series;
+        this.season = source.season;
+        this.matchAt = source.matchAt;
+        this.awayTeamEntity = source.awayTeamEntity;
+        this.awayNm = source.awayNm;
+        this.awayScore = source.awayScore;
+        this.homeTeamEntity = source.homeTeamEntity;
+        this.homeNm = source.homeNm;
+        this.homeScore = source.homeScore;
+        this.stadiumEntity = source.stadiumEntity;
+        this.status = source.status;
+        this.reason = source.reason;
+        update();
+    }
+
+    public void apply(GameMatch source, TeamEntity awayTeam, TeamEntity homeTeam, StadiumEntity stadium) {
+        this.league = source.league();
+        this.type = source.type();
+        this.series = source.series();
+        this.season = source.season();
+        this.matchAt = source.matchAt();
+        this.awayTeamEntity = awayTeam;
+        this.awayNm = source.awayName();
+        this.awayScore = source.awayScore();
+        this.homeTeamEntity = homeTeam;
+        this.homeNm = source.homeName();
+        this.homeScore = source.homeScore();
+        this.stadiumEntity = stadium;
+        this.status = source.status();
+        this.reason = source.reason();
+        this.isMatchInfoCraw = source.detailCrawled();
+        this.isSendPush = source.pushSent();
+    }
+
+}

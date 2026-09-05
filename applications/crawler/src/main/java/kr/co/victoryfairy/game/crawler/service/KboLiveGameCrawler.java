@@ -14,7 +14,7 @@ import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.ElementHandle;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
-import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.game.domain.MatchEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

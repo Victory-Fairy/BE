@@ -7,31 +7,27 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.common.model.CommonDto;
+import kr.co.victoryfairy.shared.domain.RefType;
+import kr.co.victoryfairy.media.application.ImageDto;
 import kr.co.victoryfairy.media.application.FileReferenceService;
 import kr.co.victoryfairy.media.infrastructure.S3PresignedUrlService;
-import kr.co.victoryfairy.storage.db.core.entity.FileEntity;
-import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
-import kr.co.victoryfairy.storage.db.core.entity.MemberInfoEntity;
-import kr.co.victoryfairy.storage.db.core.repository.FileRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberInfoRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
+import kr.co.victoryfairy.media.domain.MediaFile;
+import kr.co.victoryfairy.member.domain.MemberProfile;
+import kr.co.victoryfairy.member.domain.MemberStore;
+import kr.co.victoryfairy.media.domain.MediaFileRepository;
 import org.junit.jupiter.api.Test;
 
 class CommunityReferenceAdapterTest {
 
     @Test
     void readsCommunityAuthorFromExistingMemberAndProfileData() {
-        var memberRepository = mock(MemberRepository.class);
-        var memberInfoRepository = mock(MemberInfoRepository.class);
+        var members = mock(MemberStore.class);
         var fileReferences = mock(FileReferenceService.class);
-        var member = MemberEntity.builder().id(7L).build();
-        var info = MemberInfoEntity.builder().memberEntity(member).nickNm("작성자").build();
-        when(memberInfoRepository.findByMemberEntity_IdIn(List.of(7L))).thenReturn(List.of(info));
+        var info = new MemberProfile(8L, 7L, null, null, null, "작성자", null, null, null);
+        when(members.findProfiles(List.of(7L))).thenReturn(List.of(info));
         when(fileReferences.findImageMapByRefIds(RefType.PROFILE, List.of(7L)))
-            .thenReturn(Map.of(7L, new CommonDto.ImageDto(1L, "profile", "saved", "png", "profile-url")));
-        var adapter = new CommunityMemberAdapter(memberRepository, memberInfoRepository, fileReferences);
+            .thenReturn(Map.of(7L, new ImageDto(1L, "profile", "saved", "png", "profile-url")));
+        var adapter = new CommunityMemberAdapter(members, fileReferences);
 
         var authors = adapter.findAuthors(List.of(7L));
 
@@ -41,10 +37,10 @@ class CommunityReferenceAdapterTest {
 
     @Test
     void readsExistingFileIdsAndUrlsInOneBoundary() {
-        var fileRepository = mock(FileRepository.class);
+        var fileRepository = mock(MediaFileRepository.class);
         var presignedUrls = mock(S3PresignedUrlService.class);
-        var first = FileEntity.builder().id(20L).path("community").saveName("a").ext("png").build();
-        var second = FileEntity.builder().id(10L).path("community").saveName("b").ext("jpg").build();
+        var first = new MediaFile(20L, null, "a", "community", "png", null, true, null, null);
+        var second = new MediaFile(10L, null, "b", "community", "jpg", null, true, null, null);
         when(fileRepository.findAllById(List.of(20L, 10L))).thenReturn(List.of(first, second));
         when(presignedUrls.create("community", "a", "png")).thenReturn("url-20");
         when(presignedUrls.create("community", "b", "jpg")).thenReturn("url-10");

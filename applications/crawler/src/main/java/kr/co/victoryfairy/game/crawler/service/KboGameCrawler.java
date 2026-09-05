@@ -4,10 +4,17 @@ import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.ElementHandle;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
-import io.dodn.springboot.core.enums.MatchEnum;
-import io.dodn.springboot.core.enums.TeamEnum;
-import kr.co.victoryfairy.storage.db.core.entity.*;
-import kr.co.victoryfairy.storage.db.core.repository.*;
+import kr.co.victoryfairy.game.domain.MatchEnum;
+import kr.co.victoryfairy.game.domain.TeamEnum;
+import kr.co.victoryfairy.game.domain.GameMatch;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
+import kr.co.victoryfairy.game.domain.GameRecordRepository;
+import kr.co.victoryfairy.game.domain.HitterRecord;
+import kr.co.victoryfairy.game.domain.PitcherRecord;
+import kr.co.victoryfairy.game.domain.Stadium;
+import kr.co.victoryfairy.game.domain.StadiumReader;
+import kr.co.victoryfairy.game.domain.Team;
+import kr.co.victoryfairy.game.domain.TeamReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -34,29 +41,25 @@ public class KboGameCrawler {
 
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-    private final TeamRepository teamRepository;
+    private final TeamReader teamRepository;
 
-    private final StadiumRepository stadiumRepository;
+    private final StadiumReader stadiumRepository;
 
     private final GameMatchRepository gameMatchRepository;
 
-    private final HitterRecordRepository hitterRecordRepository;
-
-    private final PitcherRecordRepository pitcherRecordRepository;
+    private final GameRecordRepository recordRepository;
 
     private final MatchScheduleSyncService matchScheduleSyncService;
 
     private final ObjectMapper objectMapper;
 
-    public KboGameCrawler(TeamRepository teamRepository, StadiumRepository stadiumRepository,
-            GameMatchRepository gameMatchRepository, HitterRecordRepository hitterRecordRepository,
-            PitcherRecordRepository pitcherRecordRepository, MatchScheduleSyncService matchScheduleSyncService,
-            ObjectMapper objectMapper) {
+    public KboGameCrawler(TeamReader teamRepository, StadiumReader stadiumRepository,
+            GameMatchRepository gameMatchRepository, GameRecordRepository recordRepository,
+            MatchScheduleSyncService matchScheduleSyncService, ObjectMapper objectMapper) {
         this.teamRepository = teamRepository;
         this.stadiumRepository = stadiumRepository;
         this.gameMatchRepository = gameMatchRepository;
-        this.hitterRecordRepository = hitterRecordRepository;
-        this.pitcherRecordRepository = pitcherRecordRepository;
+        this.recordRepository = recordRepository;
         this.matchScheduleSyncService = matchScheduleSyncService;
         this.objectMapper = objectMapper;
     }
@@ -76,14 +79,14 @@ public class KboGameCrawler {
             var teamEntities = teamRepository.findAll()
                 .stream()
                 .filter(KboGameCrawler::hasKboName)
-                .collect(Collectors.toMap(TeamEntity::getKboNm, entity -> entity));
+                .collect(Collectors.toMap(Team::getKboNm, entity -> entity));
 
             var stadiumEntities = stadiumRepository.findAll()
                 .stream()
                 .filter(KboGameCrawler::isKboStadium)
-                .collect(Collectors.toMap(StadiumEntity::getRegion, entity -> entity));
+                .collect(Collectors.toMap(Stadium::getRegion, entity -> entity));
 
-            List<GameMatchEntity> gameEntities = new ArrayList<>();
+            List<GameMatch> gameEntities = new ArrayList<>();
 
             for (int month = startMonth; month <= 12; month++) {
                 String monthStr = String.format("%02d", month);
@@ -238,9 +241,11 @@ public class KboGameCrawler {
                             continue;
                         }
 
-                        GameMatchEntity gameMatch = new GameMatchEntity(matchId, MatchEnum.LeagueType.KBO, matchType,
-                                seriesType, sYear, matchDateTime, awayEntity, away, awayScore, homeEntity, home,
-                                homeScore, stadiumEntity, matchStatus, reason, false, false);
+                        GameMatch gameMatch = new GameMatch(matchId, MatchEnum.LeagueType.KBO, matchType, seriesType,
+                                sYear, matchDateTime, awayEntity == null ? null : awayEntity.id(), away, awayScore,
+                                homeEntity == null ? null : homeEntity.id(), home, homeScore,
+                                stadiumEntity == null ? null : stadiumEntity.id(), matchStatus, reason, false, false,
+                                true, null, null);
 
                         gameEntities.add(gameMatch);
 
@@ -265,46 +270,39 @@ public class KboGameCrawler {
     public void crawMatchDetail(String sYear) {
         var matches = gameMatchRepository.findBySeason(sYear)
             .stream()
-            .sorted(Comparator.comparing(GameMatchEntity::getMatchAt))
+            .sorted(Comparator.comparing(GameMatch::getMatchAt))
             .filter(KboGameCrawler::needsDetailRecovery)
             .toList();
         matches.forEach(match -> crawMatchDetailById(match.getId()));
     }
 
-    static boolean needsDetailRecovery(GameMatchEntity match) {
-        return MatchEnum.MatchStatus.END.equals(match.getStatus())
-                && !Boolean.TRUE.equals(match.getIsMatchInfoCraw());
+    static boolean needsDetailRecovery(GameMatch match) {
+        return MatchEnum.MatchStatus.END.equals(match.getStatus()) && !Boolean.TRUE.equals(match.getIsMatchInfoCraw());
     }
 
-    static boolean hasKboName(TeamEntity team) {
+    static boolean hasKboName(Team team) {
         return StringUtils.hasText(team.getKboNm());
     }
 
-    static boolean isKboStadium(StadiumEntity stadium) {
+    static boolean isKboStadium(Stadium stadium) {
         return stadium.getExternalId() == null;
     }
 
     @Transactional
     public void crawMatchDetailById(String id) {
-        var match = gameMatchRepository.findById(id)
-            .orElseThrow(() -> new CrawlRequestException("해당 데이터가 존재하지 않습니다."));
+        var match = gameMatchRepository.findById(id).orElseThrow(() -> new CrawlRequestException("해당 데이터가 존재하지 않습니다."));
 
         try {
             var away = fetchOfficialRecords(match, "T", false);
             var home = fetchOfficialRecords(match, "B", true);
-            List<HitterRecordEntity> hitterEntities = new ArrayList<>(away.hitters());
+            List<HitterRecord> hitterEntities = new ArrayList<>(away.hitters());
             hitterEntities.addAll(home.hitters());
-            List<PitcherRecordEntity> pitcherEntities = new ArrayList<>(away.pitchers());
+            List<PitcherRecord> pitcherEntities = new ArrayList<>(away.pitchers());
             pitcherEntities.addAll(home.pitchers());
 
-            hitterRecordRepository.saveAll(hitterEntities);
-            pitcherRecordRepository.saveAll(pitcherEntities);
+            recordRepository.save(match.id(), hitterEntities, pitcherEntities);
 
-            var updatedMatch = new GameMatchEntity(match.getId(), match.getLeague(), match.getType(), match.getSeries(),
-                    match.getSeason(), match.getMatchAt(), match.getAwayTeamEntity(), match.getAwayNm(),
-                    match.getAwayScore(), match.getHomeTeamEntity(), match.getHomeNm(), match.getHomeScore(),
-                    match.getStadiumEntity(), match.getStatus(), match.getReason(), true, match.getIsSendPush());
-            gameMatchRepository.save(updatedMatch);
+            gameMatchRepository.save(match.markDetailCrawled());
         }
         catch (Exception e) {
             throw new IllegalStateException("Failed to crawl match detail: " + id, e);
@@ -323,14 +321,14 @@ public class KboGameCrawler {
             var teamEntities = teamRepository.findAll()
                 .stream()
                 .filter(KboGameCrawler::hasKboName)
-                .collect(Collectors.toMap(TeamEntity::getKboNm, entity -> entity));
+                .collect(Collectors.toMap(Team::getKboNm, entity -> entity));
 
             var stadiumEntities = stadiumRepository.findAll()
                 .stream()
                 .filter(KboGameCrawler::isKboStadium)
-                .collect(Collectors.toMap(StadiumEntity::getRegion, entity -> entity));
+                .collect(Collectors.toMap(Stadium::getRegion, entity -> entity));
 
-            List<GameMatchEntity> gameEntities = new ArrayList<>();
+            List<GameMatch> gameEntities = new ArrayList<>();
 
             String monthStr = String.format("%02d", Integer.parseInt(sMonth));
             page.selectOption("#ddlMonth", monthStr);
@@ -482,9 +480,11 @@ public class KboGameCrawler {
                         continue;
                     }
 
-                    GameMatchEntity gameMatch = new GameMatchEntity(matchId, MatchEnum.LeagueType.KBO, matchType,
-                            seriesType, sYear, matchDateTime, awayEntity, away, awayScore, homeEntity, home, homeScore,
-                            stadiumEntity, matchStatus, reason, false, false);
+                    GameMatch gameMatch = new GameMatch(matchId, MatchEnum.LeagueType.KBO, matchType, seriesType, sYear,
+                            matchDateTime, awayEntity == null ? null : awayEntity.id(), away, awayScore,
+                            homeEntity == null ? null : homeEntity.id(), home, homeScore,
+                            stadiumEntity == null ? null : stadiumEntity.id(), matchStatus, reason, false, false, true,
+                            null, null);
 
                     gameEntities.add(gameMatch);
 
@@ -550,11 +550,11 @@ public class KboGameCrawler {
         return stadium;
     }
 
-    private OfficialRecords fetchOfficialRecords(GameMatchEntity match, String teamCode, boolean isHome)
-            throws Exception {
+    private OfficialRecords fetchOfficialRecords(GameMatch match, String teamCode, boolean isHome) throws Exception {
         String form = "le_id=1&sr_id=" + URLEncoder.encode(match.getSeries().getValue(), StandardCharsets.UTF_8)
                 + "&g_id=" + URLEncoder.encode(match.getId(), StandardCharsets.UTF_8) + "&tb_sc=" + teamCode;
-        HttpRequest request = HttpRequest.newBuilder(URI.create("https://m.koreabaseball.com/ws/Kbo.asmx/GetLiveRecord"))
+        HttpRequest request = HttpRequest
+            .newBuilder(URI.create("https://m.koreabaseball.com/ws/Kbo.asmx/GetLiveRecord"))
             .header("Content-Type", "application/x-www-form-urlencoded")
             .POST(HttpRequest.BodyPublishers.ofString(form))
             .build();
@@ -565,8 +565,8 @@ public class KboGameCrawler {
         return parseOfficialRecords(objectMapper, response.body(), match, isHome);
     }
 
-    static OfficialRecords parseOfficialRecords(ObjectMapper mapper, String response, GameMatchEntity match,
-            boolean isHome) throws JacksonException {
+    static OfficialRecords parseOfficialRecords(ObjectMapper mapper, String response, GameMatch match, boolean isHome)
+            throws JacksonException {
         JsonNode root = mapper.readTree(response);
         if (!"100".equals(root.path("code").asText())) {
             throw new IllegalArgumentException("KBO record API failed: " + root.path("msg").asText());
@@ -581,23 +581,23 @@ public class KboGameCrawler {
             throw new IllegalArgumentException("KBO record API returned incomplete records");
         }
 
-        List<HitterRecordEntity> hitters = new ArrayList<>();
+        List<HitterRecord> hitters = new ArrayList<>();
         for (int i = 0; i < hitterInfo.size(); i++) {
             JsonNode info = hitterInfo.get(i);
             JsonNode row = hitterRows.get(i).path("row");
-            hitters.add(new HitterRecordEntity(shortValue(info, "RANK"), info.path("NAME").asText(),
+            hitters.add(new HitterRecord(null, shortValue(info, "RANK"), info.path("NAME").asText(),
                     info.path("SPAN").asText(), shortValue(row, 0), shortValue(row, 1), shortValue(row, 2),
-                    shortValue(row, 3), shortValue(row, 4), shortValue(row, 5), shortValue(row, 6), match,
+                    shortValue(row, 3), shortValue(row, 4), shortValue(row, 5), shortValue(row, 6), match.id(),
                     match.getSeason(), isHome));
         }
 
-        List<PitcherRecordEntity> pitchers = new ArrayList<>();
+        List<PitcherRecord> pitchers = new ArrayList<>();
         for (int i = 0; i < pitcherInfo.size(); i++) {
             JsonNode info = pitcherInfo.get(i);
             JsonNode row = pitcherRows.get(i).path("row");
-            pitchers.add(new PitcherRecordEntity(shortValue(info, "RANK"), info.path("NAME").asText(),
+            pitchers.add(new PitcherRecord(null, shortValue(info, "RANK"), info.path("NAME").asText(),
                     info.path("SPAN").asText(), textValue(row, 0), shortValue(row, 1), shortValue(row, 6),
-                    shortValue(row, 7), shortValue(row, 4), shortValue(row, 5), shortValue(row, 8), match,
+                    shortValue(row, 7), shortValue(row, 4), shortValue(row, 5), shortValue(row, 8), match.id(),
                     match.getSeason(), isHome));
         }
         return new OfficialRecords(hitters, pitchers);
@@ -615,7 +615,7 @@ public class KboGameCrawler {
         return rows.path(index).path("Text").asText().trim();
     }
 
-    record OfficialRecords(List<HitterRecordEntity> hitters, List<PitcherRecordEntity> pitchers) {
+    record OfficialRecords(List<HitterRecord> hitters, List<PitcherRecord> pitchers) {
     }
 
 }

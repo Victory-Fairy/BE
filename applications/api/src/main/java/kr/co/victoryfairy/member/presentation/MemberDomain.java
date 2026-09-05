@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.member.presentation;
 
-import io.dodn.springboot.core.enums.MemberEnum;
+import kr.co.victoryfairy.member.domain.MemberEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;

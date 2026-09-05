@@ -1,6 +1,6 @@
 package kr.co.victoryfairy.game.presentation;
 
-import io.dodn.springboot.core.enums.MatchEnum;
+import kr.co.victoryfairy.game.domain.MatchEnum;
 import kr.co.victoryfairy.game.presentation.MatchDomain;
 import kr.co.victoryfairy.game.application.GameQueryService;
 import org.junit.jupiter.api.BeforeEach;

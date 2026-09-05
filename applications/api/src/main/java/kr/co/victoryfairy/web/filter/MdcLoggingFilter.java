@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.co.victoryfairy.logging.context.LogContext;
 import kr.co.victoryfairy.logging.context.LogContextHolder;
-import kr.co.victoryfairy.storage.db.core.logging.SqlLoggingHolder;
+import kr.co.victoryfairy.shared.infrastructure.persistence.logging.SqlLoggingHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;

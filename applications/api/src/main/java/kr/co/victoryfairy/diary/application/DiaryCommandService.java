@@ -1,221 +1,97 @@
 package kr.co.victoryfairy.diary.application;
 
-import io.dodn.springboot.core.enums.MatchEnum;
-import io.dodn.springboot.core.enums.RefType;
-import kr.co.victoryfairy.common.model.CommonDto;
-import kr.co.victoryfairy.common.service.DiaryFoodDomainService;
-import kr.co.victoryfairy.media.application.FileReferenceService;
-import kr.co.victoryfairy.common.service.GameRecordDomainService;
-import kr.co.victoryfairy.common.service.PartnerDomainService;
+import java.util.List;
+import kr.co.victoryfairy.diary.domain.Diary;
+import kr.co.victoryfairy.diary.domain.DiaryStore;
+import kr.co.victoryfairy.diary.domain.GameRecordStore;
+import kr.co.victoryfairy.diary.domain.SeatUseStore;
 import kr.co.victoryfairy.diary.presentation.DiaryDomain;
+import kr.co.victoryfairy.game.domain.GameMatchRepository;
+import kr.co.victoryfairy.game.domain.TeamReader;
+import kr.co.victoryfairy.media.application.FileReferenceService;
+import kr.co.victoryfairy.member.domain.MemberStore;
+import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
 import kr.co.victoryfairy.redis.lock.DistributedLock;
 import kr.co.victoryfairy.redis.lock.LockName;
-import kr.co.victoryfairy.storage.db.core.entity.DiaryEntity;
-import kr.co.victoryfairy.storage.db.core.entity.GameMatchEntity;
-import kr.co.victoryfairy.storage.db.core.entity.MemberEntity;
-import kr.co.victoryfairy.storage.db.core.entity.SeatEntity;
-import kr.co.victoryfairy.storage.db.core.entity.SeatUseHistoryEntity;
-import kr.co.victoryfairy.storage.db.core.repository.DiaryRepository;
-import kr.co.victoryfairy.storage.db.core.repository.GameMatchRepository;
-import kr.co.victoryfairy.storage.db.core.repository.GameRecordRepository;
-import kr.co.victoryfairy.storage.db.core.repository.MemberRepository;
-import kr.co.victoryfairy.storage.db.core.repository.SeatRepository;
-import kr.co.victoryfairy.storage.db.core.repository.SeatReviewRepository;
-import kr.co.victoryfairy.storage.db.core.repository.SeatUseHistoryRepository;
-import kr.co.victoryfairy.storage.db.core.repository.TeamRepository;
-import kr.co.victoryfairy.web.response.MessageEnum;
+import kr.co.victoryfairy.diary.application.PartnerDto;
+import kr.co.victoryfairy.shared.domain.RefType;
 import kr.co.victoryfairy.web.error.CustomException;
-import kr.co.victoryfairy.member.infrastructure.security.CurrentRequest;
+import kr.co.victoryfairy.web.response.MessageEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-
 @Service
 @RequiredArgsConstructor
 public class DiaryCommandService {
-
-    private final DiaryRepository diaryRepository;
-
-    private final SeatRepository seatRepository;
-
-    private final SeatUseHistoryRepository seatUseHistoryRepository;
-
-    private final SeatReviewRepository seatReviewRepository;
-
-    private final GameMatchRepository gameMatchRepository;
-
-    private final GameRecordRepository gameRecordRepository;
-
-    private final MemberRepository memberRepository;
-
-    private final TeamRepository teamRepository;
-
-    private final FileReferenceService fileRefDomainService;
-
-    private final DiaryFoodDomainService diaryFoodDomainService;
-
-    private final PartnerDomainService partnerDomainService;
-
-    private final GameRecordDomainService gameRecordDomainService;
+    private final DiaryStore diaries;
+    private final SeatUseStore seatUses;
+    private final GameMatchRepository matches;
+    private final GameRecordStore records;
+    private final MemberStore members;
+    private final TeamReader teams;
+    private final FileReferenceService files;
+    private final DiaryFoodDomainService foods;
+    private final PartnerDomainService partners;
+    private final GameRecordDomainService gameRecords;
 
     @Transactional
-    @DistributedLock(value = LockName.DIARY_WRITE, key = "#memberId + '_' + #diaryDto.gameMatchId()")
-    public DiaryDomain.WriteResponse writeDiary(Long memberId, DiaryDomain.WriteRequest diaryDto) {
-        MemberEntity member = memberRepository.findById(Objects.requireNonNull(memberId))
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        GameMatchEntity gameMatchEntity = gameMatchRepository.findDiaryWriteById(diaryDto.gameMatchId())
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var teamEntity = teamRepository.findById(diaryDto.teamId())
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        if (diaryRepository.findByMemberAndGameMatchEntity(member, gameMatchEntity) != null) {
+    @DistributedLock(value = LockName.DIARY_WRITE, key = "#memberId + '_' + #request.gameMatchId()")
+    public DiaryDomain.WriteResponse writeDiary(Long memberId, DiaryDomain.WriteRequest request) {
+        if (members.findMember(memberId).isEmpty()) throw notFound();
+        var match = matches.findDiaryWriteById(request.gameMatchId()).orElseThrow(DiaryCommandService::notFound);
+        var team = teams.findById(request.teamId()).orElseThrow(DiaryCommandService::notFound);
+        if (diaries.findByMemberAndMatch(memberId, match.id()).isPresent())
             throw new CustomException(HttpStatus.CONFLICT, MessageEnum.Data.FAIL_DUPLICATE);
-        }
 
-        DiaryEntity diaryEntity = DiaryEntity.builder()
-            .member(member)
-            .teamName(teamEntity.getName())
-            .teamEntity(teamEntity)
-            .viewType(diaryDto.viewType())
-            .gameMatchEntity(gameMatchEntity)
-            .weatherType(diaryDto.weather())
-            .moodType(diaryDto.mood())
-            .content(diaryDto.content())
-            .build();
-        diaryRepository.save(diaryEntity);
-
-        fileRefDomainService.saveFileRefs(RefType.DIARY, diaryEntity.getId(), diaryDto.fileId());
-        diaryFoodDomainService.saveFoods(RefType.DIARY, diaryEntity.getId(), diaryDto.foodNameList());
-        partnerDomainService.savePartners(RefType.DIARY, diaryEntity.getId(),
-                toPartnerSaveRequests(diaryDto.partnerList()));
-
-        DiaryDomain.SeatUseHistoryDto diaryDtoSeat = diaryDto.seat();
-        if (diaryDtoSeat != null) {
-            SeatEntity seatEntity = null;
-            if (diaryDtoSeat.id() != null) {
-                seatEntity = seatRepository.findById(diaryDtoSeat.id()).orElse(null);
-            }
-
-            SeatUseHistoryEntity seatUseHistoryEntity = SeatUseHistoryEntity.builder()
-                .diaryEntity(diaryEntity)
-                .seatEntity(seatEntity)
-                .seatName(diaryDtoSeat.name())
-                .build();
-            seatUseHistoryRepository.save(seatUseHistoryEntity);
-        }
-
-        gameRecordDomainService.record(diaryEntity);
-
-        return new DiaryDomain.WriteResponse(diaryEntity.getId());
+        var diary = diaries.save(new Diary(null, memberId, match.id(), team.id(), team.name(), request.viewType(),
+                request.weather(), request.mood(), request.content(), false, null, null));
+        files.saveFileRefs(RefType.DIARY, diary.id(), request.fileId());
+        foods.saveFoods(RefType.DIARY, diary.id(), request.foodNameList());
+        partners.savePartners(RefType.DIARY, diary.id(), toPartners(request.partnerList()));
+        if (request.seat() != null) seatUses.save(diary.id(), request.seat().id(), request.seat().name());
+        gameRecords.record(diary);
+        return new DiaryDomain.WriteResponse(diary.id());
     }
 
     @Transactional
     public void updateDiary(Long diaryId, DiaryDomain.UpdateRequest request) {
-        var id = CurrentRequest.getId();
-        if (id == null) {
-            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
-        }
-
-        MemberEntity member = memberRepository.findById(Objects.requireNonNull(id))
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var teamEntity = teamRepository.findById(request.teamId())
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var diaryEntity = diaryRepository.findByMemberIdAndId(id, diaryId)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var gameRecordEntity = gameRecordRepository.findByMemberAndDiaryEntityId(member, diaryId);
-
-        diaryEntity.updateDiary(teamEntity.getName(), teamEntity, request.viewType(), request.mood(), request.weather(),
-                request.content());
-        diaryRepository.save(diaryEntity);
-
-        fileRefDomainService.replaceFileRefs(RefType.DIARY, diaryId, request.fileId());
-        diaryFoodDomainService.replaceFoods(RefType.DIARY, diaryId, request.foodNameList());
-        partnerDomainService.replacePartners(RefType.DIARY, diaryId, toPartnerSaveRequests(request.partnerList()));
-
-        DiaryDomain.SeatUseHistoryDto diaryDtoSeat = request.seat();
-        if (diaryDtoSeat != null) {
-            var previousSeatUseHistory = seatUseHistoryRepository.findByDiaryEntityId(diaryId);
-            var previousSeatReviews = seatReviewRepository.findBySeatUseHistoryEntity(previousSeatUseHistory);
-
-            if (!previousSeatReviews.isEmpty()) {
-                seatReviewRepository.deleteAll(previousSeatReviews);
-            }
-            if (previousSeatUseHistory != null) {
-                seatUseHistoryRepository.delete(previousSeatUseHistory);
-            }
-
-            SeatEntity seatEntity = null;
-            if (diaryDtoSeat.id() != null) {
-                seatEntity = seatRepository.findById(diaryDtoSeat.id()).orElse(null);
-            }
-
-            SeatUseHistoryEntity seatUseHistoryEntity = SeatUseHistoryEntity.builder()
-                .diaryEntity(diaryEntity)
-                .seatEntity(seatEntity)
-                .seatName(diaryDtoSeat.name())
-                .build();
-            seatUseHistoryRepository.save(seatUseHistoryEntity);
-        }
-
-        if (gameRecordEntity != null && !gameRecordEntity.getTeamEntity().getId().equals(teamEntity.getId())) {
-            var previousTeam = gameRecordEntity.getTeamEntity();
-            var previousResult = gameRecordEntity.getResultType();
-            gameRecordEntity.updateRecord(teamEntity, previousTeam,
-                    previousResult.equals(MatchEnum.ResultType.WIN) ? MatchEnum.ResultType.LOSS
-                            : previousResult.equals(MatchEnum.ResultType.LOSS) ? MatchEnum.ResultType.WIN
-                                    : previousResult);
-            gameRecordRepository.save(gameRecordEntity);
-        }
+        Long memberId = requireCurrentMember();
+        var team = teams.findById(request.teamId()).orElseThrow(DiaryCommandService::notFound);
+        var diary = diaries.findByMemberAndId(memberId, diaryId).orElseThrow(DiaryCommandService::notFound);
+        var record = records.findByDiaryId(diaryId);
+        diaries.save(diary.update(team.id(), team.name(), request.viewType(), request.mood(), request.weather(),
+                request.content()));
+        files.replaceFileRefs(RefType.DIARY, diaryId, request.fileId());
+        foods.replaceFoods(RefType.DIARY, diaryId, request.foodNameList());
+        partners.replacePartners(RefType.DIARY, diaryId, toPartners(request.partnerList()));
+        if (request.seat() != null) seatUses.replace(diaryId, request.seat().id(), request.seat().name());
+        record.filter(value -> !value.teamId().equals(team.id())).ifPresent(value -> records.save(value.switchTeam(team.id(), team.name())));
     }
 
     @Transactional
     public void deleteDiary(Long diaryId) {
-        var id = CurrentRequest.getId();
-        if (id == null) {
-            throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
-        }
-        MemberEntity member = memberRepository.findById(Objects.requireNonNull(id))
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var diaryEntity = diaryRepository.findByMemberIdAndId(id, diaryId)
-            .orElseThrow(() -> new CustomException(MessageEnum.Data.FAIL_NO_RESULT));
-
-        var gameRecordEntity = gameRecordRepository.findByMemberAndDiaryEntityId(member, diaryId);
-        if (gameRecordEntity != null) {
-            gameRecordRepository.delete(gameRecordEntity);
-        }
-
-        fileRefDomainService.deleteFileRefs(RefType.DIARY, diaryId);
-        diaryFoodDomainService.deleteFoods(RefType.DIARY, diaryId);
-        partnerDomainService.deletePartners(RefType.DIARY, diaryId);
-
-        var previousSeatUseHistory = seatUseHistoryRepository.findByDiaryEntityId(diaryId);
-        if (previousSeatUseHistory != null) {
-            seatUseHistoryRepository.delete(previousSeatUseHistory);
-        }
-
-        var previousSeatReviews = seatReviewRepository.findBySeatUseHistoryEntity(previousSeatUseHistory);
-        if (!previousSeatReviews.isEmpty()) {
-            seatReviewRepository.deleteAll(previousSeatReviews);
-        }
-
-        diaryRepository.delete(diaryEntity);
+        Long memberId = requireCurrentMember();
+        if (diaries.findByMemberAndId(memberId, diaryId).isEmpty()) throw notFound();
+        records.findByDiaryId(diaryId).ifPresent(value -> records.delete(value.id()));
+        files.deleteFileRefs(RefType.DIARY, diaryId);
+        foods.deleteFoods(RefType.DIARY, diaryId);
+        partners.deletePartners(RefType.DIARY, diaryId);
+        seatUses.delete(diaryId);
+        diaries.delete(diaryId);
     }
 
-    private List<CommonDto.PartnerSaveRequest> toPartnerSaveRequests(List<DiaryDomain.PartnerDto> partnerDtoList) {
-        if (partnerDtoList == null || partnerDtoList.isEmpty()) {
-            return List.of();
-        }
-        return partnerDtoList.stream().map(dto -> new CommonDto.PartnerSaveRequest(dto.name(), dto.teamId())).toList();
+    private Long requireCurrentMember() {
+        Long id = CurrentRequest.getId();
+        if (id == null) throw new CustomException(MessageEnum.Auth.FAIL_EXPIRE_AUTH);
+        if (members.findMember(id).isEmpty()) throw notFound();
+        return id;
     }
 
+    private static List<PartnerDto.PartnerSaveRequest> toPartners(List<DiaryDomain.PartnerDto> values) {
+        return values == null ? List.of() : values.stream().map(value -> new PartnerDto.PartnerSaveRequest(value.name(), value.teamId())).toList();
+    }
+
+    private static CustomException notFound() { return new CustomException(MessageEnum.Data.FAIL_NO_RESULT); }
 }
